@@ -9,13 +9,13 @@ let deliveryFee = 0;
 let deliveryDistance = 0;
 let activeCategory = 'all';
 
-const STORAGE_KEY = 'fg_salgados_v7';
+const STORAGE_KEY = 'fg_salgados_v8';
 
 const DEFAULT_CONTACT = {
     whats: "(19) 99609-0540",
     insta: "fgsalgados",
     address: "Entrega e Retirada Local",
-    about: "Salgados artesanais congelados na bandeja com 6 unidades. Qualidade gourmet, ingredientes selecionados e sabor de verdade.",
+    about: "Salgados artesanais congelados vendidos por unidade. Qualidade gourmet, ingredientes selecionados e sabor de verdade.",
     hours1: "Seg a Sáb: 8h às 18h",
     hours2: "Domingo: Sob Encomenda"
 };
@@ -24,28 +24,28 @@ let savedData = {};
 
 const dailyPromotions = {
     1: [
-        { id: "1", promoPrice: 7.50 },
-        { id: "4", promoPrice: 22.90 }
+        { id: "1", promoPrice: 4.50 },
+        { id: "4", promoPrice: 5.90 }
     ],
     2: [
-        { id: "2", promoPrice: 22.90 },
-        { id: "5", promoPrice: 20.90 }
+        { id: "2", promoPrice: 5.90 },
+        { id: "5", promoPrice: 5.90 }
     ],
     3: [
-        { id: "3", promoPrice: 24.90 },
-        { id: "1", promoPrice: 7.50 }
+        { id: "3", promoPrice: 23.50 },
+        { id: "1", promoPrice: 4.50 }
     ],
     4: [
-        { id: "6", promoPrice: 24.90 },
-        { id: "4", promoPrice: 22.90 }
+        { id: "6", promoPrice: 8.90 },
+        { id: "4", promoPrice: 5.90 }
     ],
     5: [
-        { id: "5", promoPrice: 20.90 },
-        { id: "2", promoPrice: 22.90 }
+        { id: "5", promoPrice: 5.90 },
+        { id: "2", promoPrice: 5.90 }
     ],
     6: [
-        { id: "3", promoPrice: 24.90 },
-        { id: "6", promoPrice: 24.90 }
+        { id: "3", promoPrice: 23.50 },
+        { id: "6", promoPrice: 8.90 }
     ]
 };
 
@@ -82,7 +82,7 @@ function loadSavedData() {
         savedData = {};
     }
 
-    menuItems = (window.fgMenuItems || []).map(item => Object.assign({}, item));
+    menuItems = (window.fgMenuItems || []).map(item => Object.assign({}, item, { desc: item.description }));
 
     if (savedData.products) {
         Object.keys(savedData.products).forEach(id => {
@@ -219,7 +219,7 @@ function createProductCard(item, isPromo, promoPrice, index = 0) {
             <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card ${isPromo ? 'promo-border' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
                 <div class="product-image-wrapper position-relative">
                     <div class="tray-tag-badge">
-                        <i class="fa-solid fa-snowflake"></i> Congelado • 6un
+                        <i class="fa-solid fa-snowflake"></i> Congelado • unidade
                     </div>
                     ${isPromo ? '<span class="promo-badge">PROMOÇÃO</span>' : ''}
                     <img src="${imgSrc}" class="w-100 h-100" alt="${item.name}" style="object-fit: cover;" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
@@ -233,13 +233,13 @@ function createProductCard(item, isPromo, promoPrice, index = 0) {
                     <div class="mt-auto pt-3 border-top w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="price-wrapper text-start">
-                                <span class="price-label">Bandeja c/ 6 unidades</span>
+                                <span class="price-label">Por unidade</span>
                                 <div class="d-flex align-items-center">
                                     ${originalPriceHTML}
                                     <span class="card-price editable ${promoClasses}" data-field="price" data-id="${item.id}">${formatBRL(displayPrice)}</span>
                                 </div>
                             </div>
-                            <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${displayPrice})" aria-label="Adicionar bandeja">
+                            <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${displayPrice})" aria-label="Adicionar unidade">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -463,10 +463,14 @@ function updateCartUI() {
     if (!cartItemsContainer || !cartCount || !cartTotal) return;
 
     const totalTrays = cart.reduce((total, item) => total + item.quantity, 0);
-    cartCount.textContent = totalTrays;
+    const totalUnits = cart.reduce((total, item) => {
+        const prod = menuItems.find(p => p.id === item.id) || {};
+        return total + item.quantity * (prod.units || 1);
+    }, 0);
+    cartCount.textContent = totalUnits;
 
     if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<p class="text-muted text-center my-4 py-4 bg-light rounded-4">Sua lista de bandejas está vazia.</p>';
+        cartItemsContainer.innerHTML = '<p class="text-muted text-center my-4 py-4 bg-light rounded-4">Seu pedido está vazio.</p>';
         cartTotal.textContent = formatBRL(0);
         if (cartSubtotal) cartSubtotal.textContent = formatBRL(0);
         if (cartFreight) cartFreight.textContent = formatBRL(0);
@@ -482,7 +486,7 @@ function updateCartUI() {
 
     cart.forEach((item, index) => {
         const prod = menuItems.find(p => p.id === item.id) || {};
-        const units = prod.units || 6;
+        const units = prod.units || 1;
         const itemTotal = item.price * item.quantity;
         subtotal += itemTotal;
         itemsResumo.push(`${item.quantity}x ${item.name}`);
@@ -491,8 +495,8 @@ function updateCartUI() {
             <div class="cart-item">
                 <div class="flex-grow-1 overflow-hidden pe-2">
                     <h6 class="fw-bold mb-1 text-truncate text-dark" style="font-size: 0.95rem;">${item.name}</h6>
-                    <div class="text-success fw-bold small">${formatBRL(item.price)} / bandeja</div>
-                    <div class="text-muted small">${item.quantity}x Bandeja = ${item.quantity * units} salgados</div>
+                    <div class="text-success fw-bold small">${formatBRL(item.price)} / unidade</div>
+                    <div class="text-muted small">${item.quantity}x unidade${item.quantity > 1 ? 's' : ''}</div>
                 </div>
                 <div class="d-flex flex-column align-items-end">
                     <div class="fw-bold text-dark mb-2" style="font-size: 0.95rem;">${formatBRL(itemTotal)}</div>
@@ -524,8 +528,8 @@ function updateCartUI() {
     if (cartFreight) cartFreight.textContent = formatBRL(currentFreight);
     cartTotal.textContent = formatBRL(finalTotal);
 
-    if (summaryTrays) summaryTrays.textContent = `${totalTrays} bandeja${totalTrays > 1 ? 's' : ''}`;
-    if (summaryUnits) summaryUnits.textContent = `${totalTrays * 6} salgados`;
+    if (summaryTrays) summaryTrays.textContent = `${totalUnits} item${totalUnits > 1 ? 's' : ''}`;
+    if (summaryUnits) summaryUnits.textContent = `${totalUnits} salgado${totalUnits > 1 ? 's' : ''}`;
 
     if (resumoBox) {
         resumoBox.style.display = 'block';
@@ -547,7 +551,7 @@ function updateCartUI() {
 
 window.checkout = function () {
     if (cart.length === 0) {
-        showToast("Adicione pelo menos 1 bandeja para fazer o pedido!");
+        showToast("Adicione pelo menos 1 salgado ao pedido!");
         return;
     }
 
@@ -562,21 +566,22 @@ window.checkout = function () {
     const isEntrega = document.getElementById('modeEntrega').checked;
     const currentFreight = isEntrega ? deliveryFee : 0;
 
-    let text = "👋 *Olá! Gostaria de fazer um pedido de Salgados Congelados na Bandeja (6un):*\n\n";
+    let text = "👋 *Olá! Gostaria de fazer um pedido de Salgados Congelados FG Salgados:*\n\n";
 
-    let totalTrays = 0;
+    let totalUnits = 0;
     let totalPrice = 0;
 
     cart.forEach(item => {
         const prod = menuItems.find(p => p.id === item.id) || {};
-        const units = prod.units || 6;
+        const units = prod.units || 1;
         const itemTotal = item.price * item.quantity;
-        totalTrays += item.quantity;
+        totalUnits += item.quantity * units;
         totalPrice += itemTotal;
-        text += `▪️ *${item.quantity}x Bandeja* ${item.name} (${item.quantity * units}un) -> ${formatBRL(itemTotal)}\n`;
+        const qtdText = units === 1 ? `${item.quantity}x` : `${item.quantity}x (${item.quantity * units}un)`;
+        text += `▪️ *${qtdText} ${item.name}* -> ${formatBRL(itemTotal)}\n`;
     });
 
-    text += `\n📦 *Total de Bandejas:* ${totalTrays} (${totalTrays * 6} salgados)`;
+    text += `\n📦 *Total de Salgados:* ${totalUnits}`;
     if (isEntrega) {
         text += `\n🚚 *Taxa de Entrega:* ${formatBRL(currentFreight)} (${deliveryDistance.toFixed(1)}km)`;
     } else {
@@ -656,7 +661,7 @@ function bindContactLinks() {
     const footInsta = document.getElementById('footInstaLink');
     const whatsFloat = document.getElementById('whatsFloat');
 
-    if (heroBtn) heroBtn.href = generateWhatsLink("Olá! Gostaria de consultar sobre as bandejas de 6 salgados congelados 🙂");
+    if (heroBtn) heroBtn.href = generateWhatsLink("Olá! Gostaria de consultar sobre os salgados congelados 🙂");
     if (footWhats) footWhats.href = generateWhatsLink("Olá! Vim pelo site da FG Salgados 🙂");
     if (whatsFloat) whatsFloat.href = generateWhatsLink("Olá! Vim pelo site da FG Salgados 🙂");
     if (footInsta) footInsta.href = `https://instagram.com/${insta}`;
