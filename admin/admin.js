@@ -218,6 +218,12 @@ function formatBRL(val) {
     return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function fixImagePath(src) {
+    if (!src) return '';
+    if (/^(https?:|data:|blob:|\/)/i.test(src) || src.startsWith('../')) return src;
+    return '../' + src;
+}
+
 /* ---------------- CARDÁPIO ---------------- */
 
 function getMenuItems() {
@@ -263,7 +269,7 @@ function renderProducts() {
         <tr>
             <td>
                 <div class="d-flex align-items-center gap-2">
-                    ${p.image && !p.image.startsWith('data:') ? `<img src="${p.image}" class="product-thumb" alt="">` : '<div class="product-thumb bg-light d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-image"></i></div>'}
+                    ${p.image && !p.image.startsWith('data:') ? `<img src="${fixImagePath(p.image)}" class="product-thumb" alt="">` : '<div class="product-thumb bg-light d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-image"></i></div>'}
                     <div>
                         <div class="fw-bold">${p.name}</div>
                         <div class="small text-muted">${p.desc || ''}</div>
