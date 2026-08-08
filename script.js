@@ -25,27 +25,33 @@ let savedData = {};
 const dailyPromotions = {
     1: [
         { id: "1", promoPrice: 4.50 },
-        { id: "4", promoPrice: 5.90 }
+        { id: "4", promoPrice: 5.90 },
+        { id: "5", promoPrice: 5.90 }
     ],
     2: [
         { id: "2", promoPrice: 5.90 },
-        { id: "5", promoPrice: 5.90 }
+        { id: "5", promoPrice: 5.90 },
+        { id: "6", promoPrice: 8.90 }
     ],
     3: [
         { id: "3", promoPrice: 23.50 },
-        { id: "1", promoPrice: 4.50 }
+        { id: "1", promoPrice: 4.50 },
+        { id: "4", promoPrice: 5.90 }
     ],
     4: [
         { id: "6", promoPrice: 8.90 },
-        { id: "4", promoPrice: 5.90 }
+        { id: "4", promoPrice: 5.90 },
+        { id: "2", promoPrice: 5.90 }
     ],
     5: [
         { id: "5", promoPrice: 5.90 },
-        { id: "2", promoPrice: 5.90 }
+        { id: "2", promoPrice: 5.90 },
+        { id: "1", promoPrice: 4.50 }
     ],
     6: [
         { id: "3", promoPrice: 23.50 },
-        { id: "6", promoPrice: 8.90 }
+        { id: "6", promoPrice: 8.90 },
+        { id: "5", promoPrice: 5.90 }
     ]
 };
 
@@ -218,10 +224,6 @@ function createProductCard(item, isPromo, promoPrice, index = 0) {
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card ${isPromo ? 'promo-border' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
                 <div class="product-image-wrapper position-relative">
-                    <div class="tray-tag-badge">
-                        <i class="fa-solid fa-snowflake"></i> Congelado • unidade
-                    </div>
-                    ${isPromo ? '<span class="promo-badge">PROMOÇÃO</span>' : ''}
                     <img src="${imgSrc}" class="w-100 h-100" alt="${item.name}" style="object-fit: cover;" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
                     <div class="edit-photo-overlay" data-upload="${item.id}">
                         <i class="fa-solid fa-camera"></i> Trocar Foto
