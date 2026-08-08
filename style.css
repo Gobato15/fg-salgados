@@ -132,28 +132,6 @@ header {
     color: #FFF;
 }
 
-.admin-header-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: 2px solid var(--border-color);
-    color: var(--text-muted);
-    font-weight: 800;
-    font-size: 13px;
-    font-family: inherit;
-    padding: 8px 14px;
-    border-radius: 99px;
-    cursor: pointer;
-    transition: var(--transition);
-    text-decoration: none;
-}
-
-.admin-header-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-
 .search-container input:focus {
     outline: none;
     box-shadow: 0 0 0 0.25rem rgba(217, 119, 6, 0.2);
