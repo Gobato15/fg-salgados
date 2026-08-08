@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FG Salgados Congelados — Bandejas com 6 Unidades</title>
-  <meta name="description" content="Salgados congelados artesanais em bandejas de 6 unidades. Coxinhas, kibes, empadas e risoles prontos para airfryer ou forno em 12 minutos. Peça pelo WhatsApp!">
+  <meta name="description" content="Salgados congelados artesanais em bandejas de 6 unidades. Coxinhas, croissants, esfirras, tortas, baurus e bolos salgados prontos para airfryer ou forno em 12 minutos. Peça pelo WhatsApp!">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -287,6 +287,7 @@
       color: var(--accent);
       background: linear-gradient(135deg, var(--accent), var(--primary));
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -587,10 +588,26 @@
       transform: scale(1.05);
     }
 
+    /* Efeito visual de congelado */
+    .card-photo::after,
+    .hero-image-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(165, 216, 255, 0.30), rgba(255, 255, 255, 0.12) 45%, rgba(180, 220, 255, 0.32));
+      pointer-events: none;
+      z-index: 1;
+    }
+    .card-photo img,
+    .hero-image-card img {
+      filter: saturate(0.8) brightness(1.08) contrast(0.97);
+    }
+
     .tray-tag-badge {
       position: absolute;
       top: 12px;
       left: 12px;
+      z-index: 2;
       background: rgba(26, 19, 14, 0.85);
       backdrop-filter: blur(6px);
       color: #FFF;
@@ -991,6 +1008,79 @@
       background: var(--accent);
     }
 
+    /* BOTÃO FLUTUANTE WHATSAPP */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      box-shadow: 0 8px 24px rgba(18, 140, 126, 0.45);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+    }
+
+    .whatsapp-float:hover {
+      transform: scale(1.08);
+      box-shadow: 0 12px 30px rgba(18, 140, 126, 0.55);
+    }
+
+    .whatsapp-float::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(37, 211, 102, 0.5);
+      animation: whats-pulse 2s ease-out infinite;
+      z-index: -1;
+    }
+
+    @keyframes whats-pulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    .whatsapp-float .float-tooltip {
+      position: absolute;
+      right: 72px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg-card);
+      color: #FFF;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 8px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-color);
+    }
+
+    .whatsapp-float:hover .float-tooltip {
+      opacity: 1;
+    }
+
+    @media (max-width: 480px) {
+      .whatsapp-float {
+        width: 52px;
+        height: 52px;
+        font-size: 26px;
+        bottom: 18px;
+        right: 18px;
+      }
+    }
+
     .copyright {
       text-align: center;
       padding-top: 24px;
@@ -1092,7 +1182,7 @@
         Salgados na bandeja de <span>6 unidades</span>. Tire do freezer e prepare!
       </h1>
       <p class="hero-desc">
-        Coxinhas crocantes, kibes recheados e empadas artesanais. Tudo selado na bandeja com 6 unidades congeladas — direto para a Airfryer ou forno em 12 minutos!
+        Coxinhas, croissants, esfirras, tortas, baurus e bolos salgados. Tudo congelado na bandeja com 6 unidades — direto para a Airfryer ou forno em 12 minutos!
       </p>
 
       <div class="hero-features-pills">
@@ -1113,7 +1203,7 @@
 
     <div class="hero-visual">
       <div class="hero-image-card">
-        <img id="heroImg" src="images/hero.png" alt="Salgados Congelados na Bandeja FG Salgados">
+        <img id="heroImg" src="images/ags_coxinha.webp" alt="Salgados Congelados na Bandeja FG Salgados">
         <div class="edit-photo-overlay" data-upload="hero">
           <i class="fa-solid fa-camera"></i> Trocar Foto de Destaque
         </div>
@@ -1270,10 +1360,10 @@
 
   <!-- SCRIPT JS -->
   <script>
-    const CATEGORIES = ["Todos", "Salgados Fritos", "Salgados Assados", "Doces & Churros", "Kits Promocionais"];
+    const CATEGORIES = ["Todos", "Salgados Fritos", "Salgados Assados"];
 
     const DEFAULT_DATA = {
-      hero: { image: "images/hero.png" },
+      hero: { image: "images/ags_coxinha.webp" },
       contact: {
         whats: "(19) 99609-0540",
         insta: "fgsalgados",
@@ -1285,67 +1375,51 @@
       products: [
         {
           id: 1,
-          name: "Coxinha de Frango c/ Catupiry",
-          desc: "Bandeja c/ 6 unidades congeladas. Recheio cremoso e casquinha crocrante.",
-          price: 14.90,
+          name: "Coxinha de Frango",
+          desc: "Bandeja c/ 6 unidades congeladas. Coxinha cremosa de 100g com massa artesanal de batata. Receita da casa.",
+          price: 9.00,
           cat: "Salgados Fritos",
-          image: "images/coxinha.png"
+          image: "images/ags_coxinha.webp"
         },
         {
           id: 2,
-          name: "Kibe Recheado com Queijo",
-          desc: "Bandeja c/ 6 unidades congeladas. Carne temperada com hortelã fresca e queijo derretido.",
-          price: 14.90,
-          cat: "Salgados Fritos",
-          image: "images/kibe.png"
+          name: "Croissant Presunto e Queijo",
+          desc: "Bandeja c/ 6 unidades congeladas. O clássico folhado recheado com presunto fatiado e queijo derretido.",
+          price: 24.90,
+          cat: "Salgados Assados",
+          image: "images/ags_croissant.webp"
         },
         {
           id: 3,
-          name: "Bolinha de Queijo Cremosidade",
-          desc: "Bandeja c/ 6 unidades congeladas. Mix de queijos com empanamento panko.",
-          price: 13.90,
-          cat: "Salgados Fritos",
-          image: "images/bolinha_queijo.png"
+          name: "Torta de Frango Caseira",
+          desc: "Bandeja c/ 6 unidades congeladas. Torta cremosa de frango com massa caseira derretendo na boca.",
+          price: 27.90,
+          cat: "Salgados Assados",
+          image: "images/ags_torta_frango.webp"
         },
         {
           id: 4,
-          name: "Empada de Frango Cremoso",
-          desc: "Bandeja c/ 6 unidades congeladas. Massa podre amanteigada derrete na boca.",
-          price: 16.90,
+          name: "Bauru de Presunto e Queijo",
+          desc: "Bandeja c/ 6 unidades congeladas. Massa fofinha com recheio generoso de presunto e queijo e toque de orégano.",
+          price: 24.90,
           cat: "Salgados Assados",
-          image: "images/empada.png"
+          image: "images/ags_bauru.webp"
         },
         {
           id: 5,
-          name: "Risole de Carne Moída",
-          desc: "Bandeja c/ 6 unidades congeladas. Carne moída bem temperadinha com tempero de mãe.",
-          price: 14.90,
-          cat: "Salgados Fritos",
-          image: "images/coxinha.png"
+          name: "Esfirra de Frango Premium",
+          desc: "Bandeja c/ 6 unidades congeladas. Massa leve com recheio generoso de frango desfiado temperado.",
+          price: 22.90,
+          cat: "Salgados Assados",
+          image: "images/ags_esfirra.webp"
         },
         {
           id: 6,
-          name: "Enroladinho de Presunto e Queijo",
-          desc: "Bandeja c/ 6 unidades congeladas. Assado leve e muito recheado.",
-          price: 13.90,
+          name: "Bolo Salgado de Frango c/ Requeijão",
+          desc: "Bandeja c/ 6 unidades congeladas. Frango desfiado, requeijão cremoso e azeitonas, gratinado ao forno.",
+          price: 27.90,
           cat: "Salgados Assados",
-          image: "images/empada.png"
-        },
-        {
-          id: 7,
-          name: "Mini Churros de Doce de Leite",
-          desc: "Bandeja c/ 6 unidades congeladas. Crocantes por fora com muito doce de leite.",
-          price: 12.90,
-          cat: "Doces & Churros",
-          image: "images/churros.png"
-        },
-        {
-          id: 8,
-          name: "Combo Degustação (4 Bandejas)",
-          desc: "4 Bandejas à sua escolha (24 salgados congelados no total).",
-          price: 52.00,
-          cat: "Kits Promocionais",
-          image: "images/hero.png"
+          image: "images/ags_bolo_salgado.webp"
         }
       ]
     };
@@ -1358,7 +1432,7 @@
 
     function loadData() {
       try {
-        const saved = localStorage.getItem("fg_salgados_v2");
+        const saved = localStorage.getItem("fg_salgados_v6");
         if (saved) {
           siteData = JSON.parse(saved);
         }
@@ -1368,7 +1442,7 @@
     }
 
     function saveData() {
-      localStorage.setItem("fg_salgados_v2", JSON.stringify(siteData));
+      localStorage.setItem("fg_salgados_v6", JSON.stringify(siteData));
     }
 
     function formatBRL(val) {
@@ -1417,9 +1491,9 @@
         card.className = "product-card";
         card.innerHTML = `
           <div class="card-photo">
-            <img src="${p.image || 'images/hero.png'}" alt="${p.name}">
+            <img src="${p.image || 'images/ags_coxinha.webp'}" alt="${p.name}">
             <div class="tray-tag-badge">
-              <i class="fa-solid fa-box"></i> Bandeja c/ 6un
+              <i class="fa-solid fa-snowflake"></i> Congelado • 6un
             </div>
             <div class="edit-photo-overlay" data-upload="${p.id}">
               <i class="fa-solid fa-camera"></i> Trocar Foto
@@ -1629,6 +1703,7 @@
     // Contact WhatsApp Hero link
     document.getElementById("heroWhatsBtn").href = generateWhatsLink("Olá! Gostaria de consultar sobre as bandejas de 6 salgados congelados 🙂");
     document.getElementById("footWhatsLink").href = generateWhatsLink("Olá! Vim pelo site da FG Salgados 🙂");
+    document.getElementById("whatsFloat").href = generateWhatsLink("Olá! Vim pelo site da FG Salgados 🙂");
     document.getElementById("footInstaLink").href = `https://instagram.com/${siteData.contact.insta.replace('@','')}`;
 
     // Init
@@ -1637,5 +1712,10 @@
     renderGrid();
     updateCartDrawer();
   </script>
+
+  <a class="whatsapp-float" id="whatsFloat" href="#" target="_blank" aria-label="Falar no WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+    <span class="float-tooltip">Falar no WhatsApp</span>
+  </a>
 </body>
 </html>
