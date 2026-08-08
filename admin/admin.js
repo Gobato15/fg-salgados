@@ -1,8 +1,12 @@
 const AUTH_KEY = 'fg_admin_auth';
+const RATE_KEY = 'fg_admin_rate';
 const ORDERS_KEY = 'fg_admin_orders';
 const MOVEMENTS_KEY = 'fg_admin_movimentos';
 const SITE_KEY = 'fg_salgados_v8';
 const DEFAULT_PASSWORD = 'fg2026';
+const MAX_ATTEMPTS = 5;
+const LOCK_MINUTES = 15;
+const INACTIVITY_MINUTES = 30;
 
 const STATUSES = {
     pendente: { label: 'Pendente', next: 'preparo' },
@@ -44,6 +48,20 @@ async function hashPass(str) {
     return fallbackHash(str);
 }
 
+function randomSalt() {
+    const bytes = new Uint8Array(16);
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(bytes);
+    else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function safeEqual(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return diff === 0;
+}
+
 function showToast(message) {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -58,21 +76,84 @@ function showToast(message) {
     }, 2500);
 }
 
+function showLoginError(message) {
+    const el = document.getElementById('loginError');
+    if (!el) return;
+    el.textContent = message;
+    el.classList.remove('d-none');
+}
+
 async function initAuth() {
     if (!localStorage.getItem(AUTH_KEY)) {
-        writeJSON(AUTH_KEY, { hash: await hashPass(DEFAULT_PASSWORD) });
+        const salt = randomSalt();
+        writeJSON(AUTH_KEY, {
+            salt: salt,
+            hash: await hashPass(DEFAULT_PASSWORD + ':' + salt),
+            mustChange: true
+        });
     }
+}
+
+function checkRateLimit() {
+    const rate = readJSON(RATE_KEY, { attempts: 0, locked_until: 0 });
+    const now = Date.now();
+    if (rate.locked_until > now) {
+        const min = Math.ceil((rate.locked_until - now) / 60000);
+        return { blocked: true, min: min };
+    }
+    return { blocked: false, min: 0 };
+}
+
+function recordFailedAttempt() {
+    const rate = readJSON(RATE_KEY, { attempts: 0, locked_until: 0 });
+    rate.attempts = (rate.attempts || 0) + 1;
+    rate.last_attempt = Date.now();
+    if (rate.attempts >= MAX_ATTEMPTS) {
+        rate.locked_until = Date.now() + LOCK_MINUTES * 60 * 1000;
+        rate.attempts = 0;
+    }
+    writeJSON(RATE_KEY, rate);
+}
+
+function resetRateLimit() {
+    writeJSON(RATE_KEY, { attempts: 0, locked_until: 0 });
 }
 
 async function tryLogin() {
     const input = document.getElementById('loginPass').value;
+    if (!input) return;
+
+    const limit = checkRateLimit();
+    if (limit.blocked) {
+        showLoginError(`🔒 Muitas tentativas inválidas! Acesso bloqueado. Tente novamente em ${limit.min} minuto(s).`);
+        return;
+    }
+
     const auth = readJSON(AUTH_KEY, {});
-    const hash = await hashPass(input);
-    if (auth.hash && hash === auth.hash) {
+    let ok = false;
+    if (auth.salt && auth.hash) {
+        ok = safeEqual(await hashPass(input + ':' + auth.salt), auth.hash);
+    } else if (auth.hash) {
+        ok = safeEqual(await hashPass(input), auth.hash);
+    }
+
+    if (ok) {
+        resetRateLimit();
         sessionStorage.setItem('fg_admin_logged', '1');
         showPanel();
+        if (auth.mustChange) {
+            showToast('Troque a senha padrão agora!');
+            switchTab('senha');
+        }
     } else {
-        document.getElementById('loginError').classList.remove('d-none');
+        recordFailedAttempt();
+        const limit2 = checkRateLimit();
+        if (limit2.blocked) {
+            showLoginError(`🔒 Acesso bloqueado por excesso de tentativas! Tente novamente em ${limit2.min} minutos.`);
+        } else {
+            showLoginError('Senha incorreta.');
+        }
+        document.getElementById('loginPass').value = '';
     }
 }
 
@@ -87,6 +168,19 @@ function showPanel() {
     renderProducts();
     renderOrders();
     renderMovements();
+    startInactivityWatch();
+}
+
+function startInactivityWatch() {
+    const IDLE = INACTIVITY_MINUTES * 60 * 1000;
+    let lastActivity = Date.now();
+    const events = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+    events.forEach(ev => document.addEventListener(ev, () => { lastActivity = Date.now(); }));
+    setInterval(() => {
+        if (Date.now() - lastActivity > IDLE) {
+            logout();
+        }
+    }, 60000);
 }
 
 async function changePassword() {
@@ -94,7 +188,8 @@ async function changePassword() {
     const p2 = document.getElementById('newPass2').value;
     if (!p1 || p1.length < 4) return showToast('Senha deve ter ao menos 4 caracteres!');
     if (p1 !== p2) return showToast('As senhas não conferem!');
-    writeJSON(AUTH_KEY, { hash: await hashPass(p1) });
+    const salt = randomSalt();
+    writeJSON(AUTH_KEY, { salt: salt, hash: await hashPass(p1 + ':' + salt), mustChange: false });
     document.getElementById('newPass1').value = '';
     document.getElementById('newPass2').value = '';
     showToast('Senha alterada com sucesso!');
