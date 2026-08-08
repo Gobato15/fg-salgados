@@ -3,7 +3,8 @@ const RATE_KEY = 'fg_admin_rate';
 const ORDERS_KEY = 'fg_admin_orders';
 const MOVEMENTS_KEY = 'fg_admin_movimentos';
 const SITE_KEY = 'fg_salgados_v8';
-const DEFAULT_PASSWORD = 'fg2026';
+const DEFAULT_PASSWORD = '1031';
+const AUTH_VERSION = 2;
 const MAX_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
 const INACTIVITY_MINUTES = 30;
@@ -84,12 +85,14 @@ function showLoginError(message) {
 }
 
 async function initAuth() {
-    if (!localStorage.getItem(AUTH_KEY)) {
+    const auth = readJSON(AUTH_KEY, null);
+    if (!auth || auth.version !== AUTH_VERSION) {
         const salt = randomSalt();
         writeJSON(AUTH_KEY, {
+            version: AUTH_VERSION,
             salt: salt,
             hash: await hashPass(DEFAULT_PASSWORD + ':' + salt),
-            mustChange: true
+            mustChange: false
         });
     }
 }
