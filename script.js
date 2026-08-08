@@ -751,7 +751,5 @@ renderDailyPromos();
 renderCategories();
 renderMenu();
 updateCartUI();
-bindEditToggle();
-bindFileUpload();
 bindSearch();
 bindContactLinks();
