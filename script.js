@@ -14,7 +14,7 @@ const STORAGE_KEY = 'fg_salgados_v8';
 const DEFAULT_CONTACT = {
     whats: "(19) 99609-0540",
     insta: "agsdelivery24",
-    pix: "agsdelivery24@gnmail.com",
+    pix: "agsdelivery24@gmail.com",
     address: "Entrega e Retirada Local",
     about: "Salgados artesanais congelados vendidos por unidade. Qualidade gourmet, ingredientes selecionados e sabor de verdade.",
     hours1: "Seg a Sáb: 8h às 18h",
