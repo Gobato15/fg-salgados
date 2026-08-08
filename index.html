@@ -111,7 +111,7 @@
                     <h6 class="text-uppercase fw-bold mb-3 footer-heading">Contato & Pedidos</h6>
                     <ul class="footer-list">
                         <li><i class="fa-brands fa-whatsapp"></i> <span class="editable" id="footWhats" data-field="whats">(19) 99609-0540</span></li>
-                        <li><i class="fa-brands fa-instagram"></i> <span class="editable" id="footInsta" data-field="insta">@fgsalgados</span></li>
+                        <li><i class="fa-brands fa-instagram"></i> <span class="editable" id="footInsta" data-field="insta">@agsdelivery24</span></li>
                         <li><i class="fa-solid fa-location-dot"></i> <span class="editable" id="footAddress" data-field="address">Entrega e Retirada Local</span></li>
                     </ul>
                 </div>
@@ -238,14 +238,48 @@
                         <p class="mb-1">👤 <strong>CLIENTE:</strong> <span id="resumoNome">...</span></p>
                         <p class="mb-1">📍 <strong>LOCAL:</strong> <span id="resumoEnd">...</span></p>
                         <p class="mb-1">📦 <strong>ÍTENS:</strong> <span id="resumoItens">...</span></p>
+                        <p class="mb-1">💳 <strong>PAGAMENTO:</strong> <span id="resumoPag">...</span></p>
                         <p class="mb-0">💰 <strong>TOTAL: <span id="resumoTotal" class="text-danger">R$ 0,00</span></strong></p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark fs-6 mb-3">Forma de Pagamento</label>
+                        <div class="d-flex gap-2">
+                            <input type="radio" class="btn-check" name="paymentMethod" id="payPix" value="pix"
+                                autocomplete="off" checked onchange="togglePaymentMethod()">
+                            <label class="btn btn-outline-amber rounded-pill flex-grow-1 fw-bold" for="payPix"><i
+                                    class="fa-solid fa-qrcode me-1"></i> PIX</label>
+
+                            <input type="radio" class="btn-check" name="paymentMethod" id="payLocal" value="local"
+                                autocomplete="off" onchange="togglePaymentMethod()">
+                            <label class="btn btn-outline-amber rounded-pill flex-grow-1 fw-bold" for="payLocal"><i
+                                    class="fa-solid fa-handshake me-1"></i> No Local</label>
+                        </div>
+                    </div>
+
+                    <div id="pixPanel" class="p-4 rounded-4 bg-white shadow-sm border text-center mb-4" style="border-color: #32BCAD !important;">
+                        <i class="fa-solid fa-qrcode" style="font-size: 46px; color: #32BCAD; margin-bottom: 12px;"></i>
+                        <h6 class="fw-bold text-dark mb-1">Pague com PIX</h6>
+                        <p class="text-muted small mb-2">Copie a chave abaixo e envie o valor total do pedido. Depois
+                            confirme enviando o pedido pelo WhatsApp.</p>
+                        <input type="text" id="pixKey"
+                            class="form-control rounded-3 border-0 shadow-sm text-center fw-bold mb-2"
+                            value="agsdelivery24@gnmail.com">
+                        <button type="button" class="btn btn-amber rounded-pill px-4 py-2 fw-bold w-100"
+                            onclick="copyPixKey()"><i class="fa-solid fa-copy me-2"></i> Copiar Chave PIX</button>
+                    </div>
+
+                    <div id="localPanel" class="p-4 rounded-4 bg-white shadow-sm border text-center mb-4" style="border-color: #D97706 !important; display: none;">
+                        <i class="fa-solid fa-handshake" style="font-size: 46px; color: #D97706; margin-bottom: 12px;"></i>
+                        <h6 class="fw-bold text-dark mb-1">Pagar no Local</h6>
+                        <p class="text-muted small mb-0">Pague em dinheiro ou PIX na hora da entrega ou retirada.</p>
                     </div>
 
                     <div class="mp-payment-container p-4 rounded-4 bg-white shadow-sm border text-center" style="border-color: #25D366 !important;">
                         <i class="fa-brands fa-whatsapp" style="font-size: 46px; color: #25D366; margin-bottom: 12px;"></i>
                         <h6 class="fw-bold text-dark mb-1">Pedido pelo WhatsApp</h6>
-                        <p class="text-muted small mb-0">Você será direcionado ao WhatsApp da FG Salgados com o resumo
-                            completo do pedido. Pagamento combinado no chat (PIX ou na entrega/retirada).</p>
+                        <p class="text-muted small mb-0">Ao finalizar, você será direcionado ao WhatsApp da FG Salgados com o
+                            resumo completo do pedido e a forma de pagamento escolhida.</p>
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4 d-flex flex-column flex-sm-row gap-2">

@@ -13,7 +13,8 @@ const STORAGE_KEY = 'fg_salgados_v8';
 
 const DEFAULT_CONTACT = {
     whats: "(19) 99609-0540",
-    insta: "fgsalgados",
+    insta: "agsdelivery24",
+    pix: "agsdelivery24@gnmail.com",
     address: "Entrega e Retirada Local",
     about: "Salgados artesanais congelados vendidos por unidade. Qualidade gourmet, ingredientes selecionados e sabor de verdade.",
     hours1: "Seg a Sáb: 8h às 18h",
@@ -109,6 +110,8 @@ function loadSavedData() {
             const el = document.querySelector(`[data-field="${field}"]`);
             if (el) el.textContent = savedData.contact[field];
         });
+        const pixEl = document.getElementById('pixKey');
+        if (pixEl && savedData.contact.pix) pixEl.value = savedData.contact.pix;
     }
 }
 
@@ -127,6 +130,8 @@ function saveData() {
     document.querySelectorAll('#contato [data-field]').forEach(el => {
         contact[el.dataset.field] = el.textContent.trim();
     });
+    const pixEl = document.getElementById('pixKey');
+    if (pixEl) contact.pix = pixEl.value.trim();
 
     savedData = {
         products,
@@ -162,6 +167,48 @@ function showToast(message) {
         toast.style.transform = 'translateY(20px)';
         setTimeout(() => toast.remove(), 400);
     }, 2500);
+}
+
+function getPixKey() {
+    const pixEl = document.getElementById('pixKey');
+    if (pixEl && pixEl.value.trim()) return pixEl.value.trim();
+    return (savedData.contact && savedData.contact.pix) ? savedData.contact.pix : DEFAULT_CONTACT.pix;
+}
+
+window.togglePaymentMethod = function () {
+    const isPix = document.getElementById('payPix') ? document.getElementById('payPix').checked : true;
+    const pixPanel = document.getElementById('pixPanel');
+    const localPanel = document.getElementById('localPanel');
+    if (pixPanel) pixPanel.style.display = isPix ? 'block' : 'none';
+    if (localPanel) localPanel.style.display = isPix ? 'none' : 'block';
+    updateCartUI();
+};
+
+window.copyPixKey = function () {
+    const pixInput = document.getElementById('pixKey');
+    if (!pixInput) return;
+    const text = pixInput.value.trim();
+
+    const done = () => showToast("Chave PIX copiada! 📋");
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+    } else {
+        fallbackCopy(text, done);
+    }
+};
+
+function fallbackCopy(text, done) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, 99999);
+    try { document.execCommand('copy'); } catch (e) { }
+    document.body.removeChild(ta);
+    done();
 }
 
 window.setPromoDay = function (day) {
@@ -339,12 +386,16 @@ function bindStaticEditables() {
     document.querySelectorAll('h1.hero-title, .hero-desc, #contato [data-field]').forEach(el => {
         el.contentEditable = isEditing ? 'true' : 'false';
     });
+    const pixEl = document.getElementById('pixKey');
+    if (pixEl) pixEl.readOnly = !isEditing;
 }
 
 function initStaticEditables() {
     document.querySelectorAll('h1.hero-title, .hero-desc, #contato [data-field]').forEach(el => {
         el.addEventListener('blur', () => saveData());
     });
+    const pixEl = document.getElementById('pixKey');
+    if (pixEl) pixEl.addEventListener('change', () => saveData());
 }
 
 window.addToCart = function (id, name, price) {
@@ -548,6 +599,12 @@ function updateCartUI() {
 
         resumoItens.textContent = itemsResumo.join(', ');
         resumoTotal.textContent = formatBRL(finalTotal);
+
+        const resumoPag = document.getElementById('resumoPag');
+        if (resumoPag) {
+            const payPix = document.getElementById('payPix') ? document.getElementById('payPix').checked : true;
+            resumoPag.textContent = payPix ? 'PIX' : 'No Local';
+        }
     }
 }
 
@@ -590,6 +647,13 @@ window.checkout = function () {
         text += `\n🏪 *Retirada no Local* (sem taxa de entrega)`;
     }
     text += `\n💰 *Valor Total:* ${formatBRL(totalPrice + currentFreight)}`;
+
+    const payPix = document.getElementById('payPix') ? document.getElementById('payPix').checked : true;
+    if (payPix) {
+        text += `\n💳 *Pagamento:* PIX (chave: ${getPixKey()})`;
+    } else {
+        text += `\n💵 *Pagamento:* No local (dinheiro ou PIX)`;
+    }
 
     text += `\n\n👤 *Nome:* ${name}`;
     text += `\n📱 *Telefone:* ${phone}`;
