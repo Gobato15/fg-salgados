@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FG Salgados — Área Restrita</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./admin.css?v=1">
+</head>
+
+<body>
+
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="brand-chip"><i class="fa-solid fa-snowflake"></i> FG Salgados</div>
+            <h3 class="fw-bold text-dark mb-4">Área Restrita</h3>
+            <input type="password" id="loginPass" class="form-control rounded-pill py-2 mb-3"
+                placeholder="Digite a senha" onkeydown="if(event.key==='Enter')tryLogin()">
+            <button type="button" class="btn btn-amber w-100 rounded-pill fw-bold py-2" onclick="tryLogin()">
+                <i class="fa-solid fa-lock me-1"></i> Entrar
+            </button>
+            <p class="text-danger small mt-2 mb-0 d-none" id="loginError">Senha incorreta.</p>
+            <a href="index.html" class="d-block mt-3 small text-muted text-decoration-none">← Voltar ao site</a>
+        </div>
+    </div>
+
+    <div id="panelScreen" class="d-none">
+        <header class="admin-header">
+            <div class="container d-flex justify-content-between align-items-center py-3">
+                <div class="admin-brand">
+                    <span class="brand-logo">FG</span>
+                    <span class="fw-bold text-white">Área Restrita</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="index.html" class="btn btn-light btn-sm rounded-pill fw-bold">Ver Site</a>
+                    <button type="button" class="btn btn-outline-light btn-sm rounded-pill fw-bold" onclick="logout()">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <nav class="admin-nav sticky-top">
+            <div class="container d-flex gap-2 flex-wrap py-2">
+                <button type="button" class="btn btn-tab active" data-tab="cardapio"><i class="fa-solid fa-utensils me-1"></i> Cardápio</button>
+                <button type="button" class="btn btn-tab" data-tab="cozinha"><i class="fa-solid fa-fire-burner me-1"></i> Cozinha</button>
+                <button type="button" class="btn btn-tab" data-tab="movimentos"><i class="fa-solid fa-boxes-stacked me-1"></i> Movimentos</button>
+                <button type="button" class="btn btn-tab" data-tab="senha"><i class="fa-solid fa-key me-1"></i> Senha</button>
+            </div>
+        </nav>
+
+        <main class="container py-4">
+
+            <section id="tab-cardapio" class="tab-section">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0">Cardápio</h5>
+                    <button type="button" class="btn btn-amber rounded-pill fw-bold" onclick="openProductForm()"><i class="fa-solid fa-plus me-1"></i> Novo Produto</button>
+                </div>
+                <div id="productFormWrap" class="d-none bg-white border rounded-4 p-3 mb-4 shadow-sm"></div>
+                <div class="table-responsive bg-white rounded-4 shadow-sm">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Categoria</th>
+                                <th>Preço</th>
+                                <th>Un.</th>
+                                <th>Ativo</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTable"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="tab-cozinha" class="tab-section d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0">Cozinha — Pedidos</h5>
+                    <button type="button" class="btn btn-amber rounded-pill fw-bold" onclick="openOrderForm()"><i class="fa-solid fa-plus me-1"></i> Novo Pedido</button>
+                </div>
+                <div id="orderFormWrap" class="d-none bg-white border rounded-4 p-3 mb-4 shadow-sm"></div>
+                <div class="d-flex gap-2 mb-3 flex-wrap" id="statusFilter">
+                    <button type="button" class="btn btn-filter active" data-status="todos">Todos</button>
+                    <button type="button" class="btn btn-filter" data-status="pendente">Pendentes</button>
+                    <button type="button" class="btn btn-filter" data-status="preparo">Em preparo</button>
+                    <button type="button" class="btn btn-filter" data-status="pronto">Prontos</button>
+                    <button type="button" class="btn btn-filter" data-status="entregue">Entregues</button>
+                </div>
+                <div id="orderList" class="row g-3"></div>
+            </section>
+
+            <section id="tab-movimentos" class="tab-section d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0">Planilha de Movimentos</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-amber rounded-pill fw-bold" onclick="openMovementForm()"><i class="fa-solid fa-plus me-1"></i> Registrar</button>
+                        <button type="button" class="btn btn-outline-amber rounded-pill fw-bold" onclick="exportMovementsCSV()"><i class="fa-solid fa-file-csv me-1"></i> Exportar CSV</button>
+                    </div>
+                </div>
+                <div id="movementFormWrap" class="d-none bg-white border rounded-4 p-3 mb-4 shadow-sm"></div>
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-5">
+                        <div class="bg-white rounded-4 shadow-sm p-3">
+                            <h6 class="fw-bold mb-3">Saldo por Produto</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead>
+                                        <tr><th>Produto</th><th class="text-end">Saldo</th></tr>
+                                    </thead>
+                                    <tbody id="balanceTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="bg-white rounded-4 shadow-sm p-3">
+                            <h6 class="fw-bold mb-3">Últimos Movimentos</h6>
+                            <div class="table-responsive" style="max-height: 420px; overflow: auto;">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead>
+                                        <tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Qtd</th><th>Obs</th><th></th></tr>
+                                    </thead>
+                                    <tbody id="movementTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-senha" class="tab-section d-none">
+                <div class="bg-white rounded-4 shadow-sm p-4" style="max-width: 420px;">
+                    <h5 class="fw-bold mb-3">Trocar Senha</h5>
+                    <input type="password" id="newPass1" class="form-control rounded-3 mb-2" placeholder="Nova senha">
+                    <input type="password" id="newPass2" class="form-control rounded-3 mb-3" placeholder="Confirmar nova senha">
+                    <button type="button" class="btn btn-amber rounded-pill fw-bold w-100" onclick="changePassword()">Salvar Senha</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="menuData.js"></script>
+    <script src="admin.js?v=1"></script>
+</body>
+
+</html>

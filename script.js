@@ -89,12 +89,13 @@ function loadSavedData() {
         savedData = {};
     }
 
-    menuItems = (window.fgMenuItems || []).map(item => Object.assign({}, item, { desc: item.description }));
+    menuItems = (window.fgMenuItems || []).map(item => Object.assign({}, item, { desc: item.description, active: item.active !== false }));
 
     if (savedData.products) {
         Object.keys(savedData.products).forEach(id => {
             const prod = menuItems.find(p => p.id === id);
             if (prod) Object.assign(prod, savedData.products[id]);
+            else menuItems.push(Object.assign({ id, active: true, units: 1 }, savedData.products[id]));
         });
     }
 
@@ -122,7 +123,10 @@ function saveData() {
             name: p.name,
             desc: p.desc,
             price: p.price,
-            image: p.image
+            image: p.image,
+            units: p.units,
+            category: p.category,
+            active: p.active !== false
         };
     });
 
@@ -329,7 +333,8 @@ function renderMenu() {
     const filteredItems = menuItems.filter(item => {
         const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
+        const matchesActive = item.active !== false;
+        return matchesCategory && matchesSearch && matchesActive;
     });
 
     if (filteredItems.length === 0) {

@@ -609,6 +609,19 @@ footer {
     text-align: center;
 }
 
+.footer-admin-link {
+    color: #6B7280;
+    text-decoration: none;
+    font-size: 12px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.footer-admin-link:hover {
+    opacity: 1;
+    color: #D97706;
+}
+
 .whatsapp-float {
     position: fixed;
     bottom: 24px;
