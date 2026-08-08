@@ -4,6 +4,7 @@ const ORDERS_KEY = 'fg_admin_orders';
 const MOVEMENTS_KEY = 'fg_admin_movimentos';
 const SITE_KEY = 'fg_salgados_v8';
 const DEFAULT_PASSWORD = '1031';
+const DEFAULT_EMAIL = 'gobato59@gmail.com';
 const AUTH_VERSION = 2;
 const MAX_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
@@ -123,8 +124,9 @@ function resetRateLimit() {
 }
 
 async function tryLogin() {
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
     const input = document.getElementById('loginPass').value;
-    if (!input) return;
+    if (!email || !input) return;
 
     const limit = checkRateLimit();
     if (limit.blocked) {
@@ -133,10 +135,10 @@ async function tryLogin() {
     }
 
     const auth = readJSON(AUTH_KEY, {});
-    let ok = false;
-    if (auth.salt && auth.hash) {
+    let ok = email === DEFAULT_EMAIL.toLowerCase();
+    if (ok && auth.salt && auth.hash) {
         ok = safeEqual(await hashPass(input + ':' + auth.salt), auth.hash);
-    } else if (auth.hash) {
+    } else if (ok && auth.hash) {
         ok = safeEqual(await hashPass(input), auth.hash);
     }
 
@@ -154,7 +156,7 @@ async function tryLogin() {
         if (limit2.blocked) {
             showLoginError(`🔒 Acesso bloqueado por excesso de tentativas! Tente novamente em ${limit2.min} minutos.`);
         } else {
-            showLoginError('Senha incorreta.');
+            showLoginError('E-mail ou senha incorretos.');
         }
         document.getElementById('loginPass').value = '';
     }

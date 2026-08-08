@@ -19,12 +19,15 @@
         <div class="login-card">
             <div class="brand-chip"><i class="fa-solid fa-snowflake"></i> FG Salgados</div>
             <h3 class="fw-bold text-dark mb-4">Área Restrita</h3>
+            <input type="email" id="loginEmail" class="form-control rounded-pill py-2 mb-3"
+                placeholder="E-mail (usuário)" autocomplete="off"
+                onkeydown="if(event.key==='Enter')tryLogin()">
             <input type="password" id="loginPass" class="form-control rounded-pill py-2 mb-3"
                 placeholder="Digite a senha" onkeydown="if(event.key==='Enter')tryLogin()">
             <button type="button" class="btn btn-amber w-100 rounded-pill fw-bold py-2" onclick="tryLogin()">
                 <i class="fa-solid fa-lock me-1"></i> Entrar
             </button>
-            <p class="text-danger small mt-2 mb-0 d-none" id="loginError">Senha incorreta.</p>
+            <p class="text-danger small mt-2 mb-0 d-none" id="loginError">E-mail ou senha incorretos.</p>
             <a href="../index.html" class="d-block mt-3 small text-muted text-decoration-none">← Voltar ao site</a>
         </div>
     </div>

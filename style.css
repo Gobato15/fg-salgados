@@ -609,6 +609,14 @@ footer {
     text-align: center;
 }
 
+.footer-copy .footer-admin-link a {
+    color: #6B7280;
+}
+
+.footer-copy .footer-admin-link a:hover {
+    color: #F59E0B;
+}
+
 .whatsapp-float {
     position: fixed;
     bottom: 24px;
