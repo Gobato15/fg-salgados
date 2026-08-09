@@ -1,0 +1,30 @@
+{
+    "name": "FG Salgados Congelados",
+    "short_name": "FG Salgados",
+    "description": "Salgados congelados artesanais vendidos por unidade. Coxinhas, croissants, esfirras, tortas, baurus e bolos salgados prontos para airfryer ou forno em 12 minutos.",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#FFF7ED",
+    "theme_color": "#F59E0B",
+    "lang": "pt-BR",
+    "icons": [
+        {
+            "src": "./images/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "./images/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "./images/icon-maskable.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

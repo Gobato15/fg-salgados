@@ -10,6 +10,7 @@ let deliveryDistance = 0;
 let activeCategory = 'all';
 
 const STORAGE_KEY = 'fg_salgados_v8';
+const CLIENT_ORDERS_KEY = 'fg_client_orders';
 
 const DEFAULT_CONTACT = {
     whats: "(19) 99609-0540",
@@ -618,7 +619,6 @@ window.checkout = function () {
         showToast("Adicione pelo menos 1 salgado ao pedido!");
         return;
     }
-
     const name = document.getElementById('customerName').value.trim();
     const phone = document.getElementById('customerPhone').value.trim();
 
@@ -673,12 +673,87 @@ window.checkout = function () {
 
     text += `\n\nPodemos combinar a entrega/retirada?`;
 
+    const myOrder = {
+        id: 'c' + Date.now(),
+        numero: getClientOrders().reduce((m, o) => Math.max(m, o.numero || 0), 0) + 1,
+        cliente: name,
+        telefone: phone,
+        itens: cart.map(it => {
+            const prod = menuItems.find(p => p.id === it.id) || {};
+            const units = prod.units || 1;
+            return units === 1 ? `${it.quantity}x ${it.name}` : `${it.quantity}x ${it.name} (${it.quantity * units}un)`;
+        }).join(', '),
+        total: totalPrice + currentFreight,
+        modo: isEntrega ? 'entrega' : 'retirada',
+        pagamento: payPix ? 'PIX' : 'No local',
+        endereco: isEntrega ? `${document.getElementById('deliveryStreet').value}, ${document.getElementById('deliveryNumber').value}${document.getElementById('deliveryCity').value ? ' (' + document.getElementById('deliveryCity').value + ')' : ''}` : '',
+        status: 'pendente',
+        data: new Date().toISOString()
+    };
+    saveClientOrder(myOrder);
+
     window.open(generateWhatsLink(text), "_blank");
     showToast("Abrindo WhatsApp com seu pedido!");
     setTimeout(() => {
         window.location.href = 'sucesso.html';
     }, 1500);
 };
+
+function getClientOrders() {
+    try {
+        return JSON.parse(localStorage.getItem(CLIENT_ORDERS_KEY)) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveClientOrder(order) {
+    const orders = getClientOrders();
+    orders.unshift(order);
+    localStorage.setItem(CLIENT_ORDERS_KEY, JSON.stringify(orders));
+}
+
+function formatOrderDate(iso) {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatOrderStatus(s) {
+    const map = { pendente: 'Pendente', preparo: 'Em preparo', pronto: 'Pronto', entregue: 'Entregue' };
+    return map[s] || s || 'Pendente';
+}
+
+window.openMyOrders = function () {
+    renderMyOrders();
+    const modalEl = document.getElementById('myOrdersModal');
+    if (window.bootstrap && bootstrap.Modal && modalEl) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+};
+
+function renderMyOrders() {
+    const list = document.getElementById('myOrdersList');
+    if (!list) return;
+    const orders = getClientOrders();
+    if (orders.length === 0) {
+        list.innerHTML = '<p class="text-muted text-center my-4 py-4 bg-light rounded-4">Você ainda não fez pedidos por este aparelho.</p>';
+        return;
+    }
+    list.innerHTML = orders.map(o => `
+        <div class="bg-white border rounded-4 p-3 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <span class="fw-bold">Pedido #${o.numero}</span>
+                <span class="badge rounded-pill ${o.status === 'pendente' ? 'text-bg-warning' : o.status === 'entregue' ? 'text-bg-success' : 'text-bg-info'}">${formatOrderStatus(o.status)}</span>
+            </div>
+            <div class="small text-muted mb-2">${formatOrderDate(o.data)}</div>
+            <p class="mb-1 small"><i class="fa-solid fa-box me-1"></i> ${o.itens}</p>
+            <p class="mb-1 small"><i class="fa-solid fa-location-dot me-1"></i> ${o.modo === 'entrega' ? (o.endereco || 'Entrega') : 'Retirada no local'}</p>
+            <p class="mb-0 small"><i class="fa-solid fa-money-bill-wave me-1"></i> ${o.pagamento || '-'} · <strong>${formatBRL(o.total)}</strong></p>
+        </div>
+    `).join('');
+}
 
 function bindEditToggle() {
     document.getElementById('editToggle').addEventListener('click', () => {
