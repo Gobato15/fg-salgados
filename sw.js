@@ -1,4 +1,4 @@
-const CACHE = 'fg-salgados-v1';
+const CACHE = 'fg-salgados-v2';
 const CORE = [
     './',
     './index.html',
@@ -16,6 +16,17 @@ const CORE = [
     './images/ags_bauru.webp',
     './images/ags_esfirra.webp',
     './images/ags_bolo_salgado.webp',
+    './images/ags_kibe.webp',
+    './images/ags_enroladinho.webp',
+    './images/ags_pao_batata.webp',
+    './images/ags_bolinho_costela.webp',
+    './images/ags_croissant_queijo.webp',
+    './images/ags_esfirra_carne.webp',
+    './images/ags_esfirra_queijo.webp',
+    './images/ags_esfirra_calabresa.webp',
+    './images/ags_pizza_calabresa.webp',
+    './images/ags_pizza_mussarela.webp',
+    './images/ags_pizza_portuguesa.webp',
     './images/pix_qr_code.webp'
 ];
 
