@@ -264,7 +264,7 @@ function renderDailyPromos() {
 }
 
 function createProductCard(item, isPromo, promoPrice, index = 0) {
-    let imgSrc = item.image || 'images/ags_coxinha.webp';
+    let imgSrc = item.image || 'images/fg_coxinha.webp';
     if (imgSrc.startsWith('images/')) imgSrc = './' + imgSrc;
 
     const displayPrice = isPromo ? promoPrice : item.price;
