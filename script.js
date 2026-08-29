@@ -60,7 +60,8 @@ const dailyPromotions = {
 const categoryLabels = {
     'all': '🍽️ Todos',
     'fritos': '🍗 Salgados Fritos',
-    'assados': '🥐 Salgados Assados'
+    'assados': '🥐 Salgados Assados',
+    'pacotes': '📦 Pacotes com 6 Unidades'
 };
 
 const promoGradients = {
@@ -272,11 +273,18 @@ function createProductCard(item, isPromo, promoPrice, index = 0) {
     const originalPriceHTML = isPromo ?
         `<span class="text-muted text-decoration-line-through me-2" style="font-size: 0.85rem;">${formatBRL(item.price)}</span>` : '';
 
+    const isPack = item.category === 'pacotes';
+    const priceLabelText = isPack ? 'Pacote com 6 unidades' : 'Por unidade';
+    const packBadge = isPack
+        ? `<span class="position-absolute top-0 start-0 m-2 badge rounded-pill" style="background: #F5A800; color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em;">📦 6 unidades</span>`
+        : '';
+
     return `
         <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card ${isPromo ? 'promo-border' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card ${isPromo ? 'promo-border' : ''}${isPack ? ' pack-card' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
                 <div class="product-image-wrapper position-relative">
                     <img src="${imgSrc}" class="w-100 h-100" alt="${item.name}" style="object-fit: cover;" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
+                    ${packBadge}
                     <div class="edit-photo-overlay" data-upload="${item.id}">
                         <i class="fa-solid fa-camera"></i> Trocar Foto
                     </div>
@@ -287,13 +295,13 @@ function createProductCard(item, isPromo, promoPrice, index = 0) {
                     <div class="mt-auto pt-3 border-top w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="price-wrapper text-start">
-                                <span class="price-label">Por unidade</span>
+                                <span class="price-label">${priceLabelText}</span>
                                 <div class="d-flex align-items-center">
                                     ${originalPriceHTML}
                                     <span class="card-price editable ${promoClasses}" data-field="price" data-id="${item.id}">${formatBRL(displayPrice)}</span>
                                 </div>
                             </div>
-                            <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${displayPrice})" aria-label="Adicionar unidade">
+                            <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${displayPrice})" aria-label="Adicionar ao carrinho">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
