@@ -194,7 +194,7 @@ async function changePassword() {
     if (!p1 || p1.length < 4) return showToast('Senha deve ter ao menos 4 caracteres!');
     if (p1 !== p2) return showToast('As senhas não conferem!');
     const salt = randomSalt();
-    writeJSON(AUTH_KEY, { salt: salt, hash: await hashPass(p1 + ':' + salt), mustChange: false });
+    writeJSON(AUTH_KEY, { version: AUTH_VERSION, salt: salt, hash: await hashPass(p1 + ':' + salt), mustChange: false });
     document.getElementById('newPass1').value = '';
     document.getElementById('newPass2').value = '';
     showToast('Senha alterada com sucesso!');
