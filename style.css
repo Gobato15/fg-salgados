@@ -408,17 +408,8 @@ header.scrolled {
     position: relative;
     overflow: hidden;
     aspect-ratio: 4/3;
-    background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+    background: linear-gradient(135deg, #FDE7C4, #FBE1B4);
     padding-top: 0;
-}
-
-.product-image-wrapper::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--gradient-frost);
-    pointer-events: none;
-    z-index: 1;
 }
 
 .product-image-wrapper img {
@@ -426,7 +417,8 @@ header.scrolled {
     height: 100%;
     object-fit: cover;
     display: block;
-    filter: saturate(0.8) brightness(1.08) contrast(0.97);
+    filter: saturate(1.05) brightness(1.02) contrast(1.02);
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .tray-tag-badge {
