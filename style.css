@@ -660,69 +660,6 @@ footer {
     text-align: center;
 }
 
-.whatsapp-float {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    z-index: 999;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #25D366, #128C7E);
-    color: #FFF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    box-shadow: 0 8px 24px rgba(18, 140, 126, 0.45);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    text-decoration: none;
-}
-
-.whatsapp-float:hover {
-    transform: scale(1.08);
-    box-shadow: 0 12px 30px rgba(18, 140, 126, 0.55);
-    color: #FFF;
-}
-
-.whatsapp-float::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: rgba(37, 211, 102, 0.5);
-    animation: whats-pulse 2s ease-out infinite;
-    z-index: -1;
-}
-
-@keyframes whats-pulse {
-    0% { transform: scale(1); opacity: 0.7; }
-    100% { transform: scale(1.6); opacity: 0; }
-}
-
-.whatsapp-float .float-tooltip {
-    position: absolute;
-    right: 72px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 8px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--border-color);
-}
-
-.whatsapp-float:hover .float-tooltip {
-    opacity: 1;
-}
-
 .toast-container {
     position: fixed;
     bottom: 100px;
@@ -818,13 +755,5 @@ footer {
     .categories {
         padding: 0.8rem 5%;
         gap: 0.6rem;
-    }
-
-    .whatsapp-float {
-        width: 52px;
-        height: 52px;
-        font-size: 26px;
-        bottom: 18px;
-        right: 18px;
     }
 }
