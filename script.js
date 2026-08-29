@@ -16,8 +16,8 @@ const DEFAULT_CONTACT = {
     pix: "agsdelivery24@gmail.com",
     address: "Entrega e Retirada Local",
     about: "Salgados artesanais congelados vendidos por unidade. Qualidade gourmet, ingredientes selecionados e sabor de verdade.",
-    hours1: "Seg a Sáb: 8h às 18h",
-    hours2: "Domingo: Sob Encomenda"
+    hours1: "Seg a Sex: 14h às 19h",
+    hours2: "Sábado: 8h às 17h"
 };
 
 let savedData = {};
@@ -27,7 +27,7 @@ const categoryLabels = {
     'fritos': '🍗 Salgados Fritos',
     'assados': '🥐 Salgados Assados',
     'burgers': '🍔 Lanches / Hambúrgueres',
-    'pacotes': '📦 Pacotes com 6 Unidades'
+    'pacotes': '📦 Pacotes com 6 e 1 Unidade'
 };
 
 const menuGrid = document.getElementById('menuGrid');
