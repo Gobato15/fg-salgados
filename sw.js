@@ -1,4 +1,4 @@
-const CACHE = 'fg-salgados-v5';
+const CACHE = 'fg-salgados-v7';
 const CORE = [
     './',
     './index.html',
@@ -20,9 +20,9 @@ const CORE = [
     './images/ags_pao_batata.webp',
     './images/ags_bolinho_costela.webp',
     './images/ags_croissant_queijo.webp',
-    './images/fg_xbacon.png',
-    './images/fg_xcheddar.png',
-    './images/fg_xpicanha.png',
+    './images/fg_xbacon.webp',
+    './images/fg_xcheddar.webp',
+    './images/fg_xpicanha.webp',
     './images/pix_qr_code.webp'
 ];
 

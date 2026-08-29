@@ -26,34 +26,34 @@ let savedData = {};
 
 const dailyPromotions = {
     1: [
-        { id: "1", promoPrice: 4.50 },
-        { id: "4", promoPrice: 5.90 },
-        { id: "5", promoPrice: 5.90 }
+        { id: "p1", promoPrice: 24.90 },
+        { id: "p3", promoPrice: 29.90 },
+        { id: "p4", promoPrice: 42.90 }
     ],
     2: [
-        { id: "2", promoPrice: 5.90 },
-        { id: "5", promoPrice: 5.90 },
-        { id: "6", promoPrice: 8.90 }
+        { id: "p2", promoPrice: 29.90 },
+        { id: "p4", promoPrice: 42.90 },
+        { id: "p16", promoPrice: 47.90 }
     ],
     3: [
-        { id: "3", promoPrice: 23.50 },
-        { id: "1", promoPrice: 4.50 },
-        { id: "4", promoPrice: 5.90 }
+        { id: "p17", promoPrice: 119.90 },
+        { id: "p1", promoPrice: 24.90 },
+        { id: "p3", promoPrice: 29.90 }
     ],
     4: [
-        { id: "6", promoPrice: 8.90 },
-        { id: "4", promoPrice: 5.90 },
-        { id: "2", promoPrice: 5.90 }
+        { id: "p16", promoPrice: 47.90 },
+        { id: "p3", promoPrice: 29.90 },
+        { id: "p2", promoPrice: 29.90 }
     ],
     5: [
-        { id: "5", promoPrice: 5.90 },
-        { id: "2", promoPrice: 5.90 },
-        { id: "1", promoPrice: 4.50 }
+        { id: "p4", promoPrice: 42.90 },
+        { id: "p2", promoPrice: 29.90 },
+        { id: "p1", promoPrice: 24.90 }
     ],
     6: [
-        { id: "3", promoPrice: 23.50 },
-        { id: "6", promoPrice: 8.90 },
-        { id: "5", promoPrice: 5.90 }
+        { id: "p17", promoPrice: 119.90 },
+        { id: "p16", promoPrice: 47.90 },
+        { id: "p4", promoPrice: 42.90 }
     ]
 };
 
