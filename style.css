@@ -73,21 +73,45 @@ header.scrolled {
 }
 
 .brand-logo {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    background: linear-gradient(135deg, var(--accent), #9F1239);
+    width: 54px;
+    height: 54px;
+    min-width: 54px;
+    background: linear-gradient(135deg, #E11D48 0%, #D97706 100%);
+    background-size: 200% 200%;
     color: #FFF;
-    border-radius: 14px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 18px;
-    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.3);
+    font-size: 22px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 22px rgba(225, 29, 72, 0.45);
     transform: rotate(-3deg);
     border: 2px solid #FFF;
     font-family: 'Outfit', sans-serif;
+    animation: brand-glow 3s ease-in-out infinite;
+    position: relative;
+}
+
+.brand-logo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.45), transparent 55%);
+    pointer-events: none;
+}
+
+@keyframes brand-glow {
+    0%, 100% {
+        box-shadow: 0 8px 22px rgba(225, 29, 72, 0.45);
+        background-position: 0% 50%;
+    }
+    50% {
+        box-shadow: 0 10px 30px rgba(225, 29, 72, 0.7), 0 0 24px rgba(217, 119, 6, 0.45);
+        background-position: 100% 50%;
+    }
 }
 
 .brand-text {
@@ -729,6 +753,13 @@ footer {
 
     .brand-title {
         font-size: 17px;
+    }
+
+    .brand-logo {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        font-size: 19px;
     }
 
     .hero {
