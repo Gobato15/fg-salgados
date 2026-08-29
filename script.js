@@ -1,7 +1,5 @@
 let menuItems = [];
 let cart = [];
-let currentPromoDay = new Date().getDay();
-if (currentPromoDay < 1 || currentPromoDay > 6) currentPromoDay = 1;
 
 let isEditing = false;
 let uploadTarget = null;
@@ -24,39 +22,6 @@ const DEFAULT_CONTACT = {
 
 let savedData = {};
 
-const dailyPromotions = {
-    1: [
-        { id: "p1", promoPrice: 24.90 },
-        { id: "p3", promoPrice: 29.90 },
-        { id: "p4", promoPrice: 42.90 }
-    ],
-    2: [
-        { id: "p2", promoPrice: 29.90 },
-        { id: "p4", promoPrice: 42.90 },
-        { id: "p16", promoPrice: 47.90 }
-    ],
-    3: [
-        { id: "p17", promoPrice: 119.90 },
-        { id: "p1", promoPrice: 24.90 },
-        { id: "p3", promoPrice: 29.90 }
-    ],
-    4: [
-        { id: "p16", promoPrice: 47.90 },
-        { id: "p3", promoPrice: 29.90 },
-        { id: "p2", promoPrice: 29.90 }
-    ],
-    5: [
-        { id: "p4", promoPrice: 42.90 },
-        { id: "p2", promoPrice: 29.90 },
-        { id: "p1", promoPrice: 24.90 }
-    ],
-    6: [
-        { id: "p17", promoPrice: 119.90 },
-        { id: "p16", promoPrice: 47.90 },
-        { id: "p4", promoPrice: 42.90 }
-    ]
-};
-
 const categoryLabels = {
     'all': '🍽️ Todos',
     'fritos': '🍗 Salgados Fritos',
@@ -64,18 +29,6 @@ const categoryLabels = {
     'burgers': '🍔 Lanches / Hambúrgueres',
     'pacotes': '📦 Pacotes com 6 Unidades'
 };
-
-const promoGradients = {
-    1: 'linear-gradient(135deg, #FF9800 0%, #FF5722 100%)',
-    2: 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
-    3: 'linear-gradient(135deg, #E11D48 0%, #FB7185 100%)',
-    4: 'linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%)',
-    5: 'linear-gradient(135deg, #9C27B0 0%, #E91E63 100%)',
-    6: 'linear-gradient(135deg, #F97316 0%, #EF4444 100%)'
-};
-
-const dayNames = ['', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-const fullDayNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
 const menuGrid = document.getElementById('menuGrid');
 const categoryContainer = document.getElementById('categoryContainer');
@@ -226,61 +179,9 @@ function fallbackCopy(text, done) {
     done();
 }
 
-window.setPromoDay = function (day) {
-    currentPromoDay = day;
-    renderDailyPromos();
-    renderMenu();
-};
-
-function renderDailyPromos() {
-    const promoContainer = document.getElementById('promoCarouselContainer');
-    if (!promoContainer) return;
-
-    const todaysPromos = dailyPromotions[currentPromoDay];
-    if (!todaysPromos || todaysPromos.length === 0) {
-        promoContainer.style.display = 'none';
-        return;
-    }
-    promoContainer.style.display = 'block';
-
-    const diaNome = fullDayNames[currentPromoDay];
-
-    const dayBtnsHTML = [1, 2, 3, 4, 5, 6].map(d => {
-        const activeClass = d === currentPromoDay ? 'btn-primary text-white border-primary' : 'btn-light border';
-        return `<button class="btn rounded-pill px-3 py-1 ${activeClass} fw-bold shadow-sm" onclick="setPromoDay(${d})" style="white-space: nowrap;">${dayNames[d]}</button>`;
-    }).join('');
-
-    let itemsHTML = '';
-    todaysPromos.forEach((promo, index) => {
-        const item = menuItems.find(i => i.id === promo.id);
-        if (item) {
-            itemsHTML += createProductCard(item, true, promo.promoPrice, index);
-        }
-    });
-
-    promoContainer.innerHTML = `
-        <div class="promo-section-header text-center mb-4">
-            <h5 class="fw-bold text-dark mb-3">🔥 Promoções de ${diaNome}</h5>
-            <div class="promo-day-selector d-flex justify-content-center gap-2 mb-2 overflow-auto pb-2">
-                ${dayBtnsHTML}
-            </div>
-        </div>
-        <div class="promo-banner" style="background: ${promoGradients[currentPromoDay]};">
-            <div class="row row-cols-1 row-cols-md-2 g-4 justify-content-center">
-                ${itemsHTML}
-            </div>
-        </div>
-    `;
-}
-
-function createProductCard(item, isPromo, promoPrice, index = 0) {
+function createProductCard(item, index = 0) {
     let imgSrc = item.image || 'images/ags_coxinha.webp';
     if (imgSrc.startsWith('images/')) imgSrc = './' + imgSrc;
-
-    const displayPrice = isPromo ? promoPrice : item.price;
-    const promoClasses = isPromo ? 'promo-price-text' : '';
-    const originalPriceHTML = isPromo ?
-        `<span class="text-muted text-decoration-line-through me-2" style="font-size: 0.85rem;">${formatBRL(item.price)}</span>` : '';
 
     const isPack = item.category === 'pacotes';
     const priceLabelText = isPack ? 'Pacote com 6 unidades' : 'Por unidade';
@@ -290,7 +191,7 @@ function createProductCard(item, isPromo, promoPrice, index = 0) {
 
     return `
         <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card ${isPromo ? 'promo-border' : ''}${isPack ? ' pack-card' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card${isPack ? ' pack-card' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
                 <div class="product-image-wrapper position-relative">
                     <img src="${imgSrc}" class="w-100 h-100" alt="${item.name}" style="object-fit: cover;" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
                     ${packBadge}
@@ -306,11 +207,10 @@ function createProductCard(item, isPromo, promoPrice, index = 0) {
                             <div class="price-wrapper text-start">
                                 <span class="price-label">${priceLabelText}</span>
                                 <div class="d-flex align-items-center">
-                                    ${originalPriceHTML}
-                                    <span class="card-price editable ${promoClasses}" data-field="price" data-id="${item.id}">${formatBRL(displayPrice)}</span>
+                                    <span class="card-price editable" data-field="price" data-id="${item.id}">${formatBRL(item.price)}</span>
                                 </div>
                             </div>
-                            <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${displayPrice})" aria-label="Adicionar ao carrinho">
+                            <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})" aria-label="Adicionar ao carrinho">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -364,11 +264,8 @@ function renderMenu() {
         return;
     }
 
-    const todaysPromos = dailyPromotions[currentPromoDay] || [];
-
     filteredItems.forEach((item, index) => {
-        const promo = todaysPromos.find(p => p.id === item.id);
-        menuGrid.innerHTML += createProductCard(item, !!promo, promo ? promo.promoPrice : null, index);
+        menuGrid.innerHTML += createProductCard(item, index);
     });
 
     bindGridEditables();
@@ -839,7 +736,6 @@ window.addEventListener('scroll', () => {
 
 loadSavedData();
 initStaticEditables();
-renderDailyPromos();
 renderCategories();
 renderMenu();
 updateCartUI();
