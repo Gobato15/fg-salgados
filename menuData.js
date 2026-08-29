@@ -5,7 +5,7 @@ window.fgMenuItems = [
         name: "Pacote Coxinha de Frango",
         category: "Salgados",
         price: 35.90,
-        description: "6 coxinhas de frango congeladas (100g cada) no saquinho. Massa artesanal de batata, receita da casa. Pronto para airfryer!",
+        description: "6 Coxinhas de frango congeladas (100g cada) no saquinho. Massa artesanal de batata, receita da casa. Pronto para airfryer!",
         image: "images/ags_coxinha.webp",
         units: 6
     },
@@ -14,7 +14,7 @@ window.fgMenuItems = [
         name: "Pacote Croissant Presunto e Queijo",
         category: "Salgados",
         price: 35.90,
-        description: "6 croissants congelados recheados com presunto fatiado e queijo derretido. Clássico folhado crocante no saquinho.",
+        description: "6 Croissants congelados recheados com presunto fatiado e queijo derretido. Clássico folhado crocante no saquinho.",
         image: "images/ags_croissant.webp",
         units: 6
     },
@@ -23,7 +23,7 @@ window.fgMenuItems = [
         name: "Pacote Bauru de Presunto e Queijo",
         category: "Salgados",
         price: 35.90,
-        description: "6 baurus congelados com massa fofinha e recheio generoso de presunto, queijo e orégano. No saquinho.",
+        description: "6 Baurus congelados com massa fofinha e recheio generoso de presunto, queijo e orégano. No saquinho.",
         image: "images/ags_bauru.webp",
         units: 6
     },
@@ -32,7 +32,7 @@ window.fgMenuItems = [
         name: "Pacote X-Bacon",
         category: "Salgados",
         price: 43.90,
-        description: "6 x-bacon congelados com carne, bacon crocante, cheddar e molho especial. No saquinho.",
+        description: "6 X-Bacon congelados com carne, bacon crocante, cheddar e molho especial. No saquinho.",
         image: "images/fg_xbacon.webp",
         units: 6
     },
@@ -41,7 +41,7 @@ window.fgMenuItems = [
         name: "Pacote X-Cheddar",
         category: "Salgados",
         price: 49.90,
-        description: "6 x-cheddar congelados com duas camadas de cheddar derretido e carne suculenta. No saquinho.",
+        description: "6 X-Cheddar congelados com duas camadas de cheddar derretido e carne suculenta. No saquinho.",
         image: "images/fg_xcheddar.webp",
         units: 6
     },
@@ -50,7 +50,7 @@ window.fgMenuItems = [
         name: "Pacote X-Picanha",
         category: "Salgados",
         price: 49.90,
-        description: "6 x-picanha congelados com carne de picanha, catupiry cremoso e queijo. No saquinho.",
+        description: "6 X-Picanha congelados com carne de picanha, catupiry cremoso e queijo. No saquinho.",
         image: "images/fg_xpicanha.webp",
         units: 6
     },
@@ -59,7 +59,7 @@ window.fgMenuItems = [
         name: "Pacote Croissant de Queijo",
         category: "Salgados",
         price: 35.90,
-        description: "6 croissants de queijo congelados, folhado crocante com queijo cremoso e derretido. No saquinho.",
+        description: "6 Croissants de queijo congelados, folhado crocante com queijo cremoso e derretido. No saquinho.",
         image: "images/ags_croissant_queijo.webp",
         units: 6
     },
@@ -68,16 +68,16 @@ window.fgMenuItems = [
         name: "Pacote Bolo Salgado de Frango c/ Requeijão",
         category: "Salgados",
         price: 10.00,
-        description: "Bolo salgado de frango congelado com requeijão cremoso e azeitonas gratinados. No saquinho.",
+        description: "1Bolo salgado de frango congelado com requeijão cremoso e azeitonas gratinados. No saquinho.",
         image: "images/ags_bolo_salgado.webp",
         units: 1
     },
     {
         id: "p17",
-        name: "Pacote Torta de Frango Caseira (1un)",
+        name: "Pacote Torta de Frango Caseira",
         category: "Salgados",
         price: 47.00,
-        description: "Torta de frango congelada com massa caseira derretendo na boca. No saquinho.",
+        description: "1 orta de frango congelada com massa caseira derretendo na boca. No saquinho.",
         image: "images/ags_torta_frango.webp",
         units: 1
     }
