@@ -4,7 +4,7 @@ window.fgMenuItems = [
         id: "p1",
         name: "Pacote Coxinha de Frango (6un)",
         category: "pacotes",
-        price: 29.90,
+        price: 35.90,
         description: "6 coxinhas de frango congeladas (100g cada) no saquinho. Massa artesanal de batata, receita da casa. Pronto para airfryer!",
         image: "images/ags_coxinha.webp",
         units: 6
@@ -31,7 +31,7 @@ window.fgMenuItems = [
         id: "p4",
         name: "Pacote X-Bacon (6un)",
         category: "pacotes",
-        price: 49.90,
+        price: 43.90,
         description: "6 x-bacon congelados com carne, bacon crocante, cheddar e molho especial. No saquinho.",
         image: "images/fg_xbacon.webp",
         units: 6
@@ -55,42 +55,6 @@ window.fgMenuItems = [
         units: 6
     },
     {
-        id: "p5",
-        name: "Pacote Kibe Congelado (6un)",
-        category: "pacotes",
-        price: 29.90,
-        description: "6 kibes congelados (100g cada) com carne moída temperada e formato crocante para fritar. No saquinho.",
-        image: "images/ags_kibe.webp",
-        units: 6
-    },
-    {
-        id: "p6",
-        name: "Pacote Enroladinho de Salsicha (6un)",
-        category: "pacotes",
-        price: 29.90,
-        description: "6 enroladinhos de salsicha congelados com massa crocante e salsicha de qualidade. No saquinho.",
-        image: "images/ags_enroladinho.webp",
-        units: 6
-    },
-    {
-        id: "p7",
-        name: "Pacote Pão de Batata com Frango (6un)",
-        category: "pacotes",
-        price: 35.90,
-        description: "6 pães de batata congelados recheados com frango cremoso e temperado da casa. No saquinho.",
-        image: "images/ags_pao_batata.webp",
-        units: 6
-    },
-    {
-        id: "p8",
-        name: "Pacote Bolinho de Costela (6un)",
-        category: "pacotes",
-        price: 37.90,
-        description: "6 bolinhos congelados de costela desfiada com massa dourada e recheio suculento. No saquinho.",
-        image: "images/ags_bolinho_costela.webp",
-        units: 6
-    },
-    {
         id: "p9",
         name: "Pacote Croissant de Queijo (6un)",
         category: "pacotes",
@@ -101,20 +65,20 @@ window.fgMenuItems = [
     },
     {
         id: "p16",
-        name: "Pacote Bolo Salgado de Frango c/ Requeijão (6un)",
+        name: "Pacote Bolo Salgado de Frango c/ Requeijão (1un)",
         category: "pacotes",
-        price: 54.90,
-        description: "6 bolos salgados congelados de frango desfiado, requeijão cremoso e azeitonas gratinados. No saquinho.",
+        price: 10.00,
+        description: "Bolo salgado de frango congelado com requeijão cremoso e azeitonas gratinados. No saquinho.",
         image: "images/ags_bolo_salgado.webp",
-        units: 6
+        units: 1
     },
     {
         id: "p17",
-        name: "Pacote Torta de Frango Caseira (6un)",
+        name: "Pacote Torta de Frango Caseira (1un)",
         category: "pacotes",
-        price: 139.90,
-        description: "6 tortas de frango inteiras congeladas com massa caseira derretendo na boca. No saquinho.",
+        price: 47.00,
+        description: "Torta de frango congelada com massa caseira derretendo na boca. No saquinho.",
         image: "images/ags_torta_frango.webp",
-        units: 6
+        units: 1
     }
-];
+]
