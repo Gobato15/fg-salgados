@@ -2,7 +2,7 @@ const AUTH_KEY = 'fg_admin_auth';
 const RATE_KEY = 'fg_admin_rate';
 const ORDERS_KEY = 'fg_admin_orders';
 const MOVEMENTS_KEY = 'fg_admin_movimentos';
-const SITE_KEY = 'fg_salgados_v8';
+const SITE_KEY = 'fg_salgados_v9';
 const DEFAULT_PASSWORD = '1031';
 const DEFAULT_EMAIL = 'gobato59@gmail.com';
 const AUTH_VERSION = 2;
@@ -238,7 +238,13 @@ function getMenuItems() {
             items.push(Object.assign({ id: id, active: true, units: 1 }, saved[id]));
         }
     });
-    return items;
+    const seen = new Set();
+    return items.filter(it => {
+        if (!it.image) return false;
+        if (seen.has(it.id)) return false;
+        seen.add(it.id);
+        return true;
+    });
 }
 
 function saveProducts(items) {

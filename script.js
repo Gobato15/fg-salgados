@@ -9,7 +9,7 @@ let deliveryFee = 0;
 let deliveryDistance = 0;
 let activeCategory = 'all';
 
-const STORAGE_KEY = 'fg_salgados_v8';
+const STORAGE_KEY = 'fg_salgados_v9';
 const CLIENT_ORDERS_KEY = 'fg_client_orders';
 
 const DEFAULT_CONTACT = {
@@ -101,6 +101,14 @@ function loadSavedData() {
             else menuItems.push(Object.assign({ id, active: true, units: 1 }, savedData.products[id]));
         });
     }
+
+    const seen = new Set();
+    menuItems = menuItems.filter(it => {
+        if (!it.image) return false;
+        if (seen.has(it.id)) return false;
+        seen.add(it.id);
+        return true;
+    });
 
     if (savedData.hero) {
         const titleEl = document.getElementById('heroTitle');
