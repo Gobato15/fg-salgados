@@ -720,10 +720,12 @@ function bindContactLinks() {
     const footWhats = document.getElementById('footWhatsLink');
     const footInsta = document.getElementById('footInstaLink');
     const whatsFloat = document.getElementById('whatsFloat');
+    const footOrder = document.getElementById('footOrderBtn');
 
     if (heroBtn) heroBtn.href = generateWhatsLink("Olá! Gostaria de consultar sobre os salgados congelados 🙂");
     if (footWhats) footWhats.href = generateWhatsLink("Olá! Vim pelo site da FG Salgados 🙂");
     if (whatsFloat) whatsFloat.href = generateWhatsLink("Olá! Vim pelo site da FG Salgados 🙂");
+    if (footOrder) footOrder.href = generateWhatsLink("Olá! Gostaria de fazer um pedido 🙂");
     if (footInsta) footInsta.href = `https://instagram.com/${insta}`;
 }
 

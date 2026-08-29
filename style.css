@@ -42,10 +42,10 @@ body {
 
 .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px rgba(39, 30, 23, 0.08);
 }
 
 header {
@@ -53,11 +53,16 @@ header {
     top: 0;
     width: 100%;
     z-index: 1000;
-    padding: 1.2rem 8%;
+    padding: 1rem 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     transition: var(--transition);
+}
+
+header.scrolled {
+    box-shadow: 0 10px 34px rgba(39, 30, 23, 0.14);
+    background: rgba(250, 246, 240, 0.96);
 }
 
 .brand {
@@ -140,8 +145,21 @@ header {
 .hero {
     position: relative;
     margin-top: 20px;
-    padding: 6rem 2rem 4rem;
+    padding: 6rem 2rem 4.5rem;
     text-align: center;
+    border-radius: var(--radius);
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    background:
+        radial-gradient(circle at 18% 20%, rgba(230, 120, 60, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 82% 30%, rgba(225, 29, 72, 0.10) 0%, transparent 45%);
+    pointer-events: none;
+    z-index: -1;
 }
 
 .hero-tag-pill {
@@ -156,7 +174,7 @@ header {
     font-size: 13px;
     font-weight: 800;
     margin-bottom: 22px;
-    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.1);
+    box-shadow: 0 4px 16px rgba(217, 119, 6, 0.18);
 }
 
 .hero h1 {
@@ -206,6 +224,33 @@ header {
 
 .pill i {
     color: var(--primary);
+}
+
+.hero-trust {
+    animation: slideUp 0.7s ease forwards;
+    animation-delay: 0.3s;
+    opacity: 0;
+}
+
+.hero-trust .trust-stars {
+    color: #F59E0B;
+    font-size: 0.95rem;
+    letter-spacing: 2px;
+}
+
+.hero-trust .trust-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.hero-trust .trust-divider {
+    color: var(--border-color);
+    font-weight: 800;
+}
+
+.hero-trust .trust-medal {
+    color: var(--primary);
+    font-size: 1.1rem;
 }
 
 .btn-amber {
@@ -312,13 +357,14 @@ header {
     font-size: 14px;
     font-family: inherit;
     transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(39, 30, 23, 0.06);
 }
 
 .categories .btn-dark {
     background: var(--text);
     border-color: var(--text);
     color: #FFF;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 6px 16px rgba(26, 19, 14, 0.3);
 }
 
 .categories .btn-outline-dark {
@@ -345,8 +391,9 @@ header {
 }
 
 .product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-10px);
+    box-shadow: 0 24px 48px rgba(39, 30, 23, 0.16);
+    border-color: rgba(217, 119, 6, 0.35);
 }
 
 .product-card:hover .card-img-top {
@@ -362,6 +409,7 @@ header {
     overflow: hidden;
     aspect-ratio: 4/3;
     background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+    padding-top: 0;
 }
 
 .product-image-wrapper::after {
@@ -457,7 +505,7 @@ header {
     background: var(--gradient-primary);
     color: #ffffff;
     border: none;
-    width: 42px;
+    min-width: 42px;
     height: 42px;
     border-radius: 50%;
     display: flex;
@@ -465,19 +513,21 @@ header {
     align-items: center;
     font-size: 1.2rem;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
 }
 
 .btn-add-cart:hover {
-    background: var(--accent-hover);
-    transform: scale(1.1) rotate(90deg);
+    background: var(--accent);
+    transform: scale(1.12) rotate(90deg);
     color: white;
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.4);
 }
 
 .btn-add-cart.active {
     background: #25D366;
     transform: scale(1.1);
     color: white;
+    box-shadow: 0 6px 16px rgba(37, 211, 102, 0.45);
 }
 
 .empty-state {
@@ -532,7 +582,8 @@ header {
 }
 
 footer {
-    background: var(--secondary);
+    background: linear-gradient(180deg, #1A130E 0%, #120D09 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .footer-logo {
