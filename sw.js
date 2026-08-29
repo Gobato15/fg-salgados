@@ -1,4 +1,4 @@
-const CACHE = 'fg-salgados-v3';
+const CACHE = 'fg-salgados-v5';
 const CORE = [
     './',
     './index.html',
@@ -10,23 +10,19 @@ const CORE = [
     './manifest.json',
     './images/icon-192.png',
     './images/icon-512.png',
-    './images/fg_coxinha.webp',
-    './images/fg_croissant.webp',
-    './images/fg_torta_frango.webp',
-    './images/fg_bauru.webp',
-    './images/fg_esfirra.webp',
-    './images/fg_bolo_salgado.webp',
-    './images/fg_kibe.webp',
-    './images/fg_enroladinho.webp',
-    './images/fg_pao_batata.webp',
-    './images/fg_bolinho_costela.webp',
-    './images/fg_croissant_queijo.webp',
-    './images/fg_esfirra_carne.webp',
-    './images/fg_esfirra_queijo.webp',
-    './images/fg_esfirra_calabresa.webp',
-    './images/fg_pizza_calabresa.webp',
-    './images/fg_pizza_mussarela.webp',
-    './images/fg_pizza_portuguesa.webp',
+    './images/ags_coxinha.webp',
+    './images/ags_croissant.webp',
+    './images/ags_torta_frango.webp',
+    './images/ags_bauru.webp',
+    './images/ags_bolo_salgado.webp',
+    './images/ags_kibe.webp',
+    './images/ags_enroladinho.webp',
+    './images/ags_pao_batata.webp',
+    './images/ags_bolinho_costela.webp',
+    './images/ags_croissant_queijo.webp',
+    './images/fg_xbacon.png',
+    './images/fg_xcheddar.png',
+    './images/fg_xpicanha.png',
     './images/pix_qr_code.webp'
 ];
 

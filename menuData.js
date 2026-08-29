@@ -5,7 +5,7 @@ window.fgMenuItems = [
         category: "fritos",
         price: 5.50,
         description: "Coxinha cremosa de 100g congelada, com massa artesanal de batata. Receita da casa.",
-        image: "images/fg_coxinha.webp",
+        image: "images/ags_coxinha.webp",
         units: 1
     },
     {
@@ -14,7 +14,7 @@ window.fgMenuItems = [
         category: "assados",
         price: 6.50,
         description: "O clássico folhado congelado recheado com presunto fatiado e queijo derretido.",
-        image: "images/fg_croissant.webp",
+        image: "images/ags_croissant.webp",
         units: 1
     },
     {
@@ -23,7 +23,7 @@ window.fgMenuItems = [
         category: "assados",
         price: 25.00,
         description: "Torta de frango inteira congelada, com massa caseira derretendo na boca.",
-        image: "images/fg_torta_frango.webp",
+        image: "images/ags_torta_frango.webp",
         units: 1
     },
     {
@@ -32,16 +32,16 @@ window.fgMenuItems = [
         category: "assados",
         price: 6.50,
         description: "Massa fofinha congelada com recheio generoso de presunto e queijo e toque de orégano.",
-        image: "images/fg_bauru.webp",
+        image: "images/ags_bauru.webp",
         units: 1
     },
     {
         id: "5",
-        name: "Esfirra de Frango Premium",
-        category: "assados",
-        price: 6.50,
-        description: "Massa leve congelada com recheio generoso de frango desfiado temperado.",
-        image: "images/fg_esfirra.webp",
+        name: "X-Bacon Congelado",
+        category: "burgers",
+        price: 9.90,
+        description: "Hambúrguer congelado com carne, bacon crocante, cheddar e molho especial. Pronto para airfryer!",
+        image: "images/fg_xbacon.png",
         units: 1
     },
     {
@@ -50,7 +50,7 @@ window.fgMenuItems = [
         category: "assados",
         price: 10.00,
         description: "Bolo salgado congelado: frango desfiado, requeijão cremoso e azeitonas, gratinado ao forno.",
-        image: "images/fg_bolo_salgado.webp",
+        image: "images/ags_bolo_salgado.webp",
         units: 1
     },
     {
@@ -59,7 +59,7 @@ window.fgMenuItems = [
         category: "fritos",
         price: 5.50,
         description: "Kibe de 100g congelado, com carne moída temperada e formato crocante para fritar.",
-        image: "images/fg_kibe.webp",
+        image: "images/ags_kibe.webp",
         units: 1
     },
     {
@@ -68,7 +68,7 @@ window.fgMenuItems = [
         category: "fritos",
         price: 5.50,
         description: "Massa crocante congelada recheada com salsicha de qualidade, perfeito para fritar.",
-        image: "images/fg_enroladinho.webp",
+        image: "images/ags_enroladinho.webp",
         units: 1
     },
     {
@@ -77,7 +77,7 @@ window.fgMenuItems = [
         category: "fritos",
         price: 6.50,
         description: "Massa de batata congelada recheada com frango cremoso e temperado da casa.",
-        image: "images/fg_pao_batata.webp",
+        image: "images/ags_pao_batata.webp",
         units: 1
     },
     {
@@ -86,7 +86,7 @@ window.fgMenuItems = [
         category: "fritos",
         price: 7.00,
         description: "Bolinho congelado de costela desfiada, com massa dourada e recheio suculento.",
-        image: "images/fg_bolinho_costela.webp",
+        image: "images/ags_bolinho_costela.webp",
         units: 1
     },
     {
@@ -95,61 +95,25 @@ window.fgMenuItems = [
         category: "assados",
         price: 6.50,
         description: "Folhado congelado recheado com queijo cremoso e derretido, crocante por fora.",
-        image: "images/fg_croissant_queijo.webp",
+        image: "images/ags_croissant_queijo.webp",
         units: 1
     },
     {
         id: "12",
-        name: "Esfirra de Carne",
-        category: "assados",
-        price: 6.50,
-        description: "Massa leve congelada com recheio generoso de carne moída temperada.",
-        image: "images/fg_esfirra_carne.webp",
+        name: "X-Cheddar Congelado",
+        category: "burgers",
+        price: 9.90,
+        description: "Hambúrguer congelado com duas camadas de cheddar derretido e carne suculenta. Pronto para airfryer!",
+        image: "images/fg_xcheddar.png",
         units: 1
     },
     {
         id: "13",
-        name: "Esfirra de Queijo",
-        category: "assados",
-        price: 6.50,
-        description: "Massa leve congelada com recheio cremoso de queijo que derrete ao assar.",
-        image: "images/fg_esfirra_queijo.webp",
-        units: 1
-    },
-    {
-        id: "14",
-        name: "Esfirra de Calabresa",
-        category: "assados",
-        price: 6.50,
-        description: "Massa leve congelada com recheio de calabresa defumada e temperos especiais.",
-        image: "images/fg_esfirra_calabresa.webp",
-        units: 1
-    },
-    {
-        id: "15",
-        name: "Pizza Brotinho de Calabresa",
-        category: "assados",
-        price: 15.00,
-        description: "Pizza brotinho congelada com molho, mussarela e rodelas de calabresa.",
-        image: "images/fg_pizza_calabresa.webp",
-        units: 1
-    },
-    {
-        id: "16",
-        name: "Pizza Brotinho de Mussarela",
-        category: "assados",
-        price: 15.00,
-        description: "Pizza brotinho congelada com molho de tomate caseiro e mussarela generosa.",
-        image: "images/fg_pizza_mussarela.webp",
-        units: 1
-    },
-    {
-        id: "17",
-        name: "Pizza Brotinho Portuguesa",
-        category: "assados",
-        price: 16.00,
-        description: "Pizza brotinho congelada com presunto, ovo, cebola, azeitonas e mussarela.",
-        image: "images/fg_pizza_portuguesa.webp",
+        name: "X-Picanha Congelado",
+        category: "burgers",
+        price: 9.90,
+        description: "Hambúrguer congelado com carne de picanha, catupiry cremoso e queijo. Pronto para airfryer!",
+        image: "images/fg_xpicanha.png",
         units: 1
     },
 
@@ -160,7 +124,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 29.90,
         description: "6 coxinhas de frango congeladas (100g cada) no saquinho. Massa artesanal de batata, receita da casa. Pronto para airfryer!",
-        image: "images/fg_pack_coxinha.png",
+        image: "images/ags_coxinha.webp",
         units: 6
     },
     {
@@ -169,7 +133,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 35.90,
         description: "6 croissants congelados recheados com presunto fatiado e queijo derretido. Clássico folhado crocante no saquinho.",
-        image: "images/fg_pack_croissant.png",
+        image: "images/ags_croissant.webp",
         units: 6
     },
     {
@@ -178,16 +142,34 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 35.90,
         description: "6 baurus congelados com massa fofinha e recheio generoso de presunto, queijo e orégano. No saquinho.",
-        image: "images/fg_pack_bauru.png",
+        image: "images/ags_bauru.webp",
         units: 6
     },
     {
         id: "p4",
-        name: "Pacote Esfirra de Frango Premium (6un)",
+        name: "Pacote X-Bacon (6un)",
         category: "pacotes",
-        price: 35.90,
-        description: "6 esfirras congeladas com massa leve e recheio generoso de frango desfiado temperado. No saquinho.",
-        image: "images/fg_pack_esfirra.png",
+        price: 49.90,
+        description: "6 x-bacon congelados com carne, bacon crocante, cheddar e molho especial. No saquinho.",
+        image: "images/fg_xbacon.png",
+        units: 6
+    },
+    {
+        id: "p10",
+        name: "Pacote X-Cheddar (6un)",
+        category: "pacotes",
+        price: 49.90,
+        description: "6 x-cheddar congelados com duas camadas de cheddar derretido e carne suculenta. No saquinho.",
+        image: "images/fg_xcheddar.png",
+        units: 6
+    },
+    {
+        id: "p11",
+        name: "Pacote X-Picanha (6un)",
+        category: "pacotes",
+        price: 49.90,
+        description: "6 x-picanha congelados com carne de picanha, catupiry cremoso e queijo. No saquinho.",
+        image: "images/fg_xpicanha.png",
         units: 6
     },
     {
@@ -196,7 +178,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 29.90,
         description: "6 kibes congelados (100g cada) com carne moída temperada e formato crocante para fritar. No saquinho.",
-        image: "images/fg_pack_kibe.png",
+        image: "images/ags_kibe.webp",
         units: 6
     },
     {
@@ -205,7 +187,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 29.90,
         description: "6 enroladinhos de salsicha congelados com massa crocante e salsicha de qualidade. No saquinho.",
-        image: "images/fg_enroladinho.webp",
+        image: "images/ags_enroladinho.webp",
         units: 6
     },
     {
@@ -214,7 +196,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 35.90,
         description: "6 pães de batata congelados recheados com frango cremoso e temperado da casa. No saquinho.",
-        image: "images/fg_pao_batata.webp",
+        image: "images/ags_pao_batata.webp",
         units: 6
     },
     {
@@ -223,7 +205,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 37.90,
         description: "6 bolinhos congelados de costela desfiada com massa dourada e recheio suculento. No saquinho.",
-        image: "images/fg_bolinho_costela.webp",
+        image: "images/ags_bolinho_costela.webp",
         units: 6
     },
     {
@@ -232,61 +214,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 35.90,
         description: "6 croissants de queijo congelados, folhado crocante com queijo cremoso e derretido. No saquinho.",
-        image: "images/fg_croissant_queijo.webp",
-        units: 6
-    },
-    {
-        id: "p10",
-        name: "Pacote Esfirra de Carne (6un)",
-        category: "pacotes",
-        price: 35.90,
-        description: "6 esfirras de carne congeladas com massa leve e recheio generoso de carne moída temperada. No saquinho.",
-        image: "images/fg_esfirra_carne.webp",
-        units: 6
-    },
-    {
-        id: "p11",
-        name: "Pacote Esfirra de Queijo (6un)",
-        category: "pacotes",
-        price: 35.90,
-        description: "6 esfirras de queijo congeladas com massa leve e recheio cremoso de queijo. No saquinho.",
-        image: "images/fg_esfirra_queijo.webp",
-        units: 6
-    },
-    {
-        id: "p12",
-        name: "Pacote Esfirra de Calabresa (6un)",
-        category: "pacotes",
-        price: 35.90,
-        description: "6 esfirras de calabresa congeladas com massa leve e calabresa defumada com temperos especiais. No saquinho.",
-        image: "images/fg_esfirra_calabresa.webp",
-        units: 6
-    },
-    {
-        id: "p13",
-        name: "Pacote Pizza Brotinho Calabresa (6un)",
-        category: "pacotes",
-        price: 79.90,
-        description: "6 pizzas brotinho congeladas de calabresa com molho, mussarela e rodelas de calabresa. No saquinho.",
-        image: "images/fg_pizza_calabresa.webp",
-        units: 6
-    },
-    {
-        id: "p14",
-        name: "Pacote Pizza Brotinho Mussarela (6un)",
-        category: "pacotes",
-        price: 79.90,
-        description: "6 pizzas brotinho congeladas de mussarela com molho de tomate caseiro e mussarela generosa. No saquinho.",
-        image: "images/fg_pizza_mussarela.webp",
-        units: 6
-    },
-    {
-        id: "p15",
-        name: "Pacote Pizza Brotinho Portuguesa (6un)",
-        category: "pacotes",
-        price: 84.90,
-        description: "6 pizzas brotinho congeladas portuguesa com presunto, ovo, cebola, azeitonas e mussarela. No saquinho.",
-        image: "images/fg_pizza_portuguesa.webp",
+        image: "images/ags_croissant_queijo.webp",
         units: 6
     },
     {
@@ -295,7 +223,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 54.90,
         description: "6 bolos salgados congelados de frango desfiado, requeijão cremoso e azeitonas gratinados. No saquinho.",
-        image: "images/fg_bolo_salgado.webp",
+        image: "images/ags_bolo_salgado.webp",
         units: 6
     },
     {
@@ -304,7 +232,7 @@ window.fgMenuItems = [
         category: "pacotes",
         price: 139.90,
         description: "6 tortas de frango inteiras congeladas com massa caseira derretendo na boca. No saquinho.",
-        image: "images/fg_torta_frango.webp",
+        image: "images/ags_torta_frango.webp",
         units: 6
     }
 ];

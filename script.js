@@ -61,6 +61,7 @@ const categoryLabels = {
     'all': '🍽️ Todos',
     'fritos': '🍗 Salgados Fritos',
     'assados': '🥐 Salgados Assados',
+    'burgers': '🍔 Lanches / Hambúrgueres',
     'pacotes': '📦 Pacotes com 6 Unidades'
 };
 
@@ -265,7 +266,7 @@ function renderDailyPromos() {
 }
 
 function createProductCard(item, isPromo, promoPrice, index = 0) {
-    let imgSrc = item.image || 'images/fg_coxinha.webp';
+    let imgSrc = item.image || 'images/ags_coxinha.webp';
     if (imgSrc.startsWith('images/')) imgSrc = './' + imgSrc;
 
     const displayPrice = isPromo ? promoPrice : item.price;
