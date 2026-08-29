@@ -68,7 +68,7 @@ window.fgMenuItems = [
         name: "Pacote Bolo Salgado de Frango c/ Requeijão",
         category: "Salgados",
         price: 10.00,
-        description: "1Bolo salgado de frango congelado com requeijão cremoso e azeitonas gratinados. No saquinho.",
+        description: "1 Bolo salgado de frango congelado com requeijão cremoso e azeitonas gratinados. No saquinho.",
         image: "images/ags_bolo_salgado.webp",
         units: 1
     },
@@ -77,7 +77,7 @@ window.fgMenuItems = [
         name: "Pacote Torta de Frango Caseira",
         category: "Salgados",
         price: 47.00,
-        description: "1 orta de frango congelada com massa caseira derretendo na boca. No saquinho.",
+        description: "1 Torta de frango congelada com massa caseira derretendo na boca. No saquinho.",
         image: "images/ags_torta_frango.webp",
         units: 1
     }
