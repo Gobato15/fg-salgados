@@ -718,8 +718,10 @@ function bindContactLinks() {
     const insta = (savedData.contact && savedData.contact.insta ? savedData.contact.insta : DEFAULT_CONTACT.insta).replace('@', '');
     const heroBtn = document.getElementById('heroWhatsBtn');
     const footInsta = document.getElementById('footInstaLink');
+    const footWhats = document.getElementById('footWhatsLink');
 
     if (heroBtn) heroBtn.href = generateWhatsLink("Olá! Gostaria de consultar sobre os salgados congelados 🙂");
+    if (footWhats) footWhats.href = generateWhatsLink("Olá! Vim pelo site da FG Salgados 🙂");
     if (footInsta) footInsta.href = `https://instagram.com/${insta}`;
 }
 
