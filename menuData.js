@@ -30,7 +30,7 @@ window.fgMenuItems = [
     {
         id: "p4",
         name: "Pacote X-Bacon",
-        category: "pacotes",
+        category: "burgers",
         price: 43.90,
         description: "6 X-Bacon congelados com carne, bacon crocante, cheddar e molho especial. No saquinho.",
         image: "images/fg_xbacon.webp",
@@ -39,7 +39,7 @@ window.fgMenuItems = [
     {
         id: "p10",
         name: "Pacote X-Cheddar",
-        category: "pacotes",
+        category: "burgers",
         price: 49.90,
         description: "6 X-Cheddar congelados com duas camadas de cheddar derretido e carne suculenta. No saquinho.",
         image: "images/fg_xcheddar.webp",
@@ -48,7 +48,7 @@ window.fgMenuItems = [
     {
         id: "p11",
         name: "Pacote X-Picanha",
-        category: "pacotes",
+        category: "burgers",
         price: 49.90,
         description: "6 X-Picanha congelados com carne de picanha, catupiry cremoso e queijo. No saquinho.",
         image: "images/fg_xpicanha.webp",
@@ -66,7 +66,7 @@ window.fgMenuItems = [
     {
         id: "p16",
         name: "Bolo Salgado de Frango c/ Requeijão",
-        category: "Salgados",
+        category: "pacotes",
         price: 10.00,
         description: "1 Bolo salgado de frango congelado com requeijão cremoso e azeitonas gratinados. No saquinho.",
         image: "images/ags_bolo_salgado.webp",
@@ -75,7 +75,7 @@ window.fgMenuItems = [
     {
         id: "p17",
         name: "Torta de Frango Caseira",
-        category: "Salgados",
+        category: "pacotes",
         price: 47.00,
         description: "1 Torta de frango congelada com massa caseira derretendo na boca. No saquinho.",
         image: "images/ags_torta_frango.webp",
