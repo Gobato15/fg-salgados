@@ -218,6 +218,15 @@ function formatBRL(val) {
     return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function fixImagePath(src) {
     if (!src) return '';
     if (/^(https?:|data:|blob:|\/)/i.test(src) || src.startsWith('../')) return src;
@@ -275,24 +284,24 @@ function renderProducts() {
         <tr>
             <td>
                 <div class="d-flex align-items-center gap-2">
-                    ${p.image && !p.image.startsWith('data:') ? `<img src="${fixImagePath(p.image)}" class="product-thumb" alt="">` : '<div class="product-thumb bg-light d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-image"></i></div>'}
+                    ${p.image && !p.image.startsWith('data:') ? `<img src="${esc(fixImagePath(p.image))}" class="product-thumb" alt="${esc(p.name)}">` : '<div class="product-thumb bg-light d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-image"></i></div>'}
                     <div>
-                        <div class="fw-bold">${p.name}</div>
-                        <div class="small text-muted">${p.desc || ''}</div>
+                        <div class="fw-bold">${esc(p.name)}</div>
+                        <div class="small text-muted">${esc(p.desc || '')}</div>
                     </div>
                 </div>
             </td>
-            <td><span class="badge text-bg-light border text-dark">${p.category || '-'}</span></td>
+            <td><span class="badge text-bg-light border text-dark">${esc(p.category || '-')}</span></td>
             <td class="fw-bold">${formatBRL(p.price)}</td>
-            <td>${p.units || 1}</td>
+            <td>${esc(p.units || 1)}</td>
             <td>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" ${p.active !== false ? 'checked' : ''} onchange="toggleActive('${p.id}', this.checked)">
+                    <input class="form-check-input" type="checkbox" ${p.active !== false ? 'checked' : ''} onchange="toggleActive('${esc(p.id)}', this.checked)">
                 </div>
             </td>
             <td class="text-end">
-                <button class="btn btn-sm btn-light border rounded-pill" onclick="openProductForm('${p.id}')"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn btn-sm btn-light border rounded-pill text-danger" onclick="deleteProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn btn-sm btn-light border rounded-pill" onclick="openProductForm('${esc(p.id)}')"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn btn-sm btn-light border rounded-pill text-danger" onclick="deleteProduct('${esc(p.id)}')"><i class="fa-solid fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
@@ -326,7 +335,7 @@ function openProductForm(id) {
     if (!categories.includes('fritos')) categories.unshift('fritos');
     if (!categories.includes('assados')) categories.unshift('assados');
     const catOptions = categories.map(c =>
-        `<option value="${c}" ${p && p.category === c ? 'selected' : ''}>${c}</option>`).join('');
+        `<option value="${esc(c)}" ${p && p.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('');
 
     const wrap = document.getElementById('productFormWrap');
     wrap.classList.remove('d-none');
@@ -335,7 +344,7 @@ function openProductForm(id) {
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label small fw-bold text-muted text-uppercase">Nome</label>
-                <input type="text" id="pfName" class="form-control rounded-3" value="${p ? p.name : ''}">
+                <input type="text" id="pfName" class="form-control rounded-3" value="${p ? esc(p.name) : ''}">
             </div>
             <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted text-uppercase">Categoria</label>
@@ -351,14 +360,14 @@ function openProductForm(id) {
             </div>
             <div class="col-md-9">
                 <label class="form-label small fw-bold text-muted text-uppercase">Descrição</label>
-                <input type="text" id="pfDesc" class="form-control rounded-3" value="${p ? (p.desc || '') : ''}">
+                <input type="text" id="pfDesc" class="form-control rounded-3" value="${p ? esc(p.desc || '') : ''}">
             </div>
             <div class="col-12">
                 <label class="form-label small fw-bold text-muted text-uppercase">URL da imagem</label>
-                <input type="text" id="pfImage" class="form-control rounded-3" value="${p ? (p.image || '') : ''}" placeholder="https://... ou ./images/produto.webp">
+                <input type="text" id="pfImage" class="form-control rounded-3" value="${p ? esc(p.image || '') : ''}" placeholder="https://... ou ./images/produto.webp">
             </div>
             <div class="col-12 d-flex gap-2">
-                <button class="btn btn-amber rounded-pill px-4 fw-bold" onclick="saveProductForm('${p ? p.id : ''}')"><i class="fa-solid fa-check me-1"></i> Salvar</button>
+                <button class="btn btn-amber rounded-pill px-4 fw-bold" onclick="saveProductForm('${p ? esc(p.id) : ''}')"><i class="fa-solid fa-check me-1"></i> Salvar</button>
                 <button class="btn btn-light rounded-pill px-4 fw-bold border" onclick="document.getElementById('productFormWrap').classList.add('d-none')">Cancelar</button>
             </div>
         </div>
@@ -420,19 +429,19 @@ function renderOrders() {
             <div class="col-md-6 col-xl-4">
                 <div class="order-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold">Pedido #${o.numero}</span>
-                        <span class="status-badge status-${o.status}">${st.label}</span>
+                        <span class="fw-bold">Pedido #${esc(o.numero)}</span>
+                        <span class="status-badge status-${esc(o.status)}">${esc(st.label)}</span>
                     </div>
                     <div class="small text-muted mb-2">${formatDate(o.data)}</div>
-                    <p class="mb-1"><i class="fa-solid fa-user me-1"></i> <strong>${o.cliente}</strong> ${o.telefone ? '· ' + o.telefone : ''}</p>
-                    <p class="mb-1 small"><i class="fa-solid fa-box me-1"></i> ${o.itens}</p>
-                    <p class="mb-1 small"><i class="fa-solid fa-location-dot me-1"></i> ${o.modo === 'entrega' ? (o.endereco || 'Entrega') : 'Retirada no local'}</p>
-                    <p class="mb-2 small"><i class="fa-solid fa-money-bill-wave me-1"></i> ${o.pagamento || '-'} · <strong>${formatBRL(o.total)}</strong></p>
+                    <p class="mb-1"><i class="fa-solid fa-user me-1"></i> <strong>${esc(o.cliente)}</strong> ${o.telefone ? '· ' + esc(o.telefone) : ''}</p>
+                    <p class="mb-1 small"><i class="fa-solid fa-box me-1"></i> ${esc(o.itens)}</p>
+                    <p class="mb-1 small"><i class="fa-solid fa-location-dot me-1"></i> ${o.modo === 'entrega' ? (esc(o.endereco) || 'Entrega') : 'Retirada no local'}</p>
+                    <p class="mb-2 small"><i class="fa-solid fa-money-bill-wave me-1"></i> ${esc(o.pagamento) || '-'} · <strong>${formatBRL(o.total)}</strong></p>
                     <div class="d-flex gap-2 align-items-center">
-                        <select class="form-select form-select-sm status-select flex-grow-1" onchange="setOrderStatus('${o.id}', this.value)">${statusOptions}</select>
-                        <button class="btn btn-sm btn-light border rounded-pill text-danger" onclick="deleteOrder('${o.id}')"><i class="fa-solid fa-trash"></i></button>
+                        <select class="form-select form-select-sm status-select flex-grow-1" onchange="setOrderStatus('${esc(o.id)}', this.value)">${statusOptions}</select>
+                        <button class="btn btn-sm btn-light border rounded-pill text-danger" onclick="deleteOrder('${esc(o.id)}')"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                    ${next ? `<button class="btn btn-sm btn-amber rounded-pill w-100 mt-2 fw-bold" onclick="nextOrderStatus('${o.id}')">Avancar para: ${STATUSES[next].label}</button>` : ''}
+                    ${next ? `<button class="btn btn-sm btn-amber rounded-pill w-100 mt-2 fw-bold" onclick="nextOrderStatus('${esc(o.id)}')">Avancar para: ${esc(STATUSES[next].label)}</button>` : ''}
                 </div>
             </div>
         `;
@@ -545,9 +554,14 @@ function deleteOrder(id) {
 }
 
 document.querySelectorAll('#statusFilter .btn-filter').forEach(btn => {
+    btn.setAttribute('aria-pressed', btn.classList.contains('active') ? 'true' : 'false');
     btn.addEventListener('click', () => {
-        document.querySelectorAll('#statusFilter .btn-filter').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#statusFilter .btn-filter').forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
         renderOrders();
     });
 });
@@ -571,11 +585,11 @@ function renderMovements() {
         tbody.innerHTML = movements.slice(0, 100).map(m => `
             <tr>
                 <td class="small text-nowrap">${formatDate(m.data)}</td>
-                <td class="small fw-semibold">${m.produto}</td>
-                <td><span class="badge ${m.tipo === 'entrada' ? 'text-bg-success' : 'text-bg-danger'}">${m.tipo}</span></td>
+                <td class="small fw-semibold">${esc(m.produto)}</td>
+                <td><span class="badge ${m.tipo === 'entrada' ? 'text-bg-success' : 'text-bg-danger'}">${esc(m.tipo)}</span></td>
                 <td class="fw-bold">${m.quantidade}</td>
-                <td class="small text-muted">${m.obs || '-'}</td>
-                <td class="text-end"><button class="btn btn-sm btn-light border text-danger" onclick="deleteMovement('${m.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                <td class="small text-muted">${esc(m.obs) || '-'}</td>
+                <td class="text-end"><button class="btn btn-sm btn-light border text-danger" onclick="deleteMovement('${esc(m.id)}')"><i class="fa-solid fa-trash"></i></button></td>
             </tr>
         `).join('');
     }
@@ -592,7 +606,7 @@ function renderMovements() {
     } else {
         balanceBody.innerHTML = keys.map(k => `
             <tr>
-                <td>${k}</td>
+                <td>${esc(k)}</td>
                 <td class="text-end fw-bold ${balance[k] < 0 ? 'text-danger' : 'text-success'}">${balance[k]}</td>
             </tr>
         `).join('');
@@ -601,7 +615,7 @@ function renderMovements() {
 
 function openMovementForm() {
     const items = getMenuItems().filter(i => i.active !== false);
-    const options = items.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
+    const options = items.map(i => `<option value="${esc(i.name)}">${esc(i.name)}</option>`).join('');
     const wrap = document.getElementById('movementFormWrap');
     wrap.classList.remove('d-none');
     wrap.innerHTML = `

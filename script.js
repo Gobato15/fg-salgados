@@ -75,7 +75,7 @@ function loadSavedData() {
     if (savedData.hero) {
         const titleEl = document.getElementById('heroTitle');
         const descEl = document.getElementById('heroDesc');
-        if (titleEl && savedData.hero.title) titleEl.innerHTML = savedData.hero.title;
+        if (titleEl && savedData.hero.title) titleEl.textContent = savedData.hero.title;
         if (descEl && savedData.hero.desc) descEl.textContent = savedData.hero.desc;
     }
 
@@ -192,10 +192,10 @@ function createProductCard(item, index = 0) {
     let imgSrc = item.image || 'images/ags_coxinha.webp';
     if (imgSrc.startsWith('images/')) imgSrc = './' + imgSrc;
 
-    const isPack = item.category === 'pacotes';
-    const priceLabelText = isPack ? 'Pacote com 6 unidades' : 'Por unidade';
+    const isPack = item.units > 1;
+    const priceLabelText = isPack ? `Pacote com ${item.units || 6} unidades` : 'Por unidade';
     const packBadge = isPack
-        ? `<span class="product-tag product-tag-pack"><i class="fa-solid fa-box-open"></i> 6 unidades</span>`
+        ? `<span class="product-tag product-tag-pack"><i class="fa-solid fa-box-open"></i> ${item.units || 6} unidades</span>`
         : '';
 
     return `
@@ -242,6 +242,7 @@ function renderCategories() {
         const btn = document.createElement('button');
         btn.className = `btn ${cat === activeCategory ? 'btn-dark' : 'btn-outline-dark'}`;
         btn.dataset.category = cat;
+        btn.setAttribute('aria-pressed', cat === activeCategory ? 'true' : 'false');
         btn.textContent = categoryLabels[cat] || cat;
 
         btn.onclick = () => {
@@ -618,7 +619,7 @@ window.checkout = function () {
     };
     saveClientOrder(myOrder);
 
-    window.open(generateWhatsLink(text), "_blank");
+    window.open(generateWhatsLink(text), "_blank", "noopener,noreferrer");
     showToast("Abrindo WhatsApp com seu pedido!");
     setTimeout(() => {
         window.location.href = 'sucesso.html';

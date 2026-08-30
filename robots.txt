@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /sucesso.html
+
+Sitemap: https://Gobato15.github.io/fg-salgados/sitemap.xml
