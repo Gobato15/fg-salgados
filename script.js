@@ -196,7 +196,7 @@ function createProductCard(item, index = 0) {
     const priceLabelText = isPack ? 'Pacote com 6 unidades' : 'Por unidade';
     const packBadge = isPack
         ? `<span class="product-tag product-tag-pack"><i class="fa-solid fa-box-open"></i> 6 unidades</span>`
-        : `<span class="product-tag product-tag-unit"><i class="fa-solid fa-bag-shopping"></i> Por unidade</span>`;
+        : '';
 
     return `
         <div class="col-12 col-md-6 col-lg-4">
