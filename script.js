@@ -195,12 +195,15 @@ function createProductCard(item, index = 0) {
     const isPack = item.category === 'pacotes';
     const priceLabelText = isPack ? 'Pacote com 6 unidades' : 'Por unidade';
     const packBadge = isPack
-        ? `<span class="position-absolute top-0 start-0 m-2 badge rounded-pill" style="background: #F5A800; color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em;">📦 6 unidades</span>`
-        : '';
+        ? `<span class="product-tag product-tag-pack"><i class="fa-solid fa-box-open"></i> 6 unidades</span>`
+        : `<span class="product-tag product-tag-unit"><i class="fa-solid fa-bag-shopping"></i> Por unidade</span>`;
 
     return `
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card${isPack ? ' pack-card' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
+                <div class="product-card-top">
+                    <span class="product-card-top-icon"><i class="fa-solid fa-snowflake"></i></span>
+                </div>
                 <div class="product-image-wrapper position-relative">
                     <img src="${imgSrc}" class="w-100 h-100" alt="${item.name}" style="object-fit: cover;" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
                     ${packBadge}
@@ -211,7 +214,7 @@ function createProductCard(item, index = 0) {
                 <div class="card-body d-flex flex-column text-start p-4">
                     <h5 class="card-title fw-bold mb-2 editable" data-field="name" data-id="${item.id}" style="height: 3.4rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${esc(item.name)}</h5>
                     <p class="card-text text-muted small flex-grow-1 mb-3 editable" data-field="desc" data-id="${item.id}" style="height: 3.9rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${esc(item.desc)}</p>
-                    <div class="mt-auto pt-3 border-top w-100">
+                    <div class="card-footer-bar mt-auto pt-3 w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="price-wrapper text-start">
                                 <span class="price-label">${priceLabelText}</span>
@@ -220,7 +223,7 @@ function createProductCard(item, index = 0) {
                                 </div>
                             </div>
                             <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})" aria-label="Adicionar ao carrinho">
-                                <i class="fas fa-plus"></i>
+                                <i class="fa-solid fa-cart-plus"></i>
                             </button>
                         </div>
                     </div>
