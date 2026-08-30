@@ -38,6 +38,15 @@ function formatBRL(val) {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function loadSavedData() {
     try {
         savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -200,8 +209,8 @@ function createProductCard(item, index = 0) {
                     </div>
                 </div>
                 <div class="card-body d-flex flex-column text-start p-4">
-                    <h5 class="card-title fw-bold mb-2 editable" data-field="name" data-id="${item.id}" style="height: 3.4rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${item.name}</h5>
-                    <p class="card-text text-muted small flex-grow-1 mb-3 editable" data-field="desc" data-id="${item.id}" style="height: 3.9rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${item.desc}</p>
+                    <h5 class="card-title fw-bold mb-2 editable" data-field="name" data-id="${item.id}" style="height: 3.4rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${esc(item.name)}</h5>
+                    <p class="card-text text-muted small flex-grow-1 mb-3 editable" data-field="desc" data-id="${item.id}" style="height: 3.9rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${esc(item.desc)}</p>
                     <div class="mt-auto pt-3 border-top w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="price-wrapper text-start">
@@ -259,7 +268,7 @@ function renderMenu() {
         menuGrid.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-search"></i>
-                <p>Nenhum item encontrado para "<strong>${searchQuery}</strong>"</p>
+                <p>Nenhum item encontrado para "<strong>${esc(searchQuery)}</strong>"</p>
             </div>`;
         return;
     }
@@ -326,7 +335,7 @@ window.addToCart = function (id, name, price) {
         cart.push({ id, name, price, quantity: 1 });
     }
     updateCartUI();
-    showToast(`${name} adicionado! 🛒`);
+    showToast(`${esc(name)} adicionado! 🛒`);
 };
 
 window.updateCartItemQuantity = function (index, change) {
@@ -467,7 +476,7 @@ function updateCartUI() {
         itemsHTML += `
             <div class="cart-item">
                 <div class="flex-grow-1 overflow-hidden pe-2">
-                    <h6 class="fw-bold mb-1 text-truncate text-dark" style="font-size: 0.95rem;">${item.name}</h6>
+                    <h6 class="fw-bold mb-1 text-truncate text-dark" style="font-size: 0.95rem;">${esc(item.name)}</h6>
                     <div class="text-success fw-bold small">${formatBRL(item.price)} / unidade</div>
                     <div class="text-muted small">${item.quantity}x unidade${item.quantity > 1 ? 's' : ''}</div>
                 </div>
@@ -662,9 +671,9 @@ function renderMyOrders() {
                 <span class="badge rounded-pill ${o.status === 'pendente' ? 'text-bg-warning' : o.status === 'entregue' ? 'text-bg-success' : 'text-bg-info'}">${formatOrderStatus(o.status)}</span>
             </div>
             <div class="small text-muted mb-2">${formatOrderDate(o.data)}</div>
-            <p class="mb-1 small"><i class="fa-solid fa-box me-1"></i> ${o.itens}</p>
-            <p class="mb-1 small"><i class="fa-solid fa-location-dot me-1"></i> ${o.modo === 'entrega' ? (o.endereco || 'Entrega') : 'Retirada no local'}</p>
-            <p class="mb-0 small"><i class="fa-solid fa-money-bill-wave me-1"></i> ${o.pagamento || '-'} · <strong>${formatBRL(o.total)}</strong></p>
+            <p class="mb-1 small"><i class="fa-solid fa-box me-1"></i> ${esc(o.itens)}</p>
+            <p class="mb-1 small"><i class="fa-solid fa-location-dot me-1"></i> ${o.modo === 'entrega' ? (esc(o.endereco) || 'Entrega') : 'Retirada no local'}</p>
+            <p class="mb-0 small"><i class="fa-solid fa-money-bill-wave me-1"></i> ${esc(o.pagamento) || '-'} · <strong>${formatBRL(o.total)}</strong></p>
         </div>
     `).join('');
 }
