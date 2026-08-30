@@ -3,7 +3,7 @@ window.fgMenuItems = [
     {
         id: "p1",
         name: "Pacote Coxinha de Frango",
-        category: "Salgados",
+        category: "pacotes",
         price: 35.90,
         description: "6 Coxinhas de frango congeladas (100g cada) no saquinho. Massa artesanal de batata, receita da casa. Pronto para airfryer!",
         image: "images/ags_coxinha.webp",
@@ -12,7 +12,7 @@ window.fgMenuItems = [
     {
         id: "p2",
         name: "Pacote Croissant Presunto e Queijo",
-        category: "Salgados",
+        category: "pacotes",
         price: 35.90,
         description: "6 Croissants congelados recheados com presunto fatiado e queijo derretido. Clássico folhado crocante no saquinho.",
         image: "images/ags_croissant.webp",
@@ -21,7 +21,7 @@ window.fgMenuItems = [
     {
         id: "p3",
         name: "Pacote Bauru de Presunto e Queijo",
-        category: "Salgados",
+        category: "pacotes",
         price: 35.90,
         description: "6 Baurus congelados com massa fofinha e recheio generoso de presunto, queijo e orégano. No saquinho.",
         image: "images/ags_bauru.webp",
@@ -30,7 +30,7 @@ window.fgMenuItems = [
     {
         id: "p4",
         name: "Pacote X-Bacon",
-        category: "Salgados",
+        category: "pacotes",
         price: 43.90,
         description: "6 X-Bacon congelados com carne, bacon crocante, cheddar e molho especial. No saquinho.",
         image: "images/fg_xbacon.webp",
@@ -39,7 +39,7 @@ window.fgMenuItems = [
     {
         id: "p10",
         name: "Pacote X-Cheddar",
-        category: "Salgados",
+        category: "pacotes",
         price: 49.90,
         description: "6 X-Cheddar congelados com duas camadas de cheddar derretido e carne suculenta. No saquinho.",
         image: "images/fg_xcheddar.webp",
@@ -48,7 +48,7 @@ window.fgMenuItems = [
     {
         id: "p11",
         name: "Pacote X-Picanha",
-        category: "Salgados",
+        category: "pacotes",
         price: 49.90,
         description: "6 X-Picanha congelados com carne de picanha, catupiry cremoso e queijo. No saquinho.",
         image: "images/fg_xpicanha.webp",
@@ -57,7 +57,7 @@ window.fgMenuItems = [
     {
         id: "p9",
         name: "Pacote Croissant de Queijo",
-        category: "Salgados",
+        category: "pacotes",
         price: 35.90,
         description: "6 Croissants de queijo congelados, folhado crocante com queijo cremoso e derretido. No saquinho.",
         image: "images/ags_croissant_queijo.webp",

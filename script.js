@@ -1,8 +1,6 @@
 let menuItems = [];
 let cart = [];
 
-let isEditing = false;
-let uploadTarget = null;
 let deliveryFee = 0;
 let deliveryDistance = 0;
 let activeCategory = 'all';
@@ -89,38 +87,6 @@ function loadSavedData() {
     }
 }
 
-function saveData() {
-    const products = {};
-    menuItems.forEach(p => {
-        products[p.id] = {
-            name: p.name,
-            desc: p.desc,
-            price: p.price,
-            image: p.image,
-            units: p.units,
-            category: p.category,
-            active: p.active !== false
-        };
-    });
-
-    const contact = {};
-    document.querySelectorAll('#contato [data-field]').forEach(el => {
-        contact[el.dataset.field] = el.textContent.trim();
-    });
-    const pixEl = document.getElementById('pixKey');
-    if (pixEl) contact.pix = pixEl.value.trim();
-
-    savedData = {
-        products,
-        contact,
-        hero: {
-            title: document.getElementById('heroTitle').innerHTML,
-            desc: document.getElementById('heroDesc').textContent
-        }
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
-}
-
 function getWhatsNumber() {
     const rawNum = (savedData.contact && savedData.contact.whats ? savedData.contact.whats : DEFAULT_CONTACT.whats).replace(/\D/g, '');
     return (rawNum.startsWith('55') ? rawNum : '55' + rawNum);
@@ -205,21 +171,18 @@ function createProductCard(item, index = 0) {
                     <span class="product-card-top-icon"><i class="fa-solid fa-snowflake"></i></span>
                 </div>
                 <div class="product-image-wrapper position-relative">
-                    <img src="${imgSrc}" class="w-100 h-100" alt="${item.name}" style="object-fit: cover;" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
+                    <img src="${imgSrc}" class="w-100 h-100" alt="${esc(item.name)}" style="object-fit: cover;" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
                     ${packBadge}
-                    <div class="edit-photo-overlay" data-upload="${item.id}">
-                        <i class="fa-solid fa-camera"></i> Trocar Foto
-                    </div>
                 </div>
                 <div class="card-body d-flex flex-column text-start p-4">
-                    <h5 class="card-title fw-bold mb-2 editable" data-field="name" data-id="${item.id}" style="height: 3.4rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${esc(item.name)}</h5>
-                    <p class="card-text text-muted small flex-grow-1 mb-3 editable" data-field="desc" data-id="${item.id}" style="height: 3.9rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${esc(item.desc)}</p>
+                    <h5 class="card-title fw-bold mb-2" style="height: 3.4rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${esc(item.name)}</h5>
+                    <p class="card-text text-muted small flex-grow-1 mb-3" style="height: 3.9rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${esc(item.desc)}</p>
                     <div class="card-footer-bar mt-auto pt-3 w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="price-wrapper text-start">
                                 <span class="price-label">${priceLabelText}</span>
                                 <div class="d-flex align-items-center">
-                                    <span class="card-price editable" data-field="price" data-id="${item.id}">${formatBRL(item.price)}</span>
+                                    <span class="card-price">${formatBRL(item.price)}</span>
                                 </div>
                             </div>
                             <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})" aria-label="Adicionar ao carrinho">
@@ -280,55 +243,6 @@ function renderMenu() {
     filteredItems.forEach((item, index) => {
         menuGrid.innerHTML += createProductCard(item, index);
     });
-
-    bindGridEditables();
-    bindUploads();
-}
-
-function bindGridEditables() {
-    menuGrid.querySelectorAll('.editable').forEach(el => {
-        el.contentEditable = isEditing ? 'true' : 'false';
-        el.addEventListener('blur', () => {
-            const id = el.dataset.id;
-            const field = el.dataset.field;
-            const prod = menuItems.find(x => x.id === id);
-            if (!prod) return;
-
-            if (field === 'price') {
-                const numVal = parseFloat(el.textContent.replace(/[^\d,. -]/g, '').replace(',', '.'));
-                if (!isNaN(numVal)) prod.price = numVal;
-            } else {
-                prod[field] = el.textContent.trim();
-            }
-            saveData();
-        });
-    });
-}
-
-function bindUploads() {
-    menuGrid.querySelectorAll('[data-upload]').forEach(el => {
-        el.onclick = () => {
-            if (!isEditing) return;
-            uploadTarget = el.dataset.upload;
-            document.getElementById('fileInput').click();
-        };
-    });
-}
-
-function bindStaticEditables() {
-    document.querySelectorAll('h1.hero-title, .hero-desc, #contato [data-field]').forEach(el => {
-        el.contentEditable = isEditing ? 'true' : 'false';
-    });
-    const pixEl = document.getElementById('pixKey');
-    if (pixEl) pixEl.readOnly = !isEditing;
-}
-
-function initStaticEditables() {
-    document.querySelectorAll('h1.hero-title, .hero-desc, #contato [data-field]').forEach(el => {
-        el.addEventListener('blur', () => saveData());
-    });
-    const pixEl = document.getElementById('pixKey');
-    if (pixEl) pixEl.addEventListener('change', () => saveData());
 }
 
 window.addToCart = function (id, name, price) {
@@ -682,44 +596,6 @@ function renderMyOrders() {
     `).join('');
 }
 
-function bindEditToggle() {
-    document.getElementById('editToggle').addEventListener('click', () => {
-        isEditing = !isEditing;
-        document.body.classList.toggle('editing', isEditing);
-        const btn = document.getElementById('editToggle');
-        btn.classList.toggle('editing', isEditing);
-        btn.innerHTML = isEditing
-            ? `<i class="fa-solid fa-check"></i><span class="d-none d-sm-inline"> Salvar Edição</span>`
-            : `<i class="fa-solid fa-pen"></i><span class="d-none d-sm-inline"> Editar</span>`;
-
-        bindStaticEditables();
-        renderMenu();
-        if (!isEditing) saveData();
-        showToast(isEditing ? "Modo de edição ativado! Toque nos textos e fotos." : "Alterações salvas!");
-    });
-}
-
-function bindFileUpload() {
-    document.getElementById('fileInput').addEventListener('change', function () {
-        const file = this.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const base64 = e.target.result;
-            const prod = menuItems.find(x => x.id === uploadTarget);
-            if (prod) {
-                prod.image = base64;
-                saveData();
-                renderMenu();
-                showToast("Foto atualizada com sucesso!");
-            }
-        };
-        reader.readAsDataURL(file);
-        this.value = '';
-    });
-}
-
 function bindSearch() {
     if (!searchInput) return;
     searchInput.addEventListener('input', () => {
@@ -746,7 +622,6 @@ window.addEventListener('scroll', () => {
 });
 
 loadSavedData();
-initStaticEditables();
 renderCategories();
 renderMenu();
 updateCartUI();
