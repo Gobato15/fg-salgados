@@ -34,18 +34,22 @@ body {
     align-items: center;
     justify-content: center;
     background: radial-gradient(1200px 600px at 50% -10%, #2a2018 0%, var(--fg-dark) 55%, #0e0a07 100%);
-    padding: 20px;
+    padding: 0;
 }
 
 .login-card {
     background: #fff;
-    border-radius: 24px;
-    padding: 40px 32px;
+    border-radius: 0;
+    padding: 60px 40px;
     width: 100%;
-    max-width: 800px;
+    max-width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     text-align: center;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-    border-top: 4px solid transparent;
+    border-top: 6px solid transparent;
     border-image: linear-gradient(90deg, #D97706, #E11D48) 1;
 }
 
