@@ -1,9 +1,14 @@
 :root {
-    --fg-cream: #FAF6F0;
-    --fg-gold: #D97706;
-    --fg-red: #E11D48;
-    --fg-dark: #1A130E;
-    --fg-grad: linear-gradient(135deg, #E11D48, #D97706);
+    --fg-cream: #121212;
+    --fg-gold: #ffffff;
+    --fg-red: #ffffff;
+    --fg-dark: #000000;
+    --fg-grad: #ffffff;
+    --bg-frame: #0a0a0a;
+    --text-main: #ffffff;
+    --text-muted: #999999;
+    --border-color: #333333;
+    --card-bg: #1c1c1c;
 }
 
 * {
@@ -13,33 +18,45 @@
 body {
     background: var(--fg-cream);
     min-height: 100vh;
-}
-
-#panelScreen {
-    min-height: 100vh;
+    color: var(--text-main);
     display: flex;
     flex-direction: column;
-    background: var(--fg-cream);
-    width: 100%;
 }
 
-#panelScreen main {
-    flex: 1 1 auto;
-    width: 100%;
+/* Moldura do Painel */
+#panelScreen {
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: #000;
 }
 
+.admin-frame {
+    background: var(--bg-frame);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(255,255,255,0.05);
+    width: 100%;
+    max-width: 1400px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Telas de Login */
 .login-screen {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(1200px 600px at 50% -10%, #2a2018 0%, var(--fg-dark) 55%, #0e0a07 100%);
+    background: #000;
     padding: 0;
 }
 
 .login-card {
-    background: #fff;
-    border-radius: 0;
+    background: var(--bg-frame);
+    border: 1px solid var(--border-color);
     padding: 60px 40px;
     width: 100%;
     max-width: 100%;
@@ -48,29 +65,25 @@ body {
     flex-direction: column;
     justify-content: center;
     text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-    border-top: 6px solid transparent;
-    border-image: linear-gradient(90deg, #D97706, #E11D48) 1;
 }
 
 .brand-chip {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--fg-grad);
-    color: #fff;
-    font-weight: 700;
+    background: #fff;
+    color: #000;
+    font-weight: 800;
     font-size: 0.9rem;
     border-radius: 999px;
     padding: 8px 18px;
     margin-bottom: 18px;
-    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.3);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1);
 }
 
 .admin-header {
-    background: linear-gradient(135deg, #231a13 0%, #1A130E 55%, #2a0e1a 100%);
-    border-bottom: 3px solid transparent;
-    border-image: linear-gradient(90deg, #D97706, #E11D48) 1;
+    background: #000;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .admin-brand {
@@ -85,116 +98,147 @@ body {
     justify-content: center;
     width: 38px;
     height: 38px;
-    border-radius: 12px;
-    background: var(--fg-grad);
-    color: #fff;
+    border-radius: 8px;
+    background: #fff;
+    color: #000;
     font-weight: 900;
     font-size: 1rem;
-    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.35);
 }
 
 .admin-nav {
-    background: #fff;
-    border-bottom: 1px solid #eee;
+    background: #111;
+    border-bottom: 1px solid var(--border-color);
     z-index: 100;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .btn-tab {
     border: none;
     background: transparent;
     font-weight: 700;
-    color: #6b7280;
+    color: var(--text-muted);
     border-radius: 999px;
     padding: 8px 16px;
     transition: all 0.2s ease;
 }
 
 .btn-tab:hover {
-    color: var(--fg-gold);
-    background: #FFF7ED;
+    color: #fff;
+    background: #222;
 }
 
 .btn-tab.active {
-    background: var(--fg-grad);
-    color: #fff;
-    box-shadow: 0 6px 16px rgba(217, 119, 6, 0.35);
+    background: #fff;
+    color: #000;
 }
 
 .btn-amber {
-    background: var(--fg-grad);
-    color: #fff;
+    background: #fff;
+    color: #000;
     border: none;
-    box-shadow: 0 6px 16px rgba(217, 119, 6, 0.3);
+    font-weight: 700;
 }
 
 .btn-amber:hover {
-    color: #fff;
-    opacity: 0.92;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(217, 119, 6, 0.4);
+    background: #ccc;
+    color: #000;
 }
 
 .btn-outline-amber {
-    color: var(--fg-gold);
-    border: 1px solid var(--fg-gold);
-    background: #fff;
+    color: #fff;
+    border: 1px solid #fff;
+    background: transparent;
 }
 
 .btn-outline-amber:hover {
-    background: var(--fg-gold);
-    color: #fff;
+    background: #fff;
+    color: #000;
 }
 
 .btn-filter {
-    border: 1px solid #ddd;
-    background: #fff;
+    border: 1px solid var(--border-color);
+    background: #111;
     font-weight: 600;
     font-size: 0.85rem;
     border-radius: 999px;
     padding: 5px 14px;
-    color: #555;
+    color: var(--text-muted);
     transition: all 0.2s ease;
 }
 
 .btn-filter:hover {
-    border-color: var(--fg-gold);
-    color: var(--fg-gold);
+    border-color: #fff;
+    color: #fff;
 }
 
 .btn-filter.active {
-    background: var(--fg-grad);
-    border-color: transparent;
+    background: #fff;
+    border-color: #fff;
+    color: #000;
+}
+
+/* Formulários e Tabelas (Black & White) */
+.bg-white {
+    background-color: var(--card-bg) !important;
+}
+
+.text-dark {
+    color: #fff !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.border {
+    border-color: var(--border-color) !important;
+}
+
+.form-control, .form-select {
+    background-color: #111;
+    border: 1px solid var(--border-color);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: #000;
+    border-color: #fff;
+    color: #fff;
+    box-shadow: none;
+}
+
+table.table {
+    color: #fff;
+}
+
+.table th, .table td {
+    border-color: var(--border-color);
+    background-color: transparent !important;
+}
+
+.table-responsive {
+    border: 1px solid var(--border-color);
 }
 
 .product-thumb {
     width: 46px;
     height: 46px;
-    border-radius: 10px;
+    border-radius: 8px;
     object-fit: cover;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-}
-
-.form-check-input:checked {
-    background-color: var(--fg-gold);
-    border-color: var(--fg-gold);
+    border: 1px solid var(--border-color);
 }
 
 .order-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    background: #111;
+    border-radius: 12px;
     padding: 16px;
-    border: 1px solid #f0e2d3;
-    border-top: 3px solid var(--fg-gold);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--border-color);
+    border-top: 3px solid #fff;
+    transition: transform 0.2s ease;
 }
 
 .order-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.1);
+    border-color: #666;
 }
 
 .status-badge {
@@ -202,22 +246,23 @@ body {
     font-weight: 700;
     border-radius: 999px;
     padding: 4px 12px;
-    color: #fff;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+    color: #000;
+    background: #fff;
 }
 
-.status-pendente { background: linear-gradient(135deg, #F59E0B, #D97706); }
-.status-preparo { background: linear-gradient(135deg, #60A5FA, #2563EB); }
-.status-pronto { background: linear-gradient(135deg, #34D399, #059669); }
-.status-entregue { background: linear-gradient(135deg, #9CA3AF, #6B7280); }
+.status-pendente { background: #fff; color: #000; }
+.status-preparo { background: #ccc; color: #000; }
+.status-pronto { background: #999; color: #000; }
+.status-entregue { background: #444; color: #fff; }
 
 .status-select {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 0.85rem;
     padding: 4px 8px;
     font-weight: 600;
-    background-color: #fff;
+    background-color: #111;
+    color: #fff;
 }
 
 .toast-container {
@@ -231,21 +276,19 @@ body {
 }
 
 .toast-custom {
-    background: linear-gradient(135deg, #2b2018, var(--fg-dark));
-    color: #fff;
+    background: #fff;
+    color: #000;
     padding: 12px 20px;
-    border-radius: 999px;
-    font-weight: 600;
+    border-radius: 8px;
+    font-weight: 700;
     font-size: 0.9rem;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
-    border-left: 4px solid var(--fg-gold);
+    box-shadow: 0 10px 24px rgba(255, 255, 255, 0.1);
     transition: opacity 0.4s ease, transform 0.4s ease;
     display: flex;
     align-items: center;
     gap: 8px;
-    white-space: nowrap;
 }
 
 .toast-custom i {
-    color: #22c55e;
+    color: #000;
 }
