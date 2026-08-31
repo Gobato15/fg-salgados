@@ -132,33 +132,6 @@ header.scrolled {
     letter-spacing: 0.4px;
 }
 
-.edit-toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: 2px solid var(--border-color);
-    color: var(--text-muted);
-    font-weight: 800;
-    font-size: 13px;
-    font-family: inherit;
-    padding: 8px 14px;
-    border-radius: 99px;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.edit-toggle-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-
-.edit-toggle-btn.editing {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #FFF;
-}
-
 .search-container input:focus {
     outline: none;
     box-shadow: 0 0 0 0.25rem rgba(217, 119, 6, 0.2);
@@ -327,36 +300,6 @@ header.scrolled {
     color: var(--primary) !important;
 }
 
-.daily-promo-section {
-    padding: 0 0 1.5rem;
-}
-
-.promo-section-header h5 {
-    font-size: 1.5rem;
-    font-weight: 800;
-}
-
-.promo-day-selector {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-bottom: 1.2rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-
-.promo-day-selector::-webkit-scrollbar {
-    display: none;
-}
-
-.promo-banner {
-    border-radius: var(--radius);
-    padding: 2.2rem 1.4rem;
-    box-shadow: var(--shadow-lg);
-    position: relative;
-    overflow: hidden;
-}
-
 .categories {
     padding: 2.4rem 0 0.5rem;
     background: var(--background);
@@ -510,12 +453,8 @@ header.scrolled {
     border-color: rgba(217, 119, 6, 0.35);
 }
 
-.product-card:hover .card-img-top {
+.product-card:hover .product-image-wrapper img {
     transform: scale(1.06);
-}
-
-.card-img-top {
-    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .product-image-wrapper {
@@ -579,11 +518,6 @@ header.scrolled {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
-.product-tag-unit {
-    background: linear-gradient(135deg, #25D366, #128C7E);
-    color: #FFF;
-}
-
 .product-tag-pack {
     background: linear-gradient(135deg, #F59E0B, #D97706);
     color: #FFF;
@@ -592,55 +526,6 @@ header.scrolled {
 .card-footer-bar {
     border-top: 1px solid var(--border-color);
     background: linear-gradient(180deg, #FFF, #FDF9F2);
-}
-
-.tray-tag-badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 2;
-    background: rgba(26, 19, 14, 0.85);
-    backdrop-filter: blur(6px);
-    color: #FFF;
-    font-size: 11.5px;
-    font-weight: 800;
-    padding: 5px 12px;
-    border-radius: 99px;
-    letter-spacing: 0.3px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.promo-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 2;
-    background: var(--gradient-primary);
-    color: white;
-    padding: 5px 12px;
-    border-radius: 99px;
-    font-weight: 800;
-    font-size: 11.5px;
-    z-index: 3;
-    box-shadow: 0 6px 15px rgba(225, 29, 72, 0.4);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.promo-border {
-    border: 3px solid transparent !important;
-    background: linear-gradient(white, white) padding-box,
-        radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%) border-box;
-    box-shadow: 0 15px 40px rgba(214, 36, 159, 0.25) !important;
-    transform: translateY(-8px);
-}
-
-.promo-price-text {
-    color: var(--accent);
-    text-shadow: 0 0 10px rgba(225, 29, 72, 0.2);
 }
 
 .price-wrapper {

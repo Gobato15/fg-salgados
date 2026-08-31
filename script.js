@@ -93,17 +93,6 @@ function setFieldState(el, state) {
     }
 }
 
-window.validateNameField = function (el) {
-    const ok = el.value.trim().length > 0;
-    if (ok) {
-        el.classList.remove('is-invalid');
-        el.classList.add('is-valid');
-    } else {
-        el.classList.add('is-invalid');
-        el.classList.remove('is-valid');
-    }
-};
-
 window.validateCheckout = function () {
     const btn = document.getElementById('btnFinalizar');
     const consent = document.getElementById('confirmDados');
