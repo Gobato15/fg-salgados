@@ -14,7 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./style.css?v=18">
+    <link rel="stylesheet" href="./style.css?v=19">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FG Salgados">
@@ -237,12 +237,17 @@
                             <div class="col-12">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Nome Completo</label>
                                 <input type="text" id="customerName" class="form-control rounded-3 border-0 shadow-sm"
+                                    placeholder="Seu nome completo" data-msg="Informe nome e sobrenome válidos"
                                     oninput="updateCartUI()">
+                                <div class="field-feedback small mt-1"></div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Telefone de
                                     Contato</label>
-                                <input type="tel" id="customerPhone" class="form-control rounded-3 border-0 shadow-sm">
+                                <input type="tel" id="customerPhone" class="form-control rounded-3 border-0 shadow-sm"
+                                    placeholder="(00) 00000-0000" maxlength="16" autocomplete="tel"
+                                    data-msg="Informe um telefone válido com DDD">
+                                <div class="field-feedback small mt-1"></div>
                             </div>
 
                             <div id="deliveryAddressFields" style="display: none;">
@@ -251,7 +256,9 @@
                                         <label class="form-label fw-bold small text-muted text-uppercase">CEP</label>
                                         <input type="text" id="deliveryCep"
                                             class="form-control rounded-3 border-0 shadow-sm" maxlength="9"
+                                            placeholder="00000-000" data-msg="Informe um CEP válido (8 dígitos)"
                                             onkeyup="checkCep(this)">
+                                        <div class="field-feedback small mt-1"></div>
                                     </div>
                                     <div class="col-md-7">
                                         <label
@@ -263,12 +270,14 @@
                                         <label class="form-label fw-bold small text-muted text-uppercase">Rua /
                                             Logradouro</label>
                                         <input type="text" id="deliveryStreet"
-                                            class="form-control rounded-3 border-0 shadow-sm bg-light" readonly>
+                                            class="form-control rounded-3 border-0 shadow-sm bg-light" readonly
+                                            data-msg="Informe o logradouro">
                                     </div>
                                     <div class="col-4">
                                         <label class="form-label fw-bold small text-muted text-uppercase">Nº</label>
                                         <input type="text" id="deliveryNumber"
-                                            class="form-control rounded-3 border-0 shadow-sm" oninput="updateCartUI()">
+                                            class="form-control rounded-3 border-0 shadow-sm" oninput="updateCartUI()"
+                                            data-msg="Informe o número">
                                     </div>
                                     <div class="col-8">
                                         <label
@@ -364,13 +373,22 @@
                             com o
                             resumo completo do pedido e a forma de pagamento escolhida.</p>
                     </div>
+
+                    <div class="form-check bg-light p-3 rounded-4 mb-4 border">
+                        <input class="form-check-input" type="checkbox" value="" id="confirmDados">
+                        <label class="form-check-label small text-dark fw-semibold" for="confirmDados">
+                            Declaro que meus dados (nome, telefone e endereço) estão corretos e concordo em receber a
+                            confirmação do pedido pelo WhatsApp.
+                        </label>
+                        <div class="field-feedback small mt-1"></div>
+                    </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4 d-flex flex-column flex-sm-row gap-2">
                     <button type="button" class="btn btn-light rounded-pill px-4 py-2 w-100 fw-bold border"
                         data-bs-dismiss="modal">Continuar Comprando</button>
                     <button id="btnFinalizar" type="button"
                         class="btn rounded-pill px-4 py-2 w-100 fw-bold m-0 shadow-sm btn-whatsapp"
-                        onclick="checkout()"><i class="fa-brands fa-whatsapp me-2"></i> Finalizar no WhatsApp</button>
+                        onclick="checkout()" disabled><i class="fa-brands fa-whatsapp me-2"></i> Finalizar no WhatsApp</button>
                 </div>
             </div>
         </div>
@@ -401,7 +419,7 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script src="menuData.js?v=14"></script>
-    <script src="script.js?v=17"></script>
+    <script src="script.js?v=18"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

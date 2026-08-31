@@ -45,6 +45,97 @@ function esc(str) {
         .replace(/'/g, '&#39;');
 }
 
+function isValidName(name) {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length < 2) return false;
+    return parts.every(p => /^[A-Za-zÀ-ÖØ-öø-ÿ']+$/.test(p));
+}
+
+function normalizeDigits(str) {
+    return String(str || '').replace(/\D/g, '');
+}
+
+function isValidPhone(phone) {
+    const digits = normalizeDigits(phone);
+    if (digits.length === 11 && (digits[2] === '9' || digits[2] === '8')) return true;
+    return false;
+}
+
+function isValidCepFormat(cep) {
+    return normalizeDigits(cep).length === 8;
+}
+
+function applyPhoneMask(input) {
+    let digits = normalizeDigits(input.value);
+    if (digits.length === 0) { input.value = ''; return; }
+    if (input.value.replace(/\D/g, '').startsWith('55') && digits.length < 13) {
+        digits = digits.slice(2);
+    }
+    let formatted = digits;
+    if (digits.length > 0) formatted = `(${digits.substring(0, 2)}`;
+    if (digits.length >= 3) formatted += `) ${digits.substring(2, 7)}`;
+    if (digits.length >= 8) formatted += `-${digits.substring(7, 11)}`;
+    input.value = formatted;
+}
+
+function setFieldState(el, state) {
+    if (!el) return;
+    const invalid = state === 'invalid';
+    const valid = state === 'valid';
+    el.classList.toggle('is-invalid', invalid);
+    el.classList.toggle('is-valid', valid);
+    const feedbackEl = el.parentElement ? el.parentElement.querySelector('.field-feedback') : null;
+    if (feedbackEl) {
+        feedbackEl.classList.toggle('show', invalid);
+        feedbackEl.classList.toggle('text-danger', invalid);
+        feedbackEl.classList.toggle('text-success', valid);
+        feedbackEl.textContent = invalid ? (el.dataset.msg || 'Campo inválido.') : '';
+    }
+}
+
+window.validateNameField = function (el) {
+    const ok = el.value.trim().length > 0;
+    if (ok) {
+        el.classList.remove('is-invalid');
+        el.classList.add('is-valid');
+    } else {
+        el.classList.add('is-invalid');
+        el.classList.remove('is-valid');
+    }
+};
+
+window.validateCheckout = function () {
+    const btn = document.getElementById('btnFinalizar');
+    const consent = document.getElementById('confirmDados');
+    if (!btn) return;
+
+    const nameEl = document.getElementById('customerName');
+    const phoneEl = document.getElementById('customerPhone');
+    const isEntrega = document.getElementById('modeEntrega') ? document.getElementById('modeEntrega').checked : false;
+
+    const nameOk = nameEl && isValidName(nameEl.value);
+    const phoneOk = phoneEl && isValidPhone(phoneEl.value);
+
+    let enderecoOk = true;
+    if (isEntrega) {
+        const cepOk = isValidCepFormat(document.getElementById('deliveryCep').value) && document.getElementById('deliveryCity').value.trim() !== '' && document.getElementById('deliveryCity').value !== 'Buscando...';
+        const ruaOk = document.getElementById('deliveryStreet').value.trim() !== '';
+        const numOk = document.getElementById('deliveryNumber').value.trim() !== '';
+        enderecoOk = cepOk && ruaOk && numOk;
+    }
+
+    const consentOk = consent ? consent.checked : true;
+    const cartOk = cart.length > 0;
+    const allOk = nameOk && phoneOk && enderecoOk && consentOk && cartOk;
+
+    btn.disabled = !allOk;
+
+    if (nameEl) setFieldState(nameEl, nameOk ? 'valid' : (nameEl.value ? 'invalid' : 'idle'));
+    if (phoneEl) setFieldState(phoneEl, phoneOk ? 'valid' : (phoneEl.value ? 'invalid' : 'idle'));
+
+    return allOk;
+};
+
 function loadSavedData() {
     try {
         savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -472,6 +563,8 @@ function updateCartUI() {
             resumoPag.textContent = payPix ? 'PIX' : 'No Local';
         }
     }
+
+    validateCheckout();
 }
 
 window.checkout = function () {
@@ -482,12 +575,48 @@ window.checkout = function () {
     const name = document.getElementById('customerName').value.trim();
     const phone = document.getElementById('customerPhone').value.trim();
 
-    if (!name || !phone) {
-        showToast("Preencha seu nome e telefone!");
+    if (!isValidName(name)) {
+        showToast("Informe seu nome completo (nome e sobrenome).");
+        setFieldState(document.getElementById('customerName'), 'invalid');
+        return;
+    }
+    if (!isValidPhone(phone)) {
+        showToast("Informe um telefone válido com DDD (ex: (19) 99609-0540).");
+        setFieldState(document.getElementById('customerPhone'), 'invalid');
         return;
     }
 
     const isEntrega = document.getElementById('modeEntrega').checked;
+
+    if (isEntrega) {
+        const cepEl = document.getElementById('deliveryCep');
+        const cityEl = document.getElementById('deliveryCity');
+        const streetEl = document.getElementById('deliveryStreet');
+        const numEl = document.getElementById('deliveryNumber');
+
+        const cepOk = isValidCepFormat(cepEl.value) && cityEl.value.trim() !== '' && cityEl.value !== 'Buscando...';
+        const addressOk = cepOk && streetEl.value.trim() !== '' && numEl.value.trim() !== '';
+
+        if (!isValidCepFormat(cepEl.value)) {
+            showToast("Informe um CEP válido (8 dígitos).");
+            setFieldState(cepEl, 'invalid');
+            return;
+        }
+        if (!addressOk) {
+            showToast("Preencha o endereço completo para entrega (rua, nº e CEP válido).");
+            setFieldState(streetEl, streetEl.value.trim() ? 'valid' : 'invalid');
+            setFieldState(numEl, numEl.value.trim() ? 'valid' : 'invalid');
+            return;
+        }
+    }
+
+    const confirmEl = document.getElementById('confirmDados');
+    if (confirmEl && !confirmEl.checked) {
+        showToast("Marque a confirmação de que seus dados estão corretos.");
+        confirmEl.classList.add('is-invalid');
+        return;
+    }
+
     const currentFreight = isEntrega ? deliveryFee : 0;
 
     let text = "👋 *Olá! Gostaria de fazer um pedido de Salgados Congelados FG Salgados:*\n\n";
@@ -640,9 +769,46 @@ window.addEventListener('scroll', () => {
     }
 });
 
+function bindValidation() {
+    const phoneEl = document.getElementById('customerPhone');
+    if (phoneEl) {
+        phoneEl.addEventListener('input', () => {
+            applyPhoneMask(phoneEl);
+            validateCheckout();
+        });
+        phoneEl.addEventListener('blur', () => {
+            setFieldState(phoneEl, isValidPhone(phoneEl.value) ? 'valid' : 'invalid');
+        });
+    }
+
+    const nameEl = document.getElementById('customerName');
+    if (nameEl) {
+        nameEl.addEventListener('blur', () => {
+            setFieldState(nameEl, isValidName(nameEl.value) ? 'valid' : 'invalid');
+        });
+    }
+
+    const confirmEl = document.getElementById('confirmDados');
+    if (confirmEl) {
+        confirmEl.addEventListener('change', () => {
+            confirmEl.classList.remove('is-invalid');
+            validateCheckout();
+        });
+    }
+
+    const cartBtn = document.querySelector('[data-bs-target="#cartModal"]');
+    const cartModal = document.getElementById('cartModal');
+    if (cartModal) {
+        cartModal.addEventListener('shown.bs.modal', () => {
+            validateCheckout();
+        });
+    }
+}
+
 loadSavedData();
 renderCategories();
 renderMenu();
 updateCartUI();
 bindSearch();
 bindContactLinks();
+bindValidation();

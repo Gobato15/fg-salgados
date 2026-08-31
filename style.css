@@ -718,6 +718,45 @@ header.scrolled {
     box-shadow: 0 0 0 0.25rem rgba(217, 119, 6, 0.12);
 }
 
+.checkout-fields .form-control.is-invalid {
+    border: 2px solid #DC2626;
+    background-image: none;
+}
+
+.checkout-fields .form-control.is-valid {
+    border: 2px solid #16A34A;
+    background-image: none;
+}
+
+.field-feedback {
+    display: none;
+    font-weight: 600;
+}
+
+.field-feedback.show {
+    display: block;
+}
+
+#confirmDados.is-invalid {
+    border-color: #DC2626;
+    box-shadow: none;
+}
+
+#btnFinalizar:disabled {
+    opacity: 0.55;
+    filter: grayscale(0.35);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+#btnFinalizar:disabled:hover {
+    transform: none;
+}
+
+.form-check-label {
+    cursor: pointer;
+}
+
 footer {
     background: linear-gradient(180deg, #1A130E 0%, #120D09 100%);
     border-top: 1px solid rgba(255, 255, 255, 0.06);
