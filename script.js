@@ -785,7 +785,6 @@ function bindValidation() {
         });
     }
 
-    const cartBtn = document.querySelector('[data-bs-target="#cartModal"]');
     const cartModal = document.getElementById('cartModal');
     if (cartModal) {
         cartModal.addEventListener('shown.bs.modal', () => {
