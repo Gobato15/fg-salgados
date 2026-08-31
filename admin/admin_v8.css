@@ -1,13 +1,13 @@
 :root {
-    --fg-cream: #f8f9fa;
-    --fg-gold: #c59b27;
-    --fg-red: #d32f2f;
-    --fg-dark: #212529;
+    --fg-cream: #FAF6F0;
+    --fg-gold: #D97706;
+    --fg-red: #E11D48;
+    --fg-dark: #1A130E;
     --fg-grad: #ffffff;
     --bg-frame: #ffffff;
-    --text-main: #212529;
-    --text-muted: #6c757d;
-    --border-color: #dee2e6;
+    --text-main: #271E17;
+    --text-muted: #6B5D52;
+    --border-color: #E5D8CA;
     --card-bg: #ffffff;
 }
 
@@ -29,7 +29,7 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    background: #f8f9fa;
+    background: var(--fg-cream);
 }
 
 .admin-frame {
@@ -50,7 +50,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8f9fa;
+    background: var(--fg-cream);
     padding: 0;
 }
 
@@ -71,19 +71,19 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #212529;
+    background: var(--fg-gold);
     color: #fff;
     font-weight: 800;
     font-size: 0.9rem;
     border-radius: 999px;
     padding: 8px 18px;
     margin-bottom: 18px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(217, 119, 6, 0.2);
 }
 
 .admin-header {
-    background: #fff;
-    border-bottom: 1px solid var(--border-color);
+    background: var(--fg-gold);
+    border-bottom: 1px solid var(--fg-gold);
 }
 
 .admin-brand {
@@ -99,14 +99,14 @@ body {
     width: 38px;
     height: 38px;
     border-radius: 8px;
-    background: #212529;
+    background: var(--fg-gold);
     color: #fff;
     font-weight: 900;
     font-size: 1rem;
 }
 
 .admin-nav {
-    background: #f8f9fa;
+    background: var(--fg-cream);
     border-bottom: 1px solid var(--border-color);
     z-index: 100;
 }
@@ -123,34 +123,34 @@ body {
 
 .btn-tab:hover {
     color: #fff;
-    background: #222;
+    background: var(--fg-gold);
 }
 
 .btn-tab.active {
-    background: #212529;
+    background: var(--fg-gold);
     color: #fff;
 }
 
 .btn-amber {
-    background: #212529;
+    background: var(--fg-gold);
     color: #fff;
     border: none;
     font-weight: 700;
 }
 
 .btn-amber:hover {
-    background: #495057;
+    background: var(--fg-red);
     color: #fff;
 }
 
 .btn-outline-amber {
-    color: #212529;
-    border: 1px solid #212529;
+    color: var(--fg-gold);
+    border: 1px solid var(--fg-gold);
     background: transparent;
 }
 
 .btn-outline-amber:hover {
-    background: #212529;
+    background: var(--fg-gold);
     color: #fff;
 }
 
@@ -166,13 +166,13 @@ body {
 }
 
 .btn-filter:hover {
-    border-color: #212529;
-    color: #212529;
+    border-color: var(--fg-gold);
+    color: var(--fg-gold);
 }
 
 .btn-filter.active {
-    background: #212529;
-    border-color: #212529;
+    background: var(--fg-gold);
+    border-color: var(--fg-gold);
     color: #fff;
 }
 
@@ -182,7 +182,7 @@ body {
 }
 
 .text-dark {
-    color: #212529 !important;
+    color: var(--text-main) !important;
 }
 
 .text-muted {
@@ -196,18 +196,18 @@ body {
 .form-control, .form-select {
     background-color: #fff;
     border: 1px solid var(--border-color);
-    color: #212529;
+    color: var(--text-main);
 }
 
 .form-control:focus, .form-select:focus {
     background-color: #fff;
-    border-color: #212529;
-    color: #212529;
+    border-color: var(--fg-gold);
+    color: var(--text-main);
     box-shadow: none;
 }
 
 table.table {
-    color: #212529;
+    color: var(--text-main);
 }
 
 .table th, .table td {
@@ -232,13 +232,13 @@ table.table {
     border-radius: 12px;
     padding: 16px;
     border: 1px solid var(--border-color);
-    border-top: 3px solid #212529;
+    border-top: 3px solid var(--fg-gold);
     transition: transform 0.2s ease;
 }
 
 .order-card:hover {
     transform: translateY(-3px);
-    border-color: #666;
+    border-color: var(--fg-gold);
 }
 
 .status-badge {
@@ -262,7 +262,7 @@ table.table {
     padding: 4px 8px;
     font-weight: 600;
     background-color: #fff;
-    color: #212529;
+    color: var(--text-main);
 }
 
 .toast-container {
@@ -276,7 +276,7 @@ table.table {
 }
 
 .toast-custom {
-    background: #212529;
+    background: var(--fg-dark);
     color: #fff;
     padding: 12px 20px;
     border-radius: 8px;
