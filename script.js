@@ -201,12 +201,29 @@ function renderCategories() {
     const categories = ['all', ...new Set(menuItems.map(item => item.category))];
     categoryContainer.innerHTML = '';
 
-    categories.forEach(cat => {
+    const sectionHead = document.createElement('div');
+    sectionHead.className = 'section-head';
+    sectionHead.innerHTML = `
+        <span class="section-eyebrow"><i class="fa-solid fa-layer-group"></i> Cardápio</span>
+        <h2 class="section-title">Descubra nossos salgados</h2>
+        <p class="section-subtitle">Escolha uma categoria para filtrar</p>
+    `;
+    categoryContainer.appendChild(sectionHead);
+
+    const chipWrap = document.createElement('div');
+    chipWrap.className = 'category-chip-wrap';
+
+    categories.forEach((cat, i) => {
         const btn = document.createElement('button');
-        btn.className = `btn ${cat === activeCategory ? 'btn-dark' : 'btn-outline-dark'}`;
+        btn.className = `chip ${cat === activeCategory ? 'chip-active' : ''}`;
         btn.dataset.category = cat;
         btn.setAttribute('aria-pressed', cat === activeCategory ? 'true' : 'false');
-        btn.textContent = categoryLabels[cat] || cat;
+        btn.style.animationDelay = `${0.1 + i * 0.06}s`;
+
+        const count = cat === 'all' ? menuItems.filter(m => m.active !== false).length
+            : menuItems.filter(m => m.category === cat && m.active !== false).length;
+
+        btn.innerHTML = `<span class="chip-label">${categoryLabels[cat] || cat}</span><span class="chip-count">${count}</span>`;
 
         btn.onclick = () => {
             activeCategory = cat;
@@ -214,8 +231,10 @@ function renderCategories() {
             renderMenu();
         };
 
-        categoryContainer.appendChild(btn);
+        chipWrap.appendChild(btn);
     });
+
+    categoryContainer.appendChild(chipWrap);
 }
 
 function renderMenu() {
