@@ -71,8 +71,8 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #fff;
-    color: #000;
+    background: #212529;
+    color: #fff;
     font-weight: 800;
     font-size: 0.9rem;
     border-radius: 999px;
