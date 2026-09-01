@@ -1,4 +1,4 @@
-const CACHE = 'fg-salgados-v23';
+const CACHE = 'fg-salgados-v24';
 const CORE = [
     './',
     './index.html',
@@ -6,6 +6,7 @@ const CORE = [
     './offline.html',
     './style.css',
     './script.js',
+    './config.js',
     './menuData.js',
     './manifest.json',
     './images/icon-192.png',

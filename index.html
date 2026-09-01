@@ -345,15 +345,40 @@
                     <div id="pixPanel" class="p-4 rounded-4 bg-white shadow-sm border text-center mb-4"
                         style="border-color: #32BCAD !important;">
                         <h6 class="fw-bold text-dark mb-1">Pague com PIX</h6>
-                        <p class="text-muted small mb-2">Escaneie o QR Code ou copie a chave abaixo e envie o valor
-                            total do pedido. Depois confirme enviando o pedido pelo WhatsApp.</p>
-                        <img src="./images/pix_qr_code.webp" alt="QR Code PIX FG Salgados"
-                            style="max-width: 220px; width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0 auto 14px; display: block;">
-                        <input type="text" id="pixKey"
-                            class="form-control rounded-3 border-0 shadow-sm text-center fw-bold mb-2"
-                            value="agsdelivery24@gmail.com">
-                        <button type="button" class="btn btn-amber rounded-pill px-4 py-2 fw-bold w-100"
-                            onclick="copyPixKey()"><i class="fa-solid fa-copy me-2"></i> Copiar Chave PIX</button>
+
+                        <div id="pixStaticBlock">
+                            <p class="text-muted small mb-2">Escaneie o QR Code ou copie a chave abaixo e envie o valor
+                                total do pedido. Depois confirme enviando o pedido pelo WhatsApp.</p>
+                            <img src="./images/pix_qr_code.webp" alt="QR Code PIX FG Salgados"
+                                style="max-width: 220px; width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0 auto 14px; display: block;">
+                            <input type="text" id="pixKey"
+                                class="form-control rounded-3 border-0 shadow-sm text-center fw-bold mb-2"
+                                value="agsdelivery24@gmail.com">
+                            <button type="button" class="btn btn-amber rounded-pill px-4 py-2 fw-bold w-100"
+                                onclick="copyPixKey()"><i class="fa-solid fa-copy me-2"></i> Copiar Chave PIX</button>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div id="pixDynamicBlock" style="display: none;">
+                            <p class="text-muted small mb-2">Gere um QR Code PIX com o valor exato do seu pedido. Após
+                                o pagamento, o sistema confirma automaticamente.</p>
+                            <img id="pixDynamicQR" src="" alt="QR Code PIX dinâmico"
+                                style="max-width: 220px; width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0 auto 14px; display: none;">
+                            <div id="pixDynamicPlaceholder" class="py-3 text-muted small">
+                                <i class="fa-solid fa-qrcode me-1"></i> QR Code aparecerá aqui
+                            </div>
+                            <input type="text" id="pixDynamicCopy" readonly
+                                class="form-control rounded-3 border-0 shadow-sm text-center fw-bold mb-2"
+                                placeholder="PIX copia-e-cola">
+                            <div class="d-flex gap-2">
+                                <button type="button" id="btnGerarPix" class="btn btn-amber rounded-pill px-4 py-2 fw-bold flex-grow-1"
+                                    onclick="gerarPixDinamico()"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Gerar PIX</button>
+                                <button type="button" class="btn btn-light rounded-pill px-3 py-2 fw-bold border"
+                                    onclick="copiarPixDinamico()" title="Copiar código PIX"><i class="fa-solid fa-copy"></i></button>
+                            </div>
+                            <div id="pixStatus" class="mt-2 small fw-bold"></div>
+                        </div>
                     </div>
 
                     <div id="localPanel" class="p-4 rounded-4 bg-white shadow-sm border text-center mb-4"
@@ -419,7 +444,8 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script src="menuData.js?v=14"></script>
-    <script src="script.js?v=20"></script>
+    <script src="config.js"></script>
+    <script src="script.js?v=21"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
