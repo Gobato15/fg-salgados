@@ -6,6 +6,7 @@ const CORE = [
     './offline.html',
     './style.css',
     './script.js',
+    './config.js',
     './menuData.js',
     './manifest.json',
     './images/icon-192.png',
@@ -48,6 +49,12 @@ self.addEventListener('fetch', (event) => {
 
     const url = new URL(req.url);
     if (url.origin !== location.origin) return;
+
+    // Bypass cache for admin area
+    if (url.pathname.includes('/admin/')) {
+        event.respondWith(fetch(req));
+        return;
+    }
 
     if (req.mode === 'navigate') {
         event.respondWith(
