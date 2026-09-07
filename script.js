@@ -45,86 +45,6 @@ function esc(str) {
         .replace(/'/g, '&#39;');
 }
 
-function isValidName(name) {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length < 2) return false;
-    return parts.every(p => /^[A-Za-zÀ-ÖØ-öø-ÿ']+$/.test(p));
-}
-
-function normalizeDigits(str) {
-    return String(str || '').replace(/\D/g, '');
-}
-
-function isValidPhone(phone) {
-    const digits = normalizeDigits(phone);
-    if (digits.length === 11 && (digits[2] === '9' || digits[2] === '8')) return true;
-    return false;
-}
-
-function isValidCepFormat(cep) {
-    return normalizeDigits(cep).length === 8;
-}
-
-function applyPhoneMask(input) {
-    let digits = normalizeDigits(input.value);
-    if (digits.length === 0) { input.value = ''; return; }
-    if (input.value.replace(/\D/g, '').startsWith('55') && digits.length < 13) {
-        digits = digits.slice(2);
-    }
-    let formatted = digits;
-    if (digits.length > 0) formatted = `(${digits.substring(0, 2)}`;
-    if (digits.length >= 3) formatted += `) ${digits.substring(2, 7)}`;
-    if (digits.length >= 8) formatted += `-${digits.substring(7, 11)}`;
-    input.value = formatted;
-}
-
-function setFieldState(el, state) {
-    if (!el) return;
-    const invalid = state === 'invalid';
-    const valid = state === 'valid';
-    el.classList.toggle('is-invalid', invalid);
-    el.classList.toggle('is-valid', valid);
-    const feedbackEl = el.parentElement ? el.parentElement.querySelector('.field-feedback') : null;
-    if (feedbackEl) {
-        feedbackEl.classList.toggle('show', invalid);
-        feedbackEl.classList.toggle('text-danger', invalid);
-        feedbackEl.classList.toggle('text-success', valid);
-        feedbackEl.textContent = invalid ? (el.dataset.msg || 'Campo inválido.') : '';
-    }
-}
-
-window.validateCheckout = function () {
-    const btn = document.getElementById('btnFinalizar');
-    const consent = document.getElementById('confirmDados');
-    if (!btn) return;
-
-    const nameEl = document.getElementById('customerName');
-    const phoneEl = document.getElementById('customerPhone');
-    const isEntrega = document.getElementById('modeEntrega') ? document.getElementById('modeEntrega').checked : false;
-
-    const nameOk = nameEl && isValidName(nameEl.value);
-    const phoneOk = phoneEl && isValidPhone(phoneEl.value);
-
-    let enderecoOk = true;
-    if (isEntrega) {
-        const cepOk = isValidCepFormat(document.getElementById('deliveryCep').value) && document.getElementById('deliveryCity').value.trim() !== '' && document.getElementById('deliveryCity').value !== 'Buscando...';
-        const ruaOk = document.getElementById('deliveryStreet').value.trim() !== '';
-        const numOk = document.getElementById('deliveryNumber').value.trim() !== '';
-        enderecoOk = cepOk && ruaOk && numOk;
-    }
-
-    const consentOk = consent ? consent.checked : true;
-    const cartOk = cart.length > 0;
-    const allOk = nameOk && phoneOk && enderecoOk && consentOk && cartOk;
-
-    btn.disabled = !allOk;
-
-    if (nameEl) setFieldState(nameEl, nameOk ? 'valid' : (nameEl.value ? 'invalid' : 'idle'));
-    if (phoneEl) setFieldState(phoneEl, phoneOk ? 'valid' : (phoneEl.value ? 'invalid' : 'idle'));
-
-    return allOk;
-};
-
 function loadSavedData() {
     try {
         savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -192,188 +112,6 @@ function showToast(message) {
     }, 2500);
 }
 
-function getPixKey() {
-    const pixEl = document.getElementById('pixKey');
-    if (pixEl && pixEl.value.trim()) return pixEl.value.trim();
-    return (savedData.contact && savedData.contact.pix) ? savedData.contact.pix : DEFAULT_CONTACT.pix;
-}
-
-window.togglePaymentMethod = function () {
-    const isPix = document.getElementById('payPix') ? document.getElementById('payPix').checked : true;
-    const pixPanel = document.getElementById('pixPanel');
-    const localPanel = document.getElementById('localPanel');
-    if (pixPanel) pixPanel.style.display = isPix ? 'block' : 'none';
-    if (localPanel) localPanel.style.display = isPix ? 'none' : 'block';
-    initPixDynamic();
-    updateCartUI();
-};
-
-window.copyPixKey = function () {
-    const pixInput = document.getElementById('pixKey');
-    if (!pixInput) return;
-    const text = pixInput.value.trim();
-
-    const done = () => showToast("Chave PIX copiada! 📋");
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
-    } else {
-        fallbackCopy(text, done);
-    }
-};
-
-function fallbackCopy(text, done) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    ta.setSelectionRange(0, 99999);
-    try { document.execCommand('copy'); } catch (e) { }
-    document.body.removeChild(ta);
-    done();
-}
-
-function pixApiBase() {
-    return ((window.FG_CONFIG && window.FG_CONFIG.pixApiUrl) || '').trim().replace(/\/+$/, '');
-}
-
-window.pixBackendConfigured = function () {
-    return !!pixApiBase();
-};
-
-window.copyPixUnica = function () {
-    const v = document.getElementById('pixKey');
-    if (!v) return;
-    const done = () => showToast('Chave PIX copiada! 📋');
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(v.value).then(done, () => fallbackCopy(v.value, done));
-    } else {
-        fallbackCopy(v.value, done);
-    }
-};
-
-window.initPixDynamic = function () {
-    const block = document.getElementById('pixDynamicBlock');
-    const staticBlock = document.getElementById('pixStaticBlock');
-    if (!block) return;
-    if (pixBackendConfigured()) {
-        block.style.display = 'block';
-        if (staticBlock) staticBlock.style.display = 'none';
-    } else {
-        block.style.display = 'none';
-        if (staticBlock) staticBlock.style.display = '';
-    }
-};
-
-window.gerarPixDinamico = async function () {
-    const base = pixApiBase();
-    const btn = document.getElementById('btnGerarPix');
-    const statusEl = document.getElementById('pixStatus');
-    if (!base) { showToast('Backend de pagamento não configurado!'); return; }
-    if (!cart.length) { showToast('Adicione itens ao pedido!'); return; }
-
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Gerando...'; }
-    if (statusEl) { statusEl.className = 'mt-2 small fw-bold text-muted'; statusEl.textContent = 'Gerando PIX...'; }
-
-    const items = cart.map(it => {
-        const prod = menuItems.find(p => p.id === it.id) || {};
-        return { id: it.id, name: it.name, price: it.price, quantity: it.quantity, units: prod.units || 1 };
-    });
-    const isEntregaPix = document.getElementById('modeEntrega') ? document.getElementById('modeEntrega').checked : false;
-    const subtotal = cart.reduce((s, it) => s + it.price * it.quantity, 0);
-    const total = Math.round((subtotal + (isEntregaPix ? deliveryFee : 0)) * 100) / 100;
-    window._pixAmount = total;
-
-    try {
-        const res = await fetch(base + '/pix', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items, amount: total, label: 'Pedido FG Salgados' })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.ok) throw new Error(data.error || 'Falha ao gerar o PIX.');
-        mostrarPixDinamico(data);
-    } catch (e) {
-        if (statusEl) { statusEl.className = 'mt-2 small fw-bold text-danger'; statusEl.textContent = e.message; }
-        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-1"></i> Gerar PIX'; }
-    }
-};
-
-function mostrarPixDinamico(data) {
-    const qrImg = document.getElementById('pixDynamicQR');
-    const place = document.getElementById('pixDynamicPlaceholder');
-    const copyInput = document.getElementById('pixDynamicCopy');
-    const statusEl = document.getElementById('pixStatus');
-    const btn = document.getElementById('btnGerarPix');
-
-    if (data.qr_code_base64) {
-        qrImg.src = 'data:image/png;base64,' + data.qr_code_base64;
-        qrImg.style.display = 'block';
-        if (place) place.style.display = 'none';
-    }
-    if (copyInput && data.copy_paste) {
-        copyInput.value = data.copy_paste;
-        copyInput.style.background = '#fff';
-    }
-
-    if (statusEl) { statusEl.className = 'mt-2 small fw-bold text-success'; statusEl.textContent = 'PIX gerado! Aguardando pagamento...'; }
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate me-1"></i> Gerar novamente'; }
-
-    pollPixStatus(data.paymentId);
-}
-
-function pollPixStatus(paymentId) {
-    const base = pixApiBase();
-    if (!base || !paymentId) return;
-    if (window._pixPollTimer) clearInterval(window._pixPollTimer);
-
-    const statusEl = document.getElementById('pixStatus');
-    let tries = 0;
-    window._pixPollTimer = setInterval(async () => {
-        tries += 1;
-        if (tries > 30) {
-            clearInterval(window._pixPollTimer);
-            if (statusEl) { statusEl.className = 'mt-2 small fw-bold text-muted'; statusEl.textContent = 'Se preferir, envie seu pedido pelo WhatsApp confirmando o PIX.'; }
-            return;
-        }
-        try {
-            const res = await fetch(base + '/pix/' + paymentId);
-            const data = await res.json().catch(() => ({}));
-            if (data.approved) {
-                clearInterval(window._pixPollTimer);
-                if (statusEl) { statusEl.className = 'mt-2 small fw-bold text-success'; statusEl.textContent = '✅ Pagamento confirmado! Envie o pedido pelo WhatsApp.'; }
-            }
-        } catch (e) { /* ignora erros temporários de rede */ }
-    }, 4000);
-}
-
-window.copiarPixDinamico = function () {
-    const v = document.getElementById('pixDynamicCopy');
-    if (!v || !v.value) { showToast('Gere o PIX primeiro!'); return; }
-    const done = () => showToast('Código PIX copiado! 📋');
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(v.value).then(done, () => fallbackCopy(v.value, done));
-    } else {
-        fallbackCopy(v.value, done);
-    }
-};
-
-function resetPixDinamico() {
-    if (window._pixPollTimer) { clearInterval(window._pixPollTimer); window._pixPollTimer = null; }
-    const qrImg = document.getElementById('pixDynamicQR');
-    const place = document.getElementById('pixDynamicPlaceholder');
-    const copyInput = document.getElementById('pixDynamicCopy');
-    const statusEl = document.getElementById('pixStatus');
-    const btn = document.getElementById('btnGerarPix');
-    if (qrImg) { qrImg.src = ''; qrImg.style.display = 'none'; }
-    if (place) place.style.display = '';
-    if (copyInput) copyInput.value = '';
-    if (statusEl) { statusEl.className = 'mt-2 small fw-bold'; statusEl.textContent = ''; }
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-1"></i> Gerar PIX';
-}
-
 function createProductCard(item, index = 0) {
     let imgSrc = item.image || 'images/ags_coxinha.webp';
     if (imgSrc.startsWith('images/')) imgSrc = './' + imgSrc;
@@ -421,29 +159,12 @@ function renderCategories() {
     const categories = ['all', ...new Set(menuItems.map(item => item.category))];
     categoryContainer.innerHTML = '';
 
-    const sectionHead = document.createElement('div');
-    sectionHead.className = 'section-head';
-    sectionHead.innerHTML = `
-        <span class="section-eyebrow"><i class="fa-solid fa-layer-group"></i> Cardápio</span>
-        <h2 class="section-title">Descubra nossos salgados</h2>
-        <p class="section-subtitle">Escolha uma categoria para filtrar</p>
-    `;
-    categoryContainer.appendChild(sectionHead);
-
-    const chipWrap = document.createElement('div');
-    chipWrap.className = 'category-chip-wrap';
-
-    categories.forEach((cat, i) => {
+    categories.forEach((cat) => {
         const btn = document.createElement('button');
-        btn.className = `chip ${cat === activeCategory ? 'chip-active' : ''}`;
+        btn.className = `btn ${cat === activeCategory ? 'btn-dark' : 'btn-outline-dark'} rounded-pill px-4 py-2 me-2 mb-2 fw-semibold`;
         btn.dataset.category = cat;
         btn.setAttribute('aria-pressed', cat === activeCategory ? 'true' : 'false');
-        btn.style.animationDelay = `${0.1 + i * 0.06}s`;
-
-        const count = cat === 'all' ? menuItems.filter(m => m.active !== false).length
-            : menuItems.filter(m => m.category === cat && m.active !== false).length;
-
-        btn.innerHTML = `<span class="chip-label">${categoryLabels[cat] || cat}</span><span class="chip-count">${count}</span>`;
+        btn.textContent = categoryLabels[cat] || cat;
 
         btn.onclick = () => {
             activeCategory = cat;
@@ -451,10 +172,8 @@ function renderCategories() {
             renderMenu();
         };
 
-        chipWrap.appendChild(btn);
+        categoryContainer.appendChild(btn);
     });
-
-    categoryContainer.appendChild(chipWrap);
 }
 
 function renderMenu() {
@@ -627,6 +346,7 @@ function updateCartUI() {
     cartCount.textContent = totalUnits;
 
     const offcanvasFooter = document.querySelector('.offcanvas-footer');
+    const btnFinalizar = document.getElementById('btnFinalizar');
 
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = '<p class="text-muted text-center my-4 py-4 bg-light rounded-4">Seu pedido está vazio.</p>';
@@ -640,6 +360,10 @@ function updateCartUI() {
     }
 
     if (offcanvasFooter) offcanvasFooter.style.display = 'block';
+    if (btnFinalizar) {
+        btnFinalizar.disabled = false;
+        btnFinalizar.style.display = 'block';
+    }
 
     let itemsHTML = '';
     let itemsResumo = [];
@@ -752,6 +476,29 @@ window.checkout = async function () {
         return;
     }
 
+    const nameEl = document.getElementById('customerName');
+    const phoneEl = document.getElementById('customerPhone');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const phone = phoneEl ? phoneEl.value.trim() : '';
+    const isEntrega = document.getElementById('modeEntrega') ? document.getElementById('modeEntrega').checked : false;
+
+    if (!name || !phone) {
+        showToast("Por favor, preencha seu nome e telefone!");
+        if (nameEl && !name) nameEl.focus();
+        else if (phoneEl && !phone) phoneEl.focus();
+        return;
+    }
+
+    if (isEntrega) {
+        const cepEl = document.getElementById('deliveryCep');
+        const cep = cepEl ? cepEl.value.replace(/\D/g, '') : '';
+        if (!cep || cep.length < 8 || deliveryFee <= 0) {
+            showToast("Preencha o CEP corretamente para calcular a taxa de entrega!");
+            if (cepEl) cepEl.focus();
+            return;
+        }
+    }
+
     try {
         await loadMPScript();
     } catch (e) {
@@ -762,26 +509,6 @@ window.checkout = async function () {
     if (!ensureMercadoPago()) {
         showToast("Aguarde o carregamento do sistema de pagamento.");
         return;
-    }
-
-    const nameEl = document.getElementById('customerName');
-    const phoneEl = document.getElementById('customerPhone');
-    const name = nameEl ? nameEl.value.trim() : '';
-    const phone = phoneEl ? phoneEl.value.trim() : '';
-    const isEntrega = document.getElementById('modeEntrega') ? document.getElementById('modeEntrega').checked : false;
-
-    if (!name || !phone) {
-        showToast("Por favor, preencha seu nome e telefone!");
-        return;
-    }
-
-    if (isEntrega) {
-        const cepEl = document.getElementById('deliveryCep');
-        const cep = cepEl ? cepEl.value.replace(/\D/g, '') : '';
-        if (!cep || cep.length < 8 || deliveryFee <= 0) {
-            showToast("Preencha o CEP corretamente para calcular a taxa de entrega!");
-            return;
-        }
     }
 
     const btnFinalizar = document.getElementById('btnFinalizar');
@@ -1029,46 +756,9 @@ window.addEventListener('scroll', () => {
     }
 });
 
-function bindValidation() {
-    const phoneEl = document.getElementById('customerPhone');
-    if (phoneEl) {
-        phoneEl.addEventListener('input', () => {
-            applyPhoneMask(phoneEl);
-            validateCheckout();
-        });
-        phoneEl.addEventListener('blur', () => {
-            setFieldState(phoneEl, isValidPhone(phoneEl.value) ? 'valid' : 'invalid');
-        });
-    }
-
-    const nameEl = document.getElementById('customerName');
-    if (nameEl) {
-        nameEl.addEventListener('blur', () => {
-            setFieldState(nameEl, isValidName(nameEl.value) ? 'valid' : 'invalid');
-        });
-    }
-
-    const confirmEl = document.getElementById('confirmDados');
-    if (confirmEl) {
-        confirmEl.addEventListener('change', () => {
-            confirmEl.classList.remove('is-invalid');
-            validateCheckout();
-        });
-    }
-
-    const cartModal = document.getElementById('cartModal');
-    if (cartModal) {
-        cartModal.addEventListener('shown.bs.modal', () => {
-            validateCheckout();
-        });
-    }
-}
-
 loadSavedData();
 renderCategories();
 renderMenu();
 updateCartUI();
 bindSearch();
 bindContactLinks();
-bindValidation();
-initPixDynamic();
