@@ -113,6 +113,10 @@
             }
         }
         document.getElementById('whatsAgain').href = 'https://wa.me/' + getWhatsNumber() + '?text=' + encodeURIComponent('Olá! Vim pelo site da FG Salgados 🙂');
+        try {
+            localStorage.removeItem('fg_cart');
+            localStorage.removeItem('fg_customer');
+        } catch (e) {}
     </script>
 </body>
 </html>

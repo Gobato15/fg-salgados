@@ -7,6 +7,124 @@ let activeCategory = 'all';
 
 const STORAGE_KEY = 'fg_salgados_v9';
 const CLIENT_ORDERS_KEY = 'fg_client_orders';
+const CART_STORAGE_KEY = 'fg_cart';
+const CUSTOMER_STORAGE_KEY = 'fg_customer';
+
+function saveCart() {
+    try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    } catch (e) {}
+}
+
+function loadCart() {
+    try {
+        const saved = localStorage.getItem(CART_STORAGE_KEY);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                cart = parsed;
+            }
+        }
+    } catch (e) {}
+}
+
+function clearSavedCart() {
+    try {
+        localStorage.removeItem(CART_STORAGE_KEY);
+    } catch (e) {}
+}
+
+function saveCustomerFields() {
+    try {
+        const fields = {
+            name: document.getElementById('customerName')?.value || '',
+            phone: document.getElementById('customerPhone')?.value || '',
+            mode: document.querySelector('input[name="deliveryMode"]:checked')?.value || 'retirada',
+            cep: document.getElementById('deliveryCep')?.value || '',
+            street: document.getElementById('deliveryStreet')?.value || '',
+            number: document.getElementById('deliveryNumber')?.value || '',
+            neighborhood: document.getElementById('deliveryNeighborhood')?.value || '',
+            city: document.getElementById('deliveryCity')?.value || '',
+            state: document.getElementById('deliveryState')?.value || '',
+            note: document.getElementById('deliveryNote')?.value || ''
+        };
+        localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(fields));
+    } catch (e) {}
+}
+
+function loadCustomerFields() {
+    try {
+        const saved = localStorage.getItem(CUSTOMER_STORAGE_KEY);
+        if (!saved) return;
+        const fields = JSON.parse(saved);
+        const setName = document.getElementById('customerName');
+        if (setName && fields.name) setName.value = fields.name;
+        const setPhone = document.getElementById('customerPhone');
+        if (setPhone && fields.phone) setPhone.value = fields.phone;
+        if (fields.mode === 'entrega') {
+            const modeEntrega = document.getElementById('modeEntrega');
+            if (modeEntrega) { modeEntrega.checked = true; if (typeof toggleDeliveryFields === 'function') toggleDeliveryFields(); }
+        }
+        if (fields.cep) {
+            const setCep = document.getElementById('deliveryCep');
+            if (setCep) setCep.value = fields.cep;
+        }
+        if (fields.street) {
+            const setStreet = document.getElementById('deliveryStreet');
+            if (setStreet) setStreet.value = fields.street;
+        }
+        if (fields.number) {
+            const setNum = document.getElementById('deliveryNumber');
+            if (setNum) setNum.value = fields.number;
+        }
+        if (fields.neighborhood) {
+            const setNeigh = document.getElementById('deliveryNeighborhood');
+            if (setNeigh) setNeigh.value = fields.neighborhood;
+        }
+        if (fields.city) {
+            const setCity = document.getElementById('deliveryCity');
+            if (setCity) setCity.value = fields.city;
+        }
+        if (fields.state) {
+            const setState = document.getElementById('deliveryState');
+            if (setState) setState.value = fields.state;
+        }
+        if (fields.note) {
+            const setNote = document.getElementById('deliveryNote');
+            if (setNote) setNote.value = fields.note;
+        }
+        if (fields.cep && fields.cep.replace(/\D/g, '').length === 8 && typeof calculateFreight === 'function') {
+            calculateFreight(fields.cep.replace(/\D/g, ''));
+        }
+    } catch (e) {}
+}
+
+function clearCustomerFields() {
+    try {
+        localStorage.removeItem(CUSTOMER_STORAGE_KEY);
+    } catch (e) {}
+    const fieldIds = [
+        'customerName',
+        'customerPhone',
+        'deliveryCep',
+        'deliveryStreet',
+        'deliveryNumber',
+        'deliveryNeighborhood',
+        'deliveryCity',
+        'deliveryState',
+        'deliveryNote'
+    ];
+    fieldIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    const modeRetirada = document.getElementById('modeRetirada');
+    if (modeRetirada) {
+        modeRetirada.checked = true;
+        if (typeof toggleDeliveryFields === 'function') toggleDeliveryFields();
+    }
+}
+window.clearCustomerFields = clearCustomerFields;
 
 const DEFAULT_CONTACT = {
     whats: "(19) 99609-0540",
@@ -634,6 +752,8 @@ window.checkout = async function () {
                                     resolve(data.full_response);
 
                                     if (!data.full_response || !data.full_response.status_detail || data.full_response.status_detail !== 'pending_challenge') {
+                                        clearSavedCart();
+                                        clearCustomerFields();
                                         cart = [];
                                         updateCartUI();
                                         setTimeout(() => {
@@ -757,8 +877,10 @@ window.addEventListener('scroll', () => {
 });
 
 loadSavedData();
+loadCart();
 renderCategories();
 renderMenu();
 updateCartUI();
+loadCustomerFields();
 bindSearch();
 bindContactLinks();
