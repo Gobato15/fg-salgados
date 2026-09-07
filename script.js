@@ -267,16 +267,15 @@ window.updateCartItemQuantity = function (index, change) {
 };
 
 window.toggleDeliveryFields = function () {
-    const isEntrega = document.getElementById('modeEntrega').checked;
+    const isEntrega = document.getElementById('modeEntrega') ? document.getElementById('modeEntrega').checked : false;
     const deliveryFields = document.getElementById('deliveryAddressFields');
     const freightRow = document.getElementById('freightRow');
 
-    if (isEntrega) {
-        deliveryFields.style.display = 'block';
-        freightRow.style.setProperty('display', 'flex', 'important');
-    } else {
-        deliveryFields.style.display = 'none';
-        freightRow.style.setProperty('display', 'none', 'important');
+    if (deliveryFields) {
+        deliveryFields.style.display = isEntrega ? 'block' : 'none';
+    }
+    if (freightRow) {
+        freightRow.style.setProperty('display', isEntrega ? 'flex' : 'none', 'important');
     }
     updateCartUI();
 };
@@ -284,63 +283,84 @@ window.toggleDeliveryFields = function () {
 window.checkCep = function (input) {
     let cep = input.value.replace(/\D/g, '');
     if (cep.length > 5) {
-        input.value = cep.substring(0, 5) + '-' + cep.substring(5, 8);
+        input.value = cep.slice(0, 5) + '-' + cep.slice(5, 8);
     } else {
         input.value = cep;
     }
 
     if (cep.length === 8) {
-        fetchAddress(cep);
+        const fields = ['deliveryStreet', 'deliveryNeighborhood', 'deliveryCity', 'deliveryState'];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = 'Carregando...';
+                el.style.opacity = '0.7';
+            }
+        });
+
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+            .then(response => response.json())
+            .then(data => {
+                fields.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.opacity = '1';
+                });
+
+                if (!data.erro) {
+                    if (document.getElementById('deliveryStreet')) document.getElementById('deliveryStreet').value = data.logradouro || '';
+                    if (document.getElementById('deliveryNeighborhood')) document.getElementById('deliveryNeighborhood').value = data.bairro || '';
+                    if (document.getElementById('deliveryCity')) document.getElementById('deliveryCity').value = data.localidade || '';
+                    if (document.getElementById('deliveryState')) document.getElementById('deliveryState').value = data.uf || '';
+
+                    const numberField = document.getElementById('deliveryNumber');
+                    if (numberField) {
+                        numberField.focus();
+                    }
+                    showToast("Endereço localizado! 📍");
+                    calculateFreight(cep);
+                    updateCartUI();
+                } else {
+                    fields.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = '';
+                    });
+                    showToast("CEP não encontrado!");
+                }
+            })
+            .catch(() => {
+                fields.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                showToast("Erro ao buscar CEP");
+            });
     }
 };
 
-async function fetchAddress(cep) {
-    const cityField = document.getElementById('deliveryCity');
-    const streetField = document.getElementById('deliveryStreet');
-
-    cityField.value = "Buscando...";
-    streetField.value = "Buscando...";
-
-    try {
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-        const data = await response.json();
-
-        if (!data.erro) {
-            cityField.value = `${data.localidade} - ${data.bairro}`;
-            streetField.value = data.logradouro;
-            calculateFreight(cep);
-        } else {
-            showToast("CEP não encontrado!");
-            cityField.value = "";
-            streetField.value = "";
-        }
-    } catch (e) {
-        console.error("Erro ao buscar CEP", e);
-        cityField.value = "";
-        streetField.value = "";
-    }
-}
-
 window.calculateFreight = function (cep) {
-    cep = String(cep || document.getElementById('deliveryCep').value).replace(/\D/g, '');
+    if (!cep) cep = document.getElementById('deliveryCep') ? document.getElementById('deliveryCep').value.replace(/\D/g, '') : '';
     const freightElement = document.getElementById('cartFreight');
 
     if (cep.length === 8) {
         const lastDigits = parseInt(cep.substring(5));
         deliveryDistance = 1 + (lastDigits % 10);
 
-        const baseFee = 7.00;
+        const baseFee = 8.00;
         let increment = 0;
         if (deliveryDistance > 3) {
             increment = (deliveryDistance - 3) * 0.60;
         }
 
         deliveryFee = baseFee + increment;
-        freightElement.textContent = `${formatBRL(deliveryFee)} (${deliveryDistance.toFixed(1)}km)`;
+        if (freightElement) {
+            freightElement.textContent = `${formatBRL(deliveryFee)} (${deliveryDistance.toFixed(1)}km)`;
+        }
     } else {
         deliveryFee = 0;
         deliveryDistance = 0;
-        freightElement.textContent = formatBRL(0);
+        if (freightElement) {
+            freightElement.textContent = formatBRL(0);
+        }
     }
     updateCartUI();
 };
@@ -351,7 +371,6 @@ function updateCartUI() {
     const cartTotal = document.getElementById('cartTotal');
     const cartSubtotal = document.getElementById('cartSubtotal');
     const cartFreight = document.getElementById('cartFreight');
-    const summaryTrays = document.getElementById('summaryTrays');
     const summaryUnits = document.getElementById('summaryUnits');
 
     const resumoBox = document.getElementById('descritivoPedido');
@@ -362,23 +381,26 @@ function updateCartUI() {
 
     if (!cartItemsContainer || !cartCount || !cartTotal) return;
 
-    const totalTrays = cart.reduce((total, item) => total + item.quantity, 0);
     const totalUnits = cart.reduce((total, item) => {
         const prod = menuItems.find(p => p.id === item.id) || {};
         return total + item.quantity * (prod.units || 1);
     }, 0);
     cartCount.textContent = totalUnits;
 
+    const offcanvasFooter = document.querySelector('.offcanvas-footer');
+
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = '<p class="text-muted text-center my-4 py-4 bg-light rounded-4">Seu pedido está vazio.</p>';
         cartTotal.textContent = formatBRL(0);
         if (cartSubtotal) cartSubtotal.textContent = formatBRL(0);
         if (cartFreight) cartFreight.textContent = formatBRL(0);
-        if (summaryTrays) summaryTrays.textContent = '0';
         if (summaryUnits) summaryUnits.textContent = '0';
         if (resumoBox) resumoBox.style.display = 'none';
+        if (offcanvasFooter) offcanvasFooter.style.display = 'none';
         return;
     }
+
+    if (offcanvasFooter) offcanvasFooter.style.display = 'block';
 
     let itemsHTML = '';
     let itemsResumo = [];
@@ -386,32 +408,30 @@ function updateCartUI() {
 
     cart.forEach((item, index) => {
         const prod = menuItems.find(p => p.id === item.id) || {};
-        const units = prod.units || 1;
         const itemTotal = item.price * item.quantity;
         subtotal += itemTotal;
         itemsResumo.push(`${item.quantity}x ${item.name}`);
 
+        let imgSrc = prod.image || 'images/ags_coxinha.webp';
+        if (imgSrc.startsWith('images/')) imgSrc = './' + imgSrc;
+
         itemsHTML += `
-            <div class="cart-item">
-                <div class="flex-grow-1 overflow-hidden pe-2">
+            <div class="cart-item d-flex align-items-center border rounded-4 mb-3 shadow-sm p-0 overflow-hidden bg-white">
+                <img src="${imgSrc}" class="object-fit-cover" alt="${esc(item.name)}" style="width: 70px; height: 70px; object-fit: cover;" onerror="this.src='images/ags_coxinha.webp'">
+                <div class="flex-grow-1 overflow-hidden px-3 py-2">
                     <h6 class="fw-bold mb-1 text-truncate text-dark" style="font-size: 0.95rem;">${esc(item.name)}</h6>
-                    <div class="text-success fw-bold small">${formatBRL(item.price)} / unidade</div>
-                    <div class="text-muted small">${item.quantity}x unidade${item.quantity > 1 ? 's' : ''}</div>
+                    <div class="text-amber fw-bold small">${formatBRL(item.price)} / un</div>
+                    <div class="fw-bold mt-1 text-dark" style="font-size: 0.9rem;">${formatBRL(itemTotal)}</div>
                 </div>
-                <div class="d-flex flex-column align-items-end">
-                    <div class="fw-bold text-dark mb-2" style="font-size: 0.95rem;">${formatBRL(itemTotal)}</div>
-                    <div class="d-flex align-items-center bg-light rounded-pill p-1 border shadow-sm">
-                        <button class="btn btn-sm border-0 rounded-circle d-flex align-items-center justify-content-center text-secondary"
-                                style="width: 26px; height: 26px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
-                                onclick="updateCartItemQuantity(${index}, -1)" aria-label="Diminuir">
-                            <i class="fas ${item.quantity === 1 ? 'fa-trash-alt text-danger' : 'fa-minus'}" style="font-size: 0.75rem;"></i>
+                <div class="pe-3 py-2 d-flex flex-column align-items-end gap-2">
+                    <button class="btn btn-sm p-0 border-0 text-muted" onclick="updateCartItemQuantity(${index}, -1)" aria-label="Remover" title="${item.quantity === 1 ? 'Remover' : 'Diminuir'}">
+                        <i class="fas ${item.quantity === 1 ? 'fa-trash-alt text-danger' : 'fa-minus'}"></i>
+                    </button>
+                    <div class="d-flex align-items-center rounded-pill p-1 border shadow-sm bg-light">
+                        <button class="btn btn-sm border-0 rounded-circle d-flex align-items-center justify-content-center bg-white shadow-sm" style="width: 24px; height: 24px;" onclick="updateCartItemQuantity(${index}, 1)" aria-label="Aumentar">
+                            <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
                         </button>
-                        <span class="fw-bold text-dark text-center" style="width: 26px; font-size: 0.9rem;">${item.quantity}</span>
-                        <button class="btn btn-sm border-0 rounded-circle d-flex align-items-center justify-content-center text-dark"
-                                style="width: 26px; height: 26px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
-                                onclick="updateCartItemQuantity(${index}, 1)" aria-label="Aumentar">
-                            <i class="fas fa-plus" style="font-size: 0.75rem;"></i>
-                        </button>
+                        <span class="fw-bold text-center px-1" style="width: 24px; font-size: 0.85rem;">${item.quantity}</span>
                     </div>
                 </div>
             </div>
@@ -427,117 +447,266 @@ function updateCartUI() {
     if (cartSubtotal) cartSubtotal.textContent = formatBRL(subtotal);
     if (cartFreight) cartFreight.textContent = formatBRL(currentFreight);
     cartTotal.textContent = formatBRL(finalTotal);
-
-    if (summaryTrays) summaryTrays.textContent = `${totalUnits} item${totalUnits > 1 ? 's' : ''}`;
     if (summaryUnits) summaryUnits.textContent = `${totalUnits} salgado${totalUnits > 1 ? 's' : ''}`;
 
     if (resumoBox) {
         resumoBox.style.display = 'block';
-        const nomeVal = document.getElementById('customerName').value || 'Pendente';
-        resumoNome.textContent = nomeVal;
+        const nameInput = document.getElementById('customerName');
+        const nomeVal = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'Pendente';
+        if (resumoNome) resumoNome.textContent = nomeVal;
 
         if (isEntrega) {
-            const rua = document.getElementById('deliveryStreet').value || '...';
-            const num = document.getElementById('deliveryNumber').value || '...';
-            resumoEnd.textContent = `${rua}, ${num}`;
+            const streetInput = document.getElementById('deliveryStreet');
+            const numInput = document.getElementById('deliveryNumber');
+            const rua = streetInput && streetInput.value.trim() ? streetInput.value.trim() : '...';
+            const num = numInput && numInput.value.trim() ? numInput.value.trim() : '...';
+            if (resumoEnd) resumoEnd.textContent = `${rua}, ${num}`;
         } else {
-            resumoEnd.textContent = "Retirada no Local";
+            if (resumoEnd) resumoEnd.textContent = "Retirada no Local";
         }
 
-        resumoItens.textContent = itemsResumo.join(', ');
-        resumoTotal.textContent = formatBRL(finalTotal);
-
-        const resumoPag = document.getElementById('resumoPag');
-        if (resumoPag) {
-            const payPix = document.getElementById('payPix') ? document.getElementById('payPix').checked : true;
-            resumoPag.textContent = payPix ? 'PIX' : 'No Local';
-        }
+        if (resumoItens) resumoItens.textContent = itemsResumo.join(', ');
+        if (resumoTotal) resumoTotal.textContent = formatBRL(finalTotal);
     }
 }
 
-window.checkout = function () {
+let mp = null;
+let bricksBuilder = null;
+let paymentBrickController = null;
+let mpSdkLoading = false;
+
+function loadMPScript() {
+    if (document.querySelector('script[src*="sdk.mercadopago.com"]')) return Promise.resolve();
+    if (mpSdkLoading) return new Promise(resolve => {
+        const check = setInterval(() => {
+            if (typeof MercadoPago !== 'undefined') { clearInterval(check); resolve(); }
+        }, 50);
+    });
+    mpSdkLoading = true;
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://sdk.mercadopago.com/js/v2';
+        s.onload = resolve;
+        s.onerror = () => { mpSdkLoading = false; reject(); };
+        document.head.appendChild(s);
+    });
+}
+
+function ensureMercadoPago() {
+    if (!mp && typeof MercadoPago !== 'undefined') {
+        const pubKey = window.MP_PUBLIC_KEY || 'APP_USR-ccddbea8-7479-47a1-892b-3b74ca21fc89';
+        mp = new MercadoPago(pubKey);
+        bricksBuilder = mp.bricks();
+    }
+    return !!mp;
+}
+
+window.checkout = async function () {
     if (cart.length === 0) {
-        showToast("Adicione pelo menos 1 salgado ao pedido!");
+        showToast("Seu carrinho está vazio!");
         return;
     }
-    const name = document.getElementById('customerName').value.trim();
-    const phone = document.getElementById('customerPhone').value.trim();
+
+    const pubKey = window.MP_PUBLIC_KEY || 'APP_USR-ccddbea8-7479-47a1-892b-3b74ca21fc89';
+    if (!pubKey) {
+        showToast("Pagamento temporariamente indisponível.");
+        return;
+    }
+
+    try {
+        await loadMPScript();
+    } catch (e) {
+        showToast("Erro ao carregar sistema de pagamento.");
+        return;
+    }
+
+    if (!ensureMercadoPago()) {
+        showToast("Aguarde o carregamento do sistema de pagamento.");
+        return;
+    }
+
+    const nameEl = document.getElementById('customerName');
+    const phoneEl = document.getElementById('customerPhone');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const phone = phoneEl ? phoneEl.value.trim() : '';
+    const isEntrega = document.getElementById('modeEntrega') ? document.getElementById('modeEntrega').checked : false;
 
     if (!name || !phone) {
-        showToast("Preencha seu nome e telefone!");
+        showToast("Por favor, preencha seu nome e telefone!");
         return;
     }
 
-    const isEntrega = document.getElementById('modeEntrega').checked;
+    if (isEntrega) {
+        const cepEl = document.getElementById('deliveryCep');
+        const cep = cepEl ? cepEl.value.replace(/\D/g, '') : '';
+        if (!cep || cep.length < 8 || deliveryFee <= 0) {
+            showToast("Preencha o CEP corretamente para calcular a taxa de entrega!");
+            return;
+        }
+    }
+
+    const btnFinalizar = document.getElementById('btnFinalizar');
+    const originalText = btnFinalizar ? btnFinalizar.innerHTML : '';
+
+    if (paymentBrickController) {
+        paymentBrickController.unmount();
+    }
+
+    if (btnFinalizar) {
+        btnFinalizar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Carregando Pagamento...';
+        btnFinalizar.disabled = true;
+    }
+
     const currentFreight = isEntrega ? deliveryFee : 0;
+    const totalAmount = cart.reduce((t, i) => t + (i.price * i.quantity), 0) + currentFreight;
 
-    let text = "👋 *Olá! Gostaria de fazer um pedido de Salgados Congelados FG Salgados:*\n\n";
+    try {
+        const settings = {
+            initialization: {
+                amount: totalAmount,
+            },
+            customization: {
+                visual: {
+                    font: 'Outfit',
+                    style: {
+                        theme: 'default',
+                        customVariables: {
+                            baseColor: '#D97706',
+                            baseColorFirstVariant: '#B45309',
+                            baseColorSecondVariant: '#FEF3C7',
+                            errorColor: '#E11D48',
+                            successColor: '#198754',
+                            outlinePrimaryColor: '#D97706',
+                            textPrimaryColor: '#271E17',
+                            textSecondaryColor: '#6B5D52',
+                            buttonTextColor: '#ffffff',
+                            borderRadiusMedium: '20px',
+                            borderRadiusLarge: '30px',
+                            inputBorderWidth: '0px',
+                            inputBackgroundColor: '#faf6f0',
+                            inputVerticalPadding: '12px',
+                            inputHorizontalPadding: '16px'
+                        }
+                    },
+                    texts: {
+                        formTitle: 'Resumo do Pagamento',
+                        emailSectionTitle: 'Dados para Recebimento',
+                        installmentsSectionTitle: 'Parcelamento',
+                        cardholderName: {
+                            label: 'Nome impresso no cartão',
+                            placeholder: 'Ex: JOÃO DA SILVA'
+                        },
+                        selectInstallments: 'Escolha o número de parcelas',
+                        formSubmit: 'Confirmar Pagamento',
+                        paymentMethods: {
+                            creditCardTitle: 'Cartão de Crédito',
+                            bankTransferTitle: 'Pix'
+                        },
+                        ctaGeneralErrorLabel: 'Tentar Novamente',
+                        ctaCardErrorLabel: 'Revisar dados do cartão',
+                        ctaReturnLabel: 'Voltar ao Carrinho'
+                    }
+                },
+                paymentMethods: {
+                    bankTransfer: "all",
+                    creditCard: "all",
+                    debitCard: "all",
+                    mercadoPago: "all",
+                },
+            },
+            callbacks: {
+                onReady: () => {
+                    if (btnFinalizar) btnFinalizar.style.display = 'none';
+                },
+                onSubmit: ({ selectedPaymentMethod, formData }) => {
+                    return new Promise((resolve, reject) => {
+                        const customerData = {
+                            customerName: name,
+                            customerPhone: phone,
+                            isEntrega: isEntrega,
+                            deliveryFee: currentFreight,
+                            loja: 'fg_salgados',
+                            deliveryAddress: isEntrega ? {
+                                zipCode: document.getElementById('deliveryCep').value,
+                                street: document.getElementById('deliveryStreet').value,
+                                number: document.getElementById('deliveryNumber').value,
+                                neighborhood: document.getElementById('deliveryNeighborhood').value,
+                                city: document.getElementById('deliveryCity').value,
+                                state: document.getElementById('deliveryState').value,
+                                note: document.getElementById('deliveryNote').value
+                            } : null
+                        };
 
-    let totalUnits = 0;
-    let totalPrice = 0;
+                        const checkoutUrl = window.CHECKOUT_URL || 'https://agsdelivery.com.br/checkout_transparente.php';
 
-    cart.forEach(item => {
-        const prod = menuItems.find(p => p.id === item.id) || {};
-        const units = prod.units || 1;
-        const itemTotal = item.price * item.quantity;
-        totalUnits += item.quantity * units;
-        totalPrice += itemTotal;
-        const qtdText = units === 1 ? `${item.quantity}x` : `${item.quantity}x (${item.quantity * units}un)`;
-        text += `▪️ *${qtdText} ${item.name}* -> ${formatBRL(itemTotal)}\n`;
-    });
+                        fetch(checkoutUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ formData, cart, customer: customerData, loja: 'fg_salgados' }),
+                        })
+                            .then((response) => response.json())
+                            .then((data) => {
+                                if (data.success) {
+                                    if (data.qr_code_base64) sessionStorage.setItem('pix_qr_code', data.qr_code_base64);
+                                    if (data.qr_code) sessionStorage.setItem('pix_copy_paste', data.qr_code);
 
-    text += `\n📦 *Total de Salgados:* ${totalUnits}`;
-    if (isEntrega) {
-        text += `\n🚚 *Taxa de Entrega:* ${formatBRL(currentFreight)} (${deliveryDistance.toFixed(1)}km)`;
-    } else {
-        text += `\n🏪 *Retirada no Local* (sem taxa de entrega)`;
+                                    const myOrder = {
+                                        id: data.payment_id || ('c' + Date.now()),
+                                        numero: getClientOrders().reduce((m, o) => Math.max(m, o.numero || 0), 0) + 1,
+                                        cliente: name,
+                                        telefone: phone,
+                                        itens: cart.map(it => `${it.quantity}x ${it.name}`).join(', '),
+                                        total: totalAmount,
+                                        modo: isEntrega ? 'entrega' : 'retirada',
+                                        pagamento: 'Mercado Pago',
+                                        loja: 'fg_salgados',
+                                        status: 'pago',
+                                        data: new Date().toISOString()
+                                    };
+                                    saveClientOrder(myOrder);
+
+                                    resolve(data.full_response);
+
+                                    if (!data.full_response || !data.full_response.status_detail || data.full_response.status_detail !== 'pending_challenge') {
+                                        cart = [];
+                                        updateCartUI();
+                                        setTimeout(() => {
+                                            window.location.href = `https://agsdelivery.com.br/sucesso.php?payment_id=${data.payment_id}`;
+                                        }, 1000);
+                                    }
+                                } else {
+                                    showToast("Erro: " + (data.error || "Tente novamente."));
+                                    reject();
+                                }
+                            })
+                            .catch((error) => {
+                                console.error(error);
+                                showToast("Erro ao processar pagamento.");
+                                reject();
+                            });
+                    });
+                },
+                onError: (error) => {
+                    console.error("Erro MP:", error);
+                    showToast("Erro ao carregar o pagamento. Tente novamente.");
+                    if (btnFinalizar) {
+                        btnFinalizar.style.display = 'block';
+                        btnFinalizar.disabled = false;
+                        btnFinalizar.innerHTML = originalText;
+                    }
+                },
+            },
+        };
+        paymentBrickController = await bricksBuilder.create("payment", "paymentBrick_container", settings);
+    } catch (e) {
+        console.error("Erro crítico MP:", e);
+        if (btnFinalizar) {
+            btnFinalizar.style.display = 'block';
+            btnFinalizar.disabled = false;
+            btnFinalizar.innerHTML = originalText;
+        }
+        showToast("Erro ao carregar pagamento.");
     }
-    text += `\n💰 *Valor Total:* ${formatBRL(totalPrice + currentFreight)}`;
-
-    const payPix = document.getElementById('payPix') ? document.getElementById('payPix').checked : true;
-    if (payPix) {
-        text += `\n💳 *Pagamento:* PIX (chave: ${getPixKey()})`;
-    } else {
-        text += `\n💵 *Pagamento:* No local (dinheiro ou PIX)`;
-    }
-
-    text += `\n\n👤 *Nome:* ${name}`;
-    text += `\n📱 *Telefone:* ${phone}`;
-
-    if (isEntrega) {
-        const rua = document.getElementById('deliveryStreet').value;
-        const num = document.getElementById('deliveryNumber').value;
-        const note = document.getElementById('deliveryNote').value;
-        const cidade = document.getElementById('deliveryCity').value;
-        text += `\n📍 *Endereço de Entrega:* ${rua}, ${num}${note ? ' — ' + note : ''}${cidade ? ' (' + cidade + ')' : ''}`;
-    }
-
-    text += `\n\nPodemos combinar a entrega/retirada?`;
-
-    const myOrder = {
-        id: 'c' + Date.now(),
-        numero: getClientOrders().reduce((m, o) => Math.max(m, o.numero || 0), 0) + 1,
-        cliente: name,
-        telefone: phone,
-        itens: cart.map(it => {
-            const prod = menuItems.find(p => p.id === it.id) || {};
-            const units = prod.units || 1;
-            return units === 1 ? `${it.quantity}x ${it.name}` : `${it.quantity}x ${it.name} (${it.quantity * units}un)`;
-        }).join(', '),
-        total: totalPrice + currentFreight,
-        modo: isEntrega ? 'entrega' : 'retirada',
-        pagamento: payPix ? 'PIX' : 'No local',
-        endereco: isEntrega ? `${document.getElementById('deliveryStreet').value}, ${document.getElementById('deliveryNumber').value}${document.getElementById('deliveryCity').value ? ' (' + document.getElementById('deliveryCity').value + ')' : ''}` : '',
-        status: 'pendente',
-        data: new Date().toISOString()
-    };
-    saveClientOrder(myOrder);
-
-    window.open(generateWhatsLink(text), "_blank", "noopener,noreferrer");
-    showToast("Abrindo WhatsApp com seu pedido!");
-    setTimeout(() => {
-        window.location.href = 'sucesso.html';
-    }, 1500);
 };
 
 function getClientOrders() {

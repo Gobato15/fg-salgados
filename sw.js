@@ -1,4 +1,4 @@
-const CACHE = 'fg-salgados-v22';
+const CACHE = 'fg-salgados-v23';
 const CORE = [
     './',
     './index.html',
