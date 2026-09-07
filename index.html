@@ -67,8 +67,8 @@
 
                 <div class="d-flex align-items-center gap-2">
                     <a href="admin/admin.html"
-                        class="btn btn-outline-amber rounded-pill fw-bold d-flex align-items-center gap-2"
-                        style="font-size: 0.75rem; padding: 5px 10px;">
+                        class="btn btn-outline-dark rounded-pill fw-bold d-flex align-items-center gap-2"
+                        style="font-size: 0.75rem; border-color: rgba(0,0,0,0.1); padding: 5px 10px;">
                         <i class="fa-solid fa-lock"></i> <span class="d-none d-md-inline">Acesso Restrito</span>
                     </a>
                     <button type="button" onclick="openMyOrders()"
@@ -78,6 +78,11 @@
                         <i class="fa-solid fa-clock-rotate-left"></i> <span class="d-none d-md-inline">Meus
                             Pedidos</span>
                     </button>
+                    <a href="https://agsdelivery.com.br/"
+                        class="btn btn-outline-dark rounded-pill fw-bold d-flex align-items-center gap-2"
+                        style="font-size: 0.75rem; border-color: rgba(0,0,0,0.1); padding: 5px 10px;">
+                        <i class="fa-solid fa-utensils"></i> <span class="d-none d-md-inline">AGS Delivery</span>
+                    </a>
                     <button class="cart-header-btn bg-transparent border-0 position-relative p-2" data-bs-toggle="offcanvas"
                         data-bs-target="#cartModal" aria-controls="cartModal" aria-label="Abrir Carrinho">
                         <i class="fa-solid fa-box text-dark" style="font-size: 1.6rem;"></i>
@@ -382,7 +387,7 @@
         window.CHECKOUT_URL = "https://agsdelivery.com.br/checkout_transparente.php";
     </script>
     <script src="menuData.js?v=14"></script>
-    <script src="script.js?v=24"></script>
+    <script src="script.js?v=25"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
