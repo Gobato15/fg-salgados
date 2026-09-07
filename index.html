@@ -57,13 +57,18 @@
     <header class="glass">
         <div class="container position-relative py-2">
             <div class="d-flex justify-content-between align-items-center">
-                <a href="#" class="brand">
-                    <span class="brand-logo">FG</span>
-                    <span class="brand-text">
-                        <span class="brand-title">FG Salgados</span>
-                        <span class="brand-tag">Congelados por unidade ❄️</span>
-                    </span>
-                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="#" class="brand">
+                        <span class="brand-logo">FG</span>
+                        <span class="brand-text">
+                            <span class="brand-title">FG Salgados</span>
+                            <span class="brand-tag">Congelados por unidade ❄️</span>
+                        </span>
+                    </a>
+                    <div id="storeStatusBadge" class="store-status-badge d-inline-flex align-items-center gap-2 ms-2 px-3 py-1 rounded-pill small fw-bold shadow-sm" style="font-size: 0.75rem; background: #e6f4ea; color: #137333;">
+                        <span class="status-dot online"></span> <span id="storeStatusText">Aberto Agora</span>
+                    </div>
+                </div>
 
                 <div class="d-flex align-items-center gap-2">
                     <a href="admin/admin.html"
@@ -387,7 +392,7 @@
         window.CHECKOUT_URL = "https://agsdelivery.com.br/checkout_transparente.php";
     </script>
     <script src="menuData.js?v=14"></script>
-    <script src="script.js?v=27"></script>
+    <script src="script.js?v=28"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

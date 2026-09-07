@@ -203,6 +203,49 @@ function loadSavedData() {
         const pixEl = document.getElementById('pixKey');
         if (pixEl && savedData.contact.pix) pixEl.value = savedData.contact.pix;
     }
+    checkStoreStatus();
+}
+
+function checkStoreStatus() {
+    const statusText = document.getElementById('storeStatusText');
+    const statusBadge = document.getElementById('storeStatusBadge');
+    if (!statusText || !statusBadge) return;
+
+    const now = new Date();
+    const day = now.getDay();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+
+    let isOpen = false;
+    let nextMsg = 'Abre às 14h';
+
+    if (day >= 1 && day <= 5) {
+        isOpen = currentTime >= 840 && currentTime <= 1140;
+        if (!isOpen) {
+            nextMsg = currentTime < 840 ? 'Abre hoje às 14h' : 'Abre amanhã às 14h';
+        }
+    } else if (day === 6) {
+        isOpen = currentTime >= 480 && currentTime <= 1020;
+        if (!isOpen) {
+            nextMsg = currentTime < 480 ? 'Abre hoje às 8h' : 'Abre Seg às 14h';
+        }
+    } else {
+        isOpen = false;
+        nextMsg = 'Abre Seg às 14h';
+    }
+
+    if (isOpen) {
+        statusText.textContent = "Aberto Agora";
+        statusBadge.style.background = "#e6f4ea";
+        statusBadge.style.color = "#137333";
+        const dot = statusBadge.querySelector('.status-dot');
+        if (dot) dot.className = "status-dot online";
+    } else {
+        statusText.textContent = `Fechado · ${nextMsg}`;
+        statusBadge.style.background = "#fce8e6";
+        statusBadge.style.color = "#c5221f";
+        const dot = statusBadge.querySelector('.status-dot');
+        if (dot) dot.className = "status-dot offline";
+    }
 }
 
 function getWhatsNumber() {
