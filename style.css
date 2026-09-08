@@ -807,15 +807,52 @@ footer {
 
     .hero {
         margin-top: 8px;
-        padding: 3.5rem 1rem 2.5rem;
+        padding: 2.5rem 1rem 2rem;
     }
 
     .hero h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        margin-bottom: 0.75rem !important;
     }
 
     .hero p {
-        font-size: 1rem;
+        font-size: 0.92rem;
+        margin-bottom: 1rem !important;
+    }
+
+    /* Pills lado a lado no mobile */
+    .hero-pills {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px !important;
+        margin-bottom: 1rem !important;
+        justify-items: stretch;
+    }
+
+    .hero-pills .pill {
+        font-size: 12px;
+        padding: 7px 10px;
+        border-radius: 10px;
+        justify-content: center;
+        text-align: center;
+        gap: 5px;
+    }
+
+    /* Ultimo pill (Entrega) ocupa a largura total */
+    .hero-pills .pill:last-child {
+        grid-column: 1 / -1;
+    }
+
+    /* Botoes de acao compactos */
+    .hero .d-flex.gap-3.flex-wrap {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    .hero .d-flex.gap-3.flex-wrap .btn {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 0.9rem;
     }
 
     .categories {
