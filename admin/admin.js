@@ -233,6 +233,49 @@ function fixImagePath(src) {
     return '../' + src;
 }
 
+/* ---------------- EXPORTAR menuData.js ---------------- */
+
+function exportarMenuData() {
+    const items = getMenuItems();
+    const linhas = items.map(p => {
+        const obj = {
+            id: p.id,
+            name: p.name,
+            category: p.category || 'pacotes',
+            price: parseFloat(p.price) || 0,
+            description: p.desc || p.description || '',
+            image: (p.image || '').replace(/^\.\.\//, ''),
+            units: parseInt(p.units) || 1
+        };
+        if (p.active === false) obj.active = false;
+
+        const campos = Object.entries(obj).map(([k, v]) => {
+            if (typeof v === 'string') return `        ${k}: ${JSON.stringify(v)}`;
+            return `        ${k}: ${v}`;
+        }).join(',\n');
+
+        return `    {\n${campos}\n    }`;
+    });
+
+    const conteudo = `window.fgMenuItems = [\n${linhas.join(',\n')}\n]\n`;
+
+    const blob = new Blob([conteudo], { type: 'text/javascript;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'menuData.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+
+    const info = document.getElementById('exportInfo');
+    if (info) {
+        info.classList.remove('d-none');
+        setTimeout(() => info.classList.add('d-none'), 8000);
+    }
+    showToast('menuData.js exportado com sucesso!');
+}
+
 /* ---------------- CARDÁPIO ---------------- */
 
 function getMenuItems() {

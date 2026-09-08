@@ -209,7 +209,8 @@ function loadSavedData() {
 function checkStoreStatus() {
     const statusText = document.getElementById('storeStatusText');
     const statusBadge = document.getElementById('storeStatusBadge');
-    if (!statusText || !statusBadge) return;
+    // Elementos opcionais — retorna silenciosamente se não existirem no HTML
+    if (!statusText && !statusBadge) return;
 
     const now = new Date();
     const day = now.getDay();
@@ -233,18 +234,14 @@ function checkStoreStatus() {
         nextMsg = 'Abre Seg às 14h';
     }
 
-    if (isOpen) {
-        statusText.textContent = "Aberto Agora";
-        statusBadge.style.background = "#e6f4ea";
-        statusBadge.style.color = "#137333";
+    if (statusText) {
+        statusText.textContent = isOpen ? "Aberto Agora" : `Fechado · ${nextMsg}`;
+    }
+    if (statusBadge) {
+        statusBadge.style.background = isOpen ? "#e6f4ea" : "#fce8e6";
+        statusBadge.style.color = isOpen ? "#137333" : "#c5221f";
         const dot = statusBadge.querySelector('.status-dot');
-        if (dot) dot.className = "status-dot online";
-    } else {
-        statusText.textContent = `Fechado · ${nextMsg}`;
-        statusBadge.style.background = "#fce8e6";
-        statusBadge.style.color = "#c5221f";
-        const dot = statusBadge.querySelector('.status-dot');
-        if (dot) dot.className = "status-dot offline";
+        if (dot) dot.className = isOpen ? "status-dot online" : "status-dot offline";
     }
 }
 

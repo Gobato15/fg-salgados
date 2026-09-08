@@ -63,7 +63,17 @@
             <section id="tab-cardapio" class="tab-section">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <h5 class="fw-bold mb-0">Cardápio</h5>
-                    <button type="button" class="btn btn-amber rounded-pill fw-bold" onclick="openProductForm()"><i class="fa-solid fa-plus me-1"></i> Novo Produto</button>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-amber rounded-pill fw-bold" onclick="exportarMenuData()">
+                            <i class="fa-solid fa-file-export me-1"></i> Exportar menuData.js
+                        </button>
+                        <button type="button" class="btn btn-amber rounded-pill fw-bold" onclick="openProductForm()">
+                            <i class="fa-solid fa-plus me-1"></i> Novo Produto
+                        </button>
+                    </div>
+                </div>
+                <div id="exportInfo" class="d-none alert alert-success border-0 rounded-3 mb-3 py-2 small">
+                    <i class="fa-solid fa-circle-check me-1"></i> <strong>menuData.js gerado!</strong> Substitua o arquivo no projeto e faça <code>git push</code> para publicar no site.
                 </div>
                 <div id="productFormWrap" class="d-none bg-white border rounded-4 p-3 mb-4 shadow-sm"></div>
                 <div class="table-responsive bg-white rounded-4 shadow-sm">
