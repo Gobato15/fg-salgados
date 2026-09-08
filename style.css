@@ -792,8 +792,6 @@ footer {
 @media (max-width: 600px) {
     header {
         padding: 0.8rem 5%;
-        flex-direction: column;
-        gap: 0.8rem;
     }
 
     .brand-title {
