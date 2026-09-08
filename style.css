@@ -791,18 +791,51 @@ footer {
 
 @media (max-width: 600px) {
     header {
-        padding: 0.8rem 5%;
+        padding: 0.6rem 4%;
+    }
+
+    /* Esconde o subtitulo do logo no mobile para economizar espaco */
+    .brand-tag {
+        display: none;
     }
 
     .brand-title {
-        font-size: 17px;
+        font-size: 16px;
     }
 
     .brand-logo {
-        width: 48px;
-        height: 48px;
-        min-width: 48px;
-        font-size: 19px;
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        font-size: 17px;
+        border-radius: 12px;
+    }
+
+    /* Botoes de icone no header: menores e mais compactos */
+    header .btn {
+        padding: 5px 8px !important;
+        font-size: 0.72rem !important;
+        min-width: 34px;
+        min-height: 34px;
+        justify-content: center;
+    }
+
+    header .cart-header-btn {
+        padding: 4px !important;
+    }
+
+    header .cart-header-btn i {
+        font-size: 1.35rem !important;
+    }
+
+    /* Barra de busca menor no mobile */
+    .search-container {
+        margin-top: 0.5rem !important;
+    }
+
+    .search-container input {
+        font-size: 0.9rem;
+        padding: 8px 0;
     }
 
     .hero {
