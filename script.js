@@ -142,8 +142,7 @@ const categoryLabels = {
     'all': '🍽️ Todos',
     'fritos': '🍗 Salgados Fritos',
     'assados': '🥐 Salgados Assados',
-    'burgers': '🍔 Lanches / Hambúrgueres',
-    'pacotes': '📦 Pacotes com 6 e 1 Unidade'
+    'burgers': '🍔 Lanches / Hambúrgueres'
 };
 
 const menuGrid = document.getElementById('menuGrid');
