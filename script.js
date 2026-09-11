@@ -799,7 +799,17 @@ window.checkout = async function () {
                                         }, 1000);
                                     }
                                 } else {
-                                    showToast("Erro: " + (data.error || "Tente novamente."));
+                                    let extra = '';
+                                    try {
+                                        const cause = (data.details && data.details.cause) || [];
+                                        if (cause.length) {
+                                            extra = ' [' + cause.map(c => c.code + ' - ' + c.description).join(' | ') + ']';
+                                        } else if (data.details && data.details.message) {
+                                            extra = ' [' + data.details.message + ']';
+                                        }
+                                    } catch (e) {}
+                                    showToast("Erro: " + (data.error || "Tente novamente.") + extra);
+                                    console.error("Checkout rejeitado:", data);
                                     reject();
                                 }
                             })
