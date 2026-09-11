@@ -131,7 +131,7 @@ const DEFAULT_CONTACT = {
     insta: "fgsalgados24",
     pix: "agsdelivery24@gmail.com",
     address: "Entrega e Retirada Local",
-    about: "Salgados artesanais congelados vendidos por unidade. Qualidade gourmet, ingredientes selecionados e sabor de verdade.",
+    about: "Salgados artesanais de qualidade gourmet, ingredientes selecionados e sabor de verdade.",
     hours1: "Seg a Sex: 14h às 19h",
     hours2: "Sábado: 8h às 17h"
 };
@@ -284,7 +284,6 @@ function createProductCard(item, index = 0) {
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card${isPack ? ' pack-card' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
                 <div class="product-card-top">
-                    <span class="product-card-top-icon"><i class="fa-solid fa-snowflake"></i></span>
                 </div>
                 <div class="product-image-wrapper position-relative">
                     <img src="${imgSrc}" class="w-100 h-100" alt="${esc(item.name)}" style="object-fit: cover;" loading="lazy" onerror="this.onerror=null;this.src='./images/ags_coxinha.webp'">
@@ -904,7 +903,7 @@ function bindContactLinks() {
     const footInsta = document.getElementById('footInstaLink');
     const footWhats = document.getElementById('footWhatsLink');
 
-    if (heroBtn) heroBtn.href = generateWhatsLink("Olá! Gostaria de consultar sobre os salgados congelados 🙂");
+    if (heroBtn) heroBtn.href = generateWhatsLink("Olá! Gostaria de consultar sobre os salgados 🙂");
     if (footWhats) footWhats.href = generateWhatsLink("Olá! Vim pelo site da FG Salgados 🙂");
     if (footInsta) footInsta.href = `https://instagram.com/${insta}`;
 }
