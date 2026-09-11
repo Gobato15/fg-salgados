@@ -680,7 +680,7 @@ window.checkout = async function () {
     }
 
     const currentFreight = isEntrega ? deliveryFee : 0;
-    const totalAmount = cart.reduce((t, i) => t + (i.price * i.quantity), 0) + currentFreight;
+    const totalAmount = Math.round((cart.reduce((t, i) => t + (i.price * i.quantity), 0) + currentFreight) * 100) / 100;
 
     try {
         const settings = {
