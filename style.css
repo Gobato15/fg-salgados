@@ -523,6 +523,59 @@ header.scrolled {
     color: #FFF;
 }
 
+.product-tag-promo {
+    background: linear-gradient(135deg, #E11D48, #BE123C);
+    color: #FFF;
+    right: 12px;
+    left: auto;
+}
+
+.product-tag-stock {
+    background: linear-gradient(135deg, #475569, #1E293B);
+    color: #FFF;
+    top: 14px;
+    left: 12px;
+}
+
+.product-tag-stock-out {
+    background: linear-gradient(135deg, #EF4444, #B91C1C);
+}
+
+.product-card-soldout {
+    opacity: 0.72;
+    filter: grayscale(0.8);
+}
+
+.card-price-orig {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-decoration: line-through;
+    margin-right: 6px;
+    -webkit-text-fill-color: var(--text-muted);
+}
+
+.allergen-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 99px;
+    padding: 2px 8px;
+    margin: 0 4px 4px 0;
+}
+
+.btn-add-cart.disabled,
+.btn-add-cart:disabled {
+    background: #cbd5e1;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .card-footer-bar {
     border-top: 1px solid var(--border-color);
     background: linear-gradient(180deg, #FFF, #FDF9F2);

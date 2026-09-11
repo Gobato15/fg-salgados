@@ -10,6 +10,8 @@ const CLIENT_ORDERS_KEY = 'fg_client_orders';
 const CART_STORAGE_KEY = 'fg_cart';
 const CUSTOMER_STORAGE_KEY = 'fg_customer';
 
+const FG_API_BASE = (window.FG_CONFIG && window.FG_CONFIG.apiBase) || 'https://agsdelivery.com.br';
+
 function saveCart() {
     try {
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
@@ -162,6 +164,40 @@ function esc(str) {
         .replace(/'/g, '&#39;');
 }
 
+function isPromoActive(item) {
+    if (!item || parseInt(item.itemPromocao, 10) !== 1) return false;
+    if (!(parseFloat(item.descontoPromo) > 0)) return false;
+    const days = String(item.diasPromocao || '').split(',').map(d => parseInt(d, 10)).filter(n => !isNaN(n));
+    if (days.length && !days.includes(new Date().getDay())) return false;
+    return true;
+}
+
+function normalizeMenuItem(raw) {
+    const basePrice = parseFloat(raw.price) || 0;
+    const promo = isPromoActive(raw);
+    const effective = promo ? Math.max(0, basePrice - (parseFloat(raw.descontoPromo) || 0)) : basePrice;
+    const desc = raw.description != null ? raw.description : (raw.desc || '');
+    let qty = null;
+    if (raw.qty !== undefined && raw.qty !== null && raw.qty !== '') qty = parseInt(raw.qty, 10);
+    if (Number.isNaN(qty)) qty = null;
+    return {
+        id: String(raw.id),
+        name: String(raw.name || ''),
+        category: String(raw.category || 'fritos'),
+        price: Math.round(effective * 100) / 100,
+        originalPrice: promo ? Math.round(basePrice * 100) / 100 : null,
+        desc: desc,
+        description: desc,
+        image: String(raw.image || 'images/ags_coxinha.webp'),
+        units: parseInt(raw.units, 10) || 1,
+        qty: qty,
+        alergenos: Array.isArray(raw.alergenos) ? raw.alergenos : [],
+        active: raw.active !== false,
+        promo: promo,
+        descontoPromo: promo ? (parseFloat(raw.descontoPromo) || 0) : 0
+    };
+}
+
 function loadSavedData() {
     try {
         savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -169,7 +205,7 @@ function loadSavedData() {
         savedData = {};
     }
 
-    menuItems = (window.fgMenuItems || []).map(item => Object.assign({}, item, { desc: item.description, active: item.active !== false }));
+    menuItems = (window.fgMenuItems || []).map(normalizeMenuItem);
 
     if (savedData.products) {
         Object.keys(savedData.products).forEach(id => {
@@ -275,33 +311,55 @@ function createProductCard(item, index = 0) {
 
     const isPack = item.units > 1;
     const priceLabelText = isPack ? `Pacote com ${item.units || 6} unidades` : 'Por unidade';
-    const packBadge = isPack
+    const soldOut = item.qty != null && !isNaN(item.qty) && parseInt(item.qty, 10) <= 0;
+
+    const packOrStockBadge = isPack
         ? `<span class="product-tag product-tag-pack"><i class="fa-solid fa-box-open"></i> ${item.units || 6} unidades</span>`
+        : (soldOut
+            ? `<span class="product-tag product-tag-stock product-tag-stock-out"><i class="fa-solid fa-ban"></i> ESGOTADO</span>`
+            : '');
+
+    let promoBadge = '';
+    if (item.promo && item.originalPrice) {
+        const pct = Math.max(1, Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100));
+        promoBadge = `<span class="product-tag product-tag-promo"><i class="fa-solid fa-fire"></i> ${pct}% OFF</span>`;
+    }
+
+    const alergenosBadges = (item.alergenos && item.alergenos.length)
+        ? `<div class="mt-2">${item.alergenos.map(a => `<span class="allergen-badge"><i class="fa-solid fa-triangle-exclamation me-1"></i>${esc(a)}</span>`).join('')}</div>`
         : '';
+
+    const priceHtml = item.originalPrice
+        ? `<span class="card-price-orig">${formatBRL(item.originalPrice)}</span><span class="card-price">${formatBRL(item.price)}</span>`
+        : `<span class="card-price">${formatBRL(item.price)}</span>`;
+
+    const btnHtml = soldOut
+        ? `<button class="btn-add-cart disabled" disabled aria-label="Esgotado"><i class="fa-solid fa-circle-info"></i></button>`
+        : `<button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})" aria-label="Adicionar ao carrinho"><i class="fa-solid fa-cart-plus"></i></button>`;
 
     return `
         <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card${isPack ? ' pack-card' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card${isPack ? ' pack-card' : ''}${soldOut ? ' product-card-soldout' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
                 <div class="product-card-top">
                 </div>
                 <div class="product-image-wrapper position-relative">
                     <img src="${imgSrc}" class="w-100 h-100" alt="${esc(item.name)}" style="object-fit: cover;" loading="lazy" onerror="this.onerror=null;this.src='./images/ags_coxinha.webp'">
-                    ${packBadge}
+                    ${packOrStockBadge}
+                    ${promoBadge}
                 </div>
                 <div class="card-body d-flex flex-column text-start p-4">
                     <h5 class="card-title fw-bold mb-2" style="height: 3.4rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${esc(item.name)}</h5>
                     <p class="card-text text-muted small flex-grow-1 mb-3" style="height: 3.9rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${esc(item.desc)}</p>
+                    ${alergenosBadges}
                     <div class="card-footer-bar mt-auto pt-3 w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="price-wrapper text-start">
                                 <span class="price-label">${priceLabelText}</span>
                                 <div class="d-flex align-items-center">
-                                    <span class="card-price">${formatBRL(item.price)}</span>
+                                    ${priceHtml}
                                 </div>
                             </div>
-                            <button class="btn-add-cart" onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})" aria-label="Adicionar ao carrinho">
-                                <i class="fa-solid fa-cart-plus"></i>
-                            </button>
+                            ${btnHtml}
                         </div>
                     </div>
                 </div>
@@ -360,9 +418,22 @@ function renderMenu() {
 }
 
 window.addToCart = function (id, name, price) {
-    const existing = cart.find(item => item.id === id);
-    if (existing) {
-        existing.quantity++;
+    const item = menuItems.find(p => String(p.id) === String(id));
+    const itemQty = item && item.qty != null && !isNaN(item.qty) ? parseInt(item.qty, 10) : null;
+    const inCart = cart.find(c => c.id === id);
+    const nowInCart = inCart ? inCart.quantity : 0;
+
+    if (itemQty !== null && itemQty <= 0) {
+        showToast("Item esgotado! 🙁");
+        return;
+    }
+    if (itemQty !== null && nowInCart + 1 > itemQty) {
+        showToast("Limite de estoque atingido para este item.");
+        return;
+    }
+
+    if (inCart) {
+        inCart.quantity++;
     } else {
         cart.push({ id, name, price, quantity: 1 });
     }
@@ -620,11 +691,81 @@ function ensureMercadoPago() {
     return !!mp;
 }
 
+async function checkCartStock() {
+    try {
+        const res = await fetch(FG_API_BASE + '/fg_check_stock.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart: cart.map(i => ({ id: i.id, quantity: i.quantity })) })
+        });
+        if (!res.ok) return true;
+        const data = await res.json();
+        if (data.success === false && data.error) {
+            showToast("⚠️ " + data.error + (data.outOfStockItem ? ": " + data.outOfStockItem : ""));
+            return false;
+        }
+        return true;
+    } catch (e) {
+        return true;
+    }
+}
+
+async function loadMenuFromServer() {
+    let serverItems = null;
+    try {
+        const res = await fetch(FG_API_BASE + '/fg_get_menu.php', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+            serverItems = data.map(normalizeMenuItem);
+        }
+    } catch (e) {
+        return;
+    }
+    if (!serverItems) return;
+
+    menuItems = serverItems;
+
+    if (savedData.products) {
+        Object.keys(savedData.products).forEach(id => {
+            const prod = menuItems.find(p => p.id === id);
+            if (prod) Object.assign(prod, savedData.products[id]);
+        });
+    }
+
+    const seen = new Set();
+    menuItems = menuItems.filter(it => {
+        if (!it.image) return false;
+        if (seen.has(it.id)) return false;
+        seen.add(it.id);
+        return true;
+    });
+
+    renderCategories();
+    renderMenu();
+    updateCartUI();
+}
+
+window.trackOrder = function () {
+    const input = document.getElementById('orderTrackInput');
+    const id = (input ? input.value : '').trim().replace(/\D/g, '');
+    if (!id) {
+        showToast("Informe o número do pedido.");
+        if (input) input.focus();
+        return;
+    }
+    window.open(FG_API_BASE + '/producao.php?id=' + encodeURIComponent(id), '_blank');
+};
+
 window.checkout = async function () {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
         return;
     }
+
+    try {
+        if (!await checkCartStock()) return;
+    } catch (e) {}
 
     const pubKey = window.MP_PUBLIC_KEY || 'APP_USR-ccddbea8-7479-47a1-892b-3b74ca21fc89';
     if (!pubKey) {
@@ -932,3 +1073,6 @@ updateCartUI();
 loadCustomerFields();
 bindSearch();
 bindContactLinks();
+setTimeout(() => {
+    try { loadMenuFromServer(); } catch (e) {}
+}, 250);

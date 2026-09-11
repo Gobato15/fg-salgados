@@ -8,5 +8,6 @@
  * Se ficar vazio, o site usa o QR Code PIX estático atual (nada quebra).
  * ========================================================================== */
 window.FG_CONFIG = {
-    pixApiUrl: '' // ex.: 'https://fg-salgados-api.onrender.com/api'
+    pixApiUrl: '', // ex.: 'https://fg-salgados-api.onrender.com/api'
+    apiBase: 'https://agsdelivery.com.br'
 };
