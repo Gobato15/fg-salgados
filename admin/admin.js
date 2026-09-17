@@ -534,44 +534,47 @@ function openProductForm(id) {
 
             <!-- ===== BLOCO DE IMAGEM ===== -->
             <div class="col-12">
+                <label class="form-label small fw-bold text-muted text-uppercase d-block mb-2">Foto do Produto</label>
 
-                <!-- Input real de arquivo (oculto) -->
+                <!-- Input real de arquivo — acionado pelo label abaixo -->
                 <input type="file" id="pfImageFile" accept="image/*" class="d-none" onchange="pfHandleImageUpload(this)">
-                <!-- Campo oculto que guarda a URL/base64 da imagem escolhida -->
+                <!-- Valor real salvo (URL do GitHub ou base64) -->
                 <input type="hidden" id="pfImage" value="${p ? esc(p.image || '') : ''}">
 
-                <!--
-                     IMPORTANTE: usar <label for="pfImageFile"> garante que qualquer navegador
-                     ou dispositivo móvel abra o seletor de arquivo ao tocar na área.
-                -->
-                <label for="pfImageFile"
-                    id="pfImgClickArea"
-                    style="cursor:pointer; border:3px dashed #f59e0b; border-radius:20px;
-                           background:#fffbeb; min-height:200px; display:flex; flex-direction:column;
-                           align-items:center; justify-content:center; overflow:hidden; position:relative;
-                           transition: border-color .2s, background .2s; width:100%;
-                           onmouseover=\"this.style.borderColor='#d97706';\""
-                    >
+                <!-- Área clicável: label[for] garante abertura nativa do seletor em todo navegador/celular -->
+                <label for="pfImageFile" id="pfImgClickArea"
+                    style="display:block; cursor:pointer; border:3px dashed #f59e0b;
+                           border-radius:16px; overflow:hidden; position:relative;
+                           background:#fffbeb; min-height:180px; width:100%;">
 
                     ${currentImg ? `
-                        <!-- Foto atual -->
                         <img id="pfImgPreview" src="${esc(currentImg)}"
-                            style="width:100%; height:220px; object-fit:cover; display:block;"
-                            onerror="this.style.display='none'">
-                        <!-- Overlay -->
-                        <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.6);
-                                    padding:12px; text-align:center; color:#fff; font-weight:bold; font-size:.95rem; pointer-events:none;">
-                            <i class="fa-solid fa-camera me-2"></i>Toque aqui para trocar a foto
+                             style="width:100%; height:200px; object-fit:cover; display:block;"
+                             onerror="this.style.display='none'">
+                        <div style="position:absolute; bottom:0; left:0; right:0;
+                                    background:rgba(0,0,0,0.65); padding:12px;
+                                    text-align:center; color:#fff; font-weight:700; font-size:.95rem;">
+                            <i class="fa-solid fa-camera me-2"></i>Clique aqui para trocar a foto
                         </div>
                     ` : `
-                        <!-- Placeholder -->
-                        <div id="pfImgPlaceholder" style="display:flex; flex-direction:column; align-items:center; color:#b45309; padding:30px; text-align:center; pointer-events:none;">
+                        <div style="display:flex; flex-direction:column; align-items:center;
+                                    justify-content:center; min-height:180px; color:#b45309;
+                                    padding:24px; text-align:center;">
                             <i class="fa-solid fa-camera fa-3x mb-3"></i>
-                            <div class="fw-bold" style="font-size:1.1rem;">Toque aqui para escolher uma foto</div>
-                            <div class="text-muted small mt-1">Da galeria ou câmera do dispositivo</div>
+                            <div style="font-size:1.05rem; font-weight:700;">Clique aqui para escolher uma foto</div>
+                            <div style="font-size:.85rem; color:#888; margin-top:6px;">
+                                Da galeria ou câmera do celular
+                            </div>
                         </div>
                     `}
                 </label>
+
+                <!-- Botão extra visível — garante acionamento em qualquer situação -->
+                <button type="button"
+                    onclick="document.getElementById('pfImageFile').click()"
+                    class="btn btn-warning rounded-pill fw-bold w-100 mt-2">
+                    <i class="fa-solid fa-upload me-2"></i>Escolher / Trocar Foto
+                </button>
 
                 <!-- Status do upload -->
                 <div id="pfUploadStatus" class="mt-2 small text-center"></div>
@@ -585,6 +588,7 @@ function openProductForm(id) {
         </div>
     `;
 }
+
 
 /* Atualiza preview ao digitar URL */
 function pfPreviewUrl(url) {
