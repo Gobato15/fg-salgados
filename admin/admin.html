@@ -52,6 +52,7 @@
         <nav class="admin-nav sticky-top">
             <div class="container-fluid d-flex gap-2 flex-wrap py-2">
                 <button type="button" class="btn btn-tab active" data-tab="cardapio"><i class="fa-solid fa-utensils me-1"></i> Cardápio</button>
+                <button type="button" class="btn btn-tab" data-tab="importar"><i class="fa-solid fa-cloud-arrow-down me-1"></i> Importar AGS</button>
                 <button type="button" class="btn btn-tab" data-tab="cozinha"><i class="fa-solid fa-fire-burner me-1"></i> Cozinha</button>
                 <button type="button" class="btn btn-tab" data-tab="movimentos"><i class="fa-solid fa-boxes-stacked me-1"></i> Movimentos</button>
                 <button type="button" class="btn btn-tab" data-tab="senha"><i class="fa-solid fa-key me-1"></i> Senha</button>
@@ -86,6 +87,48 @@
                         <tbody id="productTable"></tbody>
                     </table>
                 </div>
+            </section>
+
+            <!-- ===== ABA: IMPORTAR AGS ===== -->
+            <section id="tab-importar" class="tab-section d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-0"><i class="fa-solid fa-cloud-arrow-down me-2 text-warning"></i>Importar do AGS Delivery</h5>
+                        <p class="text-muted small mb-0">Selecione produtos do catálogo AGS, personalize as imagens e adicione ao cardápio FG.</p>
+                    </div>
+                    <button type="button" class="btn btn-amber rounded-pill fw-bold px-4" onclick="loadAgsProducts()">
+                        <i class="fa-solid fa-rotate me-1"></i> Carregar Catálogo AGS
+                    </button>
+                </div>
+
+                <!-- Filtros e ações em massa -->
+                <div id="agsToolbar" class="d-none mb-3">
+                    <div class="bg-white rounded-4 shadow-sm p-3 d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                        <div class="d-flex gap-2 flex-wrap align-items-center">
+                            <input type="text" id="agsSearch" class="form-control rounded-pill" style="max-width:220px;" placeholder="Buscar produto..." oninput="filterAgsGrid()">
+                            <select id="agsCatFilter" class="form-select rounded-pill" style="max-width:180px;" onchange="filterAgsGrid()">
+                                <option value="">Todas as categorias</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap align-items-center">
+                            <span class="text-muted small" id="agsSelectedCount">0 selecionados</span>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="agsSelectAll(true)">Selecionar todos</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="agsSelectAll(false)">Limpar</button>
+                            <button type="button" class="btn btn-success rounded-pill fw-bold px-4" onclick="importSelectedProducts()">
+                                <i class="fa-solid fa-plus me-1"></i> Adicionar Selecionados ao Cardápio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado inicial / carregando -->
+                <div id="agsState" class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-box-open fa-3x mb-3 opacity-25"></i>
+                    <p>Clique em <strong>Carregar Catálogo AGS</strong> para ver os produtos disponíveis para importação.</p>
+                </div>
+
+                <!-- Grid de produtos AGS -->
+                <div id="agsGrid" class="row g-3"></div>
             </section>
 
             <section id="tab-cozinha" class="tab-section d-none">

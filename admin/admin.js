@@ -209,6 +209,7 @@ function switchTab(tab) {
     if (tab === 'cardapio') renderProducts();
     if (tab === 'cozinha') renderOrders();
     if (tab === 'movimentos') renderMovements();
+    if (tab === 'importar') renderAgsImporter();
 }
 
 document.querySelectorAll('.btn-tab').forEach(btn => {
@@ -866,8 +867,317 @@ function formatDate(iso) {
     return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
+/* ================================================================
+   IMPORTADOR AGS DELIVERY
+   Carrega o catálogo do AGS (items.xml) e permite selecionar produtos
+   para incluir no cardápio da FG Salgados com imagens personalizadas.
+================================================================ */
+
+const AGS_XML_URL = 'https://agsdelivery.com.br/items.xml';
+const AGS_ASSETS_URL = 'https://agsdelivery.com.br/';
+let agsProducts = [];         // lista completa carregada do XML
+let agsFiltered = [];         // lista após filtros
+
+// Converte path relativo do AGS (assets/xxx.webp) em URL absoluta
+function agsImageUrl(path) {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return AGS_ASSETS_URL + path.replace(/^\.?\//, '');
+}
+
+// Faz fetch + parse do XML e popula agsProducts
+async function loadAgsProducts() {
+    const stateEl = document.getElementById('agsState');
+    const gridEl  = document.getElementById('agsGrid');
+    const toolbar  = document.getElementById('agsToolbar');
+    if (!stateEl || !gridEl) return;
+
+    stateEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin fa-2x mb-2 text-warning"></i><p class="mt-2">Carregando catálogo do AGS...</p>';
+    stateEl.classList.remove('d-none');
+    gridEl.innerHTML = '';
+    if (toolbar) toolbar.classList.add('d-none');
+
+    try {
+        // CORS: tenta diretamente; se falhar usa proxy público
+        let xml;
+        try {
+            const res = await fetch(AGS_XML_URL + '?nocache=' + Date.now());
+            if (!res.ok) throw new Error('Status ' + res.status);
+            const text = await res.text();
+            xml = new DOMParser().parseFromString(text, 'text/xml');
+        } catch (e) {
+            // fallback: usa os dados já carregados no XML local se existir
+            throw new Error('Não foi possível carregar o XML do AGS. Verifique a conexão.');
+        }
+
+        const items = xml.querySelectorAll('item');
+        if (!items.length) throw new Error('Nenhum produto encontrado no XML.');
+
+        agsProducts = Array.from(items).map(item => ({
+            id:          item.querySelector('id')?.textContent?.trim() || '',
+            name:        item.querySelector('name')?.textContent?.trim() || '',
+            category:    item.querySelector('category')?.textContent?.trim() || '',
+            price:       parseFloat(item.querySelector('price')?.textContent) || 0,
+            description: item.querySelector('description')?.textContent?.trim() || '',
+            image:       item.querySelector('image')?.textContent?.trim() || '',
+            active:      (item.querySelector('active')?.textContent?.trim() || '1') !== '0',
+            customImage: '',    // URL personalizada pelo admin
+            selected:    false
+        })).filter(p => p.id && p.name);
+
+        agsFiltered = [...agsProducts];
+        stateEl.classList.add('d-none');
+        renderAgsImporter();
+        populateAgsCatFilter();
+        if (toolbar) toolbar.classList.remove('d-none');
+        showToast('✅ ' + agsProducts.length + ' produtos carregados!');
+
+    } catch (err) {
+        stateEl.innerHTML = `
+            <i class="fa-solid fa-triangle-exclamation fa-2x mb-2 text-danger"></i>
+            <p class="text-danger fw-bold">${esc(err.message)}</p>
+            <button class="btn btn-outline-danger rounded-pill" onclick="loadAgsProducts()">
+                <i class="fa-solid fa-rotate me-1"></i> Tentar novamente
+            </button>`;
+    }
+}
+
+// Popula o select de categorias do filtro
+function populateAgsCatFilter() {
+    const sel = document.getElementById('agsCatFilter');
+    if (!sel) return;
+    const cats = [...new Set(agsProducts.map(p => p.category))].sort();
+    sel.innerHTML = '<option value="">Todas as categorias</option>' +
+        cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+}
+
+// Rótulos de categoria em português
+const AGS_CAT_LABELS = {
+    burgers: '🍔 Burgers', coxinha: '🍗 Coxinha', bolinho: '🟤 Bolinho',
+    esfirra: '🥙 Esfirra', croissant: '🥐 Croissant', lanches: '🥪 Naturais',
+    tortas: '🥧 Tortas', pizzas: '🍕 Pizzas', drinks: '🥤 Bebidas',
+    desserts: '🍮 Sobremesas', paes: '🍞 Pães', salgados: '🧆 Salgados'
+};
+
+// Renderiza o grid de cards do catálogo AGS
+function renderAgsImporter() {
+    const grid = document.getElementById('agsGrid');
+    if (!grid) return;
+    if (!agsProducts.length) return; // ainda não carregado
+
+    const list = agsFiltered.length ? agsFiltered : agsProducts;
+
+    if (!list.length) {
+        grid.innerHTML = '<div class="col-12 text-center text-muted py-4">Nenhum produto encontrado para este filtro.</div>';
+        return;
+    }
+
+    grid.innerHTML = list.map(p => {
+        const imgUrl  = p.customImage || agsImageUrl(p.image);
+        const catLabel = AGS_CAT_LABELS[p.category] || p.category;
+        const alreadyIn = getMenuItems().some(x => x.id === 'ags_' + p.id);
+        const checked  = p.selected ? 'checked' : '';
+        return `
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 ags-card-col" data-id="${esc(p.id)}" data-name="${esc(p.name.toLowerCase())}" data-cat="${esc(p.category)}">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden" style="transition: box-shadow .2s;">
+
+                <!-- Imagem + checkbox -->
+                <div class="position-relative" style="height:160px; background:#f1f5f9;">
+                    <img src="${esc(imgUrl)}" alt="${esc(p.name)}"
+                        style="width:100%; height:100%; object-fit:cover;"
+                        onerror="this.src='../images/ags_coxinha.webp'" loading="lazy">
+                    <div class="position-absolute top-0 start-0 m-2">
+                        <input type="checkbox" class="form-check-input ags-check" id="agsc_${esc(p.id)}"
+                            ${checked} onchange="agsToggleSelect('${esc(p.id)}', this.checked)"
+                            style="width:22px; height:22px; cursor:pointer;">
+                    </div>
+                    <span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75 rounded-pill" style="font-size:.7rem;">
+                        ${esc(catLabel)}
+                    </span>
+                    ${alreadyIn ? '<span class="position-absolute bottom-0 start-0 m-2 badge bg-success rounded-pill" style="font-size:.68rem;"><i class="fa-solid fa-check me-1"></i>Já no cardápio</span>' : ''}
+                </div>
+
+                <!-- Corpo -->
+                <div class="card-body p-3">
+                    <div class="fw-bold mb-1" style="font-size:.95rem; line-height:1.2;">${esc(p.name)}</div>
+                    <div class="text-muted small mb-2" style="font-size:.78rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(p.description)}</div>
+
+                    <!-- Preço editável -->
+                    <div class="d-flex align-items-center gap-1 mb-2">
+                        <span class="text-muted small">R$</span>
+                        <input type="number" step="0.01" min="0" value="${p.price.toFixed(2)}"
+                            class="form-control form-control-sm rounded-pill text-center fw-bold"
+                            style="max-width:90px; font-size:.9rem;"
+                            onchange="agsSetPrice('${esc(p.id)}', this.value)"
+                            title="Editar preço antes de importar">
+                    </div>
+
+                    <!-- Imagem personalizada -->
+                    <div class="mb-1">
+                        <label class="form-label small fw-semibold text-muted mb-1" style="font-size:.73rem;">IMAGEM PERSONALIZADA</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control rounded-start-3" placeholder="URL ou deixe em branco"
+                                value="${esc(p.customImage)}"
+                                id="agsimg_${esc(p.id)}"
+                                onchange="agsSetCustomImage('${esc(p.id)}', this.value)">
+                            <label class="btn btn-light border" title="Upload de imagem" style="cursor:pointer;">
+                                <i class="fa-solid fa-upload"></i>
+                                <input type="file" accept="image/*" class="d-none"
+                                    onchange="agsUploadImage('${esc(p.id)}', this)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    updateAgsCount();
+}
+
+// Filtra o grid por texto + categoria
+function filterAgsGrid() {
+    const q   = (document.getElementById('agsSearch')?.value || '').toLowerCase();
+    const cat = document.getElementById('agsCatFilter')?.value || '';
+    agsFiltered = agsProducts.filter(p =>
+        (!q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)) &&
+        (!cat || p.category === cat)
+    );
+    renderAgsImporter();
+}
+
+// Seleciona/deseleciona produto
+function agsToggleSelect(id, checked) {
+    const p = agsProducts.find(x => x.id === id);
+    if (p) p.selected = checked;
+    // sincroniza no filtrado também
+    const pf = agsFiltered.find(x => x.id === id);
+    if (pf) pf.selected = checked;
+    updateAgsCount();
+}
+
+// Selecionar/desmarcar todos visíveis
+function agsSelectAll(value) {
+    agsFiltered.forEach(p => { p.selected = value; });
+    // reflete também no array principal
+    agsProducts.forEach(p => {
+        if (agsFiltered.find(f => f.id === p.id)) p.selected = value;
+    });
+    renderAgsImporter();
+}
+
+// Atualiza preço de um produto
+function agsSetPrice(id, val) {
+    const p = agsProducts.find(x => x.id === id);
+    if (p) p.price = parseFloat(val) || p.price;
+    const pf = agsFiltered.find(x => x.id === id);
+    if (pf) pf.price = parseFloat(val) || pf.price;
+}
+
+// Salva URL de imagem customizada
+function agsSetCustomImage(id, url) {
+    const p = agsProducts.find(x => x.id === id);
+    if (p) p.customImage = url.trim();
+    const pf = agsFiltered.find(x => x.id === id);
+    if (pf) pf.customImage = url.trim();
+
+    // Atualiza a imagem exibida no card imediatamente
+    const cardCol = document.querySelector(`.ags-card-col[data-id="${CSS.escape(id)}"]`);
+    if (cardCol) {
+        const img = cardCol.querySelector('img');
+        if (img && url.trim()) img.src = url.trim();
+    }
+}
+
+// Upload de imagem: converte para base64 e usa como URL
+function agsUploadImage(id, inputEl) {
+    const file = inputEl.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return showToast('Selecione um arquivo de imagem válido.');
+    if (file.size > 2 * 1024 * 1024) return showToast('Imagem muito grande! Use até 2MB.');
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        agsSetCustomImage(id, dataUrl);
+
+        // Atualiza o campo de texto com indicador
+        const textInput = document.getElementById('agsimg_' + id);
+        if (textInput) textInput.value = '[Imagem carregada: ' + file.name + ']';
+
+        showToast('✅ Imagem "' + file.name + '" carregada!');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Contador de selecionados
+function updateAgsCount() {
+    const total = agsProducts.filter(p => p.selected).length;
+    const el = document.getElementById('agsSelectedCount');
+    if (el) el.textContent = total + (total === 1 ? ' selecionado' : ' selecionados');
+}
+
+// Importa os produtos selecionados para o cardápio FG
+function importSelectedProducts() {
+    const selected = agsProducts.filter(p => p.selected);
+    if (!selected.length) {
+        showToast('Selecione pelo menos um produto para importar.');
+        return;
+    }
+
+    const existing = getMenuItems();
+    let added = 0;
+    let updated = 0;
+
+    selected.forEach(p => {
+        const fgId   = 'ags_' + p.id;
+        const imgUrl = p.customImage || agsImageUrl(p.image);
+
+        const newProd = {
+            id:          fgId,
+            name:        p.name,
+            category:    p.category,
+            price:       p.price,
+            desc:        p.description,
+            description: p.description,
+            image:       imgUrl,
+            units:       1,
+            active:      true
+        };
+
+        const idx = existing.findIndex(x => x.id === fgId);
+        if (idx >= 0) {
+            existing[idx] = Object.assign(existing[idx], newProd);
+            updated++;
+        } else {
+            existing.push(newProd);
+            added++;
+        }
+    });
+
+    saveProducts(existing);
+
+    const msg = [];
+    if (added)   msg.push(added   + (added   === 1 ? ' produto adicionado' : ' produtos adicionados'));
+    if (updated) msg.push(updated + (updated === 1 ? ' produto atualizado'  : ' produtos atualizados'));
+    showToast('✅ ' + msg.join(' e ') + '!');
+
+    // Desmarca os importados e atualiza badges "Já no cardápio"
+    selected.forEach(p => { p.selected = false; });
+    renderAgsImporter();
+    updateAgsCount();
+
+    // Oferece ir para o cardápio
+    setTimeout(() => {
+        if (confirm('✅ ' + msg.join(' e ') + '!\n\nDeseja ir para a aba Cardápio para conferir e publicar?')) {
+            switchTab('cardapio');
+        }
+    }, 300);
+}
+
 initAuth().then(() => {
     if (sessionStorage.getItem('fg_admin_logged') === '1') {
         showPanel();
     }
 });
+
