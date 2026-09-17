@@ -729,7 +729,16 @@ async function loadMenuFromServer() {
     if (savedData.products) {
         Object.keys(savedData.products).forEach(id => {
             const prod = menuItems.find(p => p.id === id);
-            if (prod) Object.assign(prod, savedData.products[id]);
+            if (prod) {
+                // Atualiza produto existente com dados do admin local
+                Object.assign(prod, savedData.products[id]);
+            } else {
+                // Adiciona produto novo salvo pelo admin (ex: importados do AGS)
+                const extra = savedData.products[id];
+                if (extra && extra.image && extra.active !== false) {
+                    menuItems.push(Object.assign({ id, active: true, units: 1 }, extra));
+                }
+            }
         });
     }
 
