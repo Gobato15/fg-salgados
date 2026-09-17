@@ -505,6 +505,7 @@ function openProductForm(id) {
     const catOptions = categories.map(c =>
         `<option value="${esc(c)}" ${p && p.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('');
 
+    const currentImg = p ? fixImagePath(p.image || '') : '';
     const wrap = document.getElementById('productFormWrap');
     wrap.classList.remove('d-none');
     wrap.innerHTML = `
@@ -530,10 +531,51 @@ function openProductForm(id) {
                 <label class="form-label small fw-bold text-muted text-uppercase">Descrição</label>
                 <input type="text" id="pfDesc" class="form-control rounded-3" value="${p ? esc(p.desc || '') : ''}">
             </div>
+
+            <!-- ===== BLOCO DE IMAGEM ===== -->
             <div class="col-12">
-                <label class="form-label small fw-bold text-muted text-uppercase">URL da imagem</label>
-                <input type="text" id="pfImage" class="form-control rounded-3" value="${p ? esc(p.image || '') : ''}" placeholder="https://... ou ./images/produto.webp">
+                <label class="form-label small fw-bold text-muted text-uppercase d-block mb-2">Foto do Produto</label>
+
+                <!-- Input de arquivo oculto -->
+                <input type="file" id="pfImageFile" accept="image/*" class="d-none" onchange="pfHandleImageUpload(this)">
+                <!-- Campo oculto que guarda a URL/base64 da imagem escolhida -->
+                <input type="hidden" id="pfImage" value="${p ? esc(p.image || '') : ''}">
+
+                <!-- Área clicável de preview + upload -->
+                <div id="pfImgClickArea"
+                    onclick="document.getElementById('pfImageFile').click()"
+                    style="cursor:pointer; border:3px dashed #f59e0b; border-radius:20px; background:#fffbeb;
+                           min-height:200px; display:flex; flex-direction:column; align-items:center;
+                           justify-content:center; overflow:hidden; position:relative;
+                           transition: border-color .2s, background .2s;"
+                    onmouseover="this.style.borderColor='#d97706'; this.style.background='#fef3c7'"
+                    onmouseout="this.style.borderColor='#f59e0b'; this.style.background='#fffbeb'">
+
+                    ${currentImg ? `
+                        <!-- Preview da imagem atual -->
+                        <img id="pfImgPreview" src="${esc(currentImg)}"
+                            style="width:100%; height:220px; object-fit:cover; display:block;"
+                            onerror="this.style.display='none'; document.getElementById('pfImgPlaceholder').style.display='flex'">
+                        <!-- Overlay com botão de troca -->
+                        <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.55);
+                                    padding:10px; text-align:center; color:#fff; font-weight:bold; font-size:.9rem;">
+                            <i class="fa-solid fa-camera me-2"></i>Toque aqui para trocar a foto
+                        </div>
+                    ` : `
+                        <!-- Placeholder sem imagem -->
+                        <div id="pfImgPlaceholder" style="display:flex; flex-direction:column; align-items:center; color:#b45309; padding:30px; text-align:center;">
+                            <i class="fa-solid fa-camera fa-3x mb-3"></i>
+                            <div class="fw-bold" style="font-size:1.1rem;">Toque aqui para escolher uma foto</div>
+                            <div class="text-muted small mt-1">Da galeria ou câmera do dispositivo</div>
+                        </div>
+                    `}
+                </div>
+
+                <!-- Status do upload -->
+                <div id="pfUploadStatus" class="mt-2 small text-center"></div>
             </div>
+            <!-- ===== FIM BLOCO DE IMAGEM ===== -->
+
             <div class="col-12 d-flex gap-2">
                 <button class="btn btn-amber rounded-pill px-4 fw-bold" onclick="saveProductForm('${p ? esc(p.id) : ''}')"><i class="fa-solid fa-check me-1"></i> Salvar</button>
                 <button class="btn btn-light rounded-pill px-4 fw-bold border" onclick="document.getElementById('productFormWrap').classList.add('d-none')">Cancelar</button>
@@ -541,6 +583,111 @@ function openProductForm(id) {
         </div>
     `;
 }
+
+/* Atualiza preview ao digitar URL */
+function pfPreviewUrl(url) {
+    const img = document.getElementById('pfImgPreview');
+    const placeholder = document.getElementById('pfImgPlaceholder');
+    const resolved = url.startsWith('http') || url.startsWith('data:') ? url : fixImagePath(url);
+    if (!url.trim()) {
+        if (img) img.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'flex';
+        return;
+    }
+    if (!img) {
+        // Cria o elemento img se não existir
+        const wrap = document.getElementById('pfImgPreviewWrap');
+        if (wrap) {
+            const newImg = document.createElement('img');
+            newImg.id = 'pfImgPreview';
+            newImg.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+            newImg.onerror = () => { newImg.style.display = 'none'; if (placeholder) placeholder.style.display = 'flex'; };
+            wrap.insertBefore(newImg, wrap.firstChild);
+            newImg.src = resolved;
+            if (placeholder) placeholder.style.display = 'none';
+        }
+    } else {
+        img.src = resolved;
+        img.style.display = '';
+        if (placeholder) placeholder.style.display = 'none';
+    }
+}
+
+/* Upload de imagem: envia para GitHub (se token disponível) ou usa base64 local */
+async function pfHandleImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showToast('Selecione um arquivo de imagem válido.'); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast('Imagem muito grande! Use até 5MB.'); return; }
+
+    const statusEl = document.getElementById('pfUploadStatus');
+    const pfImageInput = document.getElementById('pfImage');
+    const clickArea   = document.getElementById('pfImgClickArea');
+    if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1 text-warning"></i><strong>Processando imagem...</strong>';
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        const base64Content = dataUrl.split(',')[1];
+
+        // --- Atualiza preview na área clicável ---
+        if (clickArea) {
+            clickArea.innerHTML = `
+                <img src="${dataUrl}" style="width:100%; height:220px; object-fit:cover; display:block;">
+                <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.55);
+                            padding:10px; text-align:center; color:#fff; font-weight:bold; font-size:.9rem;">
+                    <i class="fa-solid fa-camera me-2"></i>Toque aqui para trocar a foto
+                </div>
+            `;
+            clickArea.style.cursor = 'pointer';
+            clickArea.onclick = () => document.getElementById('pfImageFile').click();
+        }
+
+        // --- Tenta enviar para GitHub ---
+        const token = localStorage.getItem('fg_gh_token');
+        if (token) {
+            const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]/g, '_').replace(/_+/g, '_');
+            const fileName = 'images/' + Date.now() + '_' + safeName;
+            const repo = 'Gobato15/fg-salgados';
+            const apiUrl = `https://api.github.com/repos/${repo}/contents/${fileName}`;
+
+            if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1 text-warning"></i><strong>Enviando foto para o site...</strong>';
+
+            try {
+                const res = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: 'Upload de imagem via Admin FG Salgados',
+                        content: base64Content,
+                        branch: 'main'
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const rawUrl = data.content.download_url;
+                    if (pfImageInput) pfImageInput.value = rawUrl;
+                    if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle-check text-success me-1"></i><strong class="text-success">Foto enviada com sucesso! ✅ Clique em Salvar.</strong>';
+                    showToast('✅ Foto publicada no site!');
+                    return;
+                } else {
+                    const err = await res.json();
+                    throw new Error(err.message || 'Erro ao enviar');
+                }
+            } catch (err) {
+                if (statusEl) statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-warning me-1"></i>Não foi possível publicar no GitHub (${esc(err.message)}). Foto salva temporariamente.`;
+            }
+        } else {
+            if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle-info text-info me-1"></i>Foto carregada! Configure o token na aba <strong>GitHub</strong> para publicar permanentemente.';
+        }
+
+        // Fallback: salva como base64 no localStorage
+        if (pfImageInput) pfImageInput.value = dataUrl;
+        showToast('Foto carregada! Clique em Salvar.');
+    };
+    reader.readAsDataURL(file);
+}
+
 
 function saveProductForm(id) {
     const name = document.getElementById('pfName').value.trim();
