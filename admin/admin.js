@@ -452,7 +452,7 @@ function renderProducts() {
         <tr>
             <td>
                 <div class="d-flex align-items-center gap-2">
-                    ${p.image && !p.image.startsWith('data:') ? `<img src="${esc(fixImagePath(p.image))}" class="product-thumb" alt="${esc(p.name)}">` : '<div class="product-thumb bg-light d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-image"></i></div>'}
+                    ${p.image ? `<img src="${esc(p.image.startsWith('data:') ? p.image : fixImagePath(p.image))}" class="product-thumb" alt="${esc(p.name)}" onerror="this.style.display='none'">` : '<div class="product-thumb bg-light d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-image"></i></div>'}
                     <div>
                         <div class="fw-bold">${esc(p.name)}</div>
                         <div class="small text-muted">${esc(p.desc || '')}</div>
@@ -534,42 +534,44 @@ function openProductForm(id) {
 
             <!-- ===== BLOCO DE IMAGEM ===== -->
             <div class="col-12">
-                <label class="form-label small fw-bold text-muted text-uppercase d-block mb-2">Foto do Produto</label>
 
-                <!-- Input de arquivo oculto -->
+                <!-- Input real de arquivo (oculto) -->
                 <input type="file" id="pfImageFile" accept="image/*" class="d-none" onchange="pfHandleImageUpload(this)">
                 <!-- Campo oculto que guarda a URL/base64 da imagem escolhida -->
                 <input type="hidden" id="pfImage" value="${p ? esc(p.image || '') : ''}">
 
-                <!-- Área clicável de preview + upload -->
-                <div id="pfImgClickArea"
-                    onclick="document.getElementById('pfImageFile').click()"
-                    style="cursor:pointer; border:3px dashed #f59e0b; border-radius:20px; background:#fffbeb;
-                           min-height:200px; display:flex; flex-direction:column; align-items:center;
-                           justify-content:center; overflow:hidden; position:relative;
-                           transition: border-color .2s, background .2s;"
-                    onmouseover="this.style.borderColor='#d97706'; this.style.background='#fef3c7'"
-                    onmouseout="this.style.borderColor='#f59e0b'; this.style.background='#fffbeb'">
+                <!--
+                     IMPORTANTE: usar <label for="pfImageFile"> garante que qualquer navegador
+                     ou dispositivo móvel abra o seletor de arquivo ao tocar na área.
+                -->
+                <label for="pfImageFile"
+                    id="pfImgClickArea"
+                    style="cursor:pointer; border:3px dashed #f59e0b; border-radius:20px;
+                           background:#fffbeb; min-height:200px; display:flex; flex-direction:column;
+                           align-items:center; justify-content:center; overflow:hidden; position:relative;
+                           transition: border-color .2s, background .2s; width:100%;
+                           onmouseover=\"this.style.borderColor='#d97706';\""
+                    >
 
                     ${currentImg ? `
-                        <!-- Preview da imagem atual -->
+                        <!-- Foto atual -->
                         <img id="pfImgPreview" src="${esc(currentImg)}"
                             style="width:100%; height:220px; object-fit:cover; display:block;"
-                            onerror="this.style.display='none'; document.getElementById('pfImgPlaceholder').style.display='flex'">
-                        <!-- Overlay com botão de troca -->
-                        <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.55);
-                                    padding:10px; text-align:center; color:#fff; font-weight:bold; font-size:.9rem;">
+                            onerror="this.style.display='none'">
+                        <!-- Overlay -->
+                        <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.6);
+                                    padding:12px; text-align:center; color:#fff; font-weight:bold; font-size:.95rem; pointer-events:none;">
                             <i class="fa-solid fa-camera me-2"></i>Toque aqui para trocar a foto
                         </div>
                     ` : `
-                        <!-- Placeholder sem imagem -->
-                        <div id="pfImgPlaceholder" style="display:flex; flex-direction:column; align-items:center; color:#b45309; padding:30px; text-align:center;">
+                        <!-- Placeholder -->
+                        <div id="pfImgPlaceholder" style="display:flex; flex-direction:column; align-items:center; color:#b45309; padding:30px; text-align:center; pointer-events:none;">
                             <i class="fa-solid fa-camera fa-3x mb-3"></i>
                             <div class="fw-bold" style="font-size:1.1rem;">Toque aqui para escolher uma foto</div>
                             <div class="text-muted small mt-1">Da galeria ou câmera do dispositivo</div>
                         </div>
                     `}
-                </div>
+                </label>
 
                 <!-- Status do upload -->
                 <div id="pfUploadStatus" class="mt-2 small text-center"></div>
@@ -630,17 +632,17 @@ async function pfHandleImageUpload(input) {
         const dataUrl = e.target.result;
         const base64Content = dataUrl.split(',')[1];
 
-        // --- Atualiza preview na área clicável ---
+        // --- Atualiza preview na área -->
+        const clickArea = document.getElementById('pfImgClickArea');
         if (clickArea) {
+            // Mantém o label mas substitui o conteúdo interno
             clickArea.innerHTML = `
                 <img src="${dataUrl}" style="width:100%; height:220px; object-fit:cover; display:block;">
-                <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.55);
-                            padding:10px; text-align:center; color:#fff; font-weight:bold; font-size:.9rem;">
+                <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.6);
+                            padding:12px; text-align:center; color:#fff; font-weight:bold; font-size:.95rem; pointer-events:none;">
                     <i class="fa-solid fa-camera me-2"></i>Toque aqui para trocar a foto
                 </div>
             `;
-            clickArea.style.cursor = 'pointer';
-            clickArea.onclick = () => document.getElementById('pfImageFile').click();
         }
 
         // --- Tenta enviar para GitHub ---
