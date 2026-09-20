@@ -15,6 +15,8 @@
  * e a área restrita avisa que a API não está configurada.
  * ========================================================================== */
 window.FG_CONFIG = {
-    pixApiUrl: 'https://agsdelivery.com.br/api', // Conectado à mesma infraestrutura da AGS Delivery
-    apiBase: 'https://agsdelivery.com.br'
+    // TEMPORÁRIO (teste local): backend rodando nesta máquina na porta 3000.
+    // Para produção (site público/todos os visitantes), troque para a URL
+    // pública do backend, ex.: https://fg-salgados-api.onrender.com/api
+    pixApiUrl: 'http://localhost:3000/api'
 };

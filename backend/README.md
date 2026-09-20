@@ -37,6 +37,14 @@ Copie `.env.example` e renomeie para **`.env`**, depois preencha:
 MP_ACCESS_TOKEN=APP_USR-xxxxxxxx   # seu token de produção
 PUBLIC_URL=https://SEU-API.onrender.com  # URL pública deste backend
 WEBHOOK_SECRET=uma-chave-longa-aleatoria
+
+# Variáveis de Banco de Dados (MySQL)
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=
+DB_NAME=mau07755_fg_produtos
+
+# Outras variáveis
 ALLOWED_ORIGIN=https://Gobato15.github.io
 ```
 

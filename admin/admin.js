@@ -41,7 +41,12 @@ async function apiReq(path, opts = {}) {
     const headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
     const token = sessionStorage.getItem('fg_admin_token');
     if (token) headers['Authorization'] = 'Bearer ' + token;
-    const res = await fetch(base + path, Object.assign({}, opts, { headers }));
+    let res;
+    try {
+        res = await fetch(base + path, Object.assign({}, opts, { headers }));
+    } catch (e) {
+        throw new Error(`Não foi possível conectar à API em ${base}. Confira a URL em config.js e se o backend está no ar.`);
+    }
     if (res.status === 401) {
         logout();
         const err = new Error('Sessão expirada. Entre novamente.');
@@ -509,7 +514,12 @@ async function uploadImage(file) {
     const headers = { 'Content-Type': file.type || mimeFromName(file.name) };
     const token = sessionStorage.getItem('fg_admin_token');
     if (token) headers['Authorization'] = 'Bearer ' + token;
-    const res = await fetch(base + '/admin/upload', { method: 'POST', headers, body: file });
+    let res;
+    try {
+        res = await fetch(base + '/admin/upload', { method: 'POST', headers, body: file });
+    } catch (e) {
+        throw new Error(`Não foi possível conectar à API em ${base}. Confira a URL em config.js e se o backend está no ar.`);
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Falha no upload da imagem.');
     return data.url;
@@ -536,7 +546,7 @@ async function saveProductForm(id) {
     if (!image) return showToast('Informe uma imagem (URL ou upload)!');
 
     const existing = id ? itemsCache.find(x => x.id === id) : null;
-    const pid = id || ('p' + Date.now());
+    const pid = id || '';
     const payload = {
         id: pid,
         name: name,

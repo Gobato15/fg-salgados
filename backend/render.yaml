@@ -1,0 +1,26 @@
+# Render "Blueprint" — deploy automático do backend FG Salgados.
+# 1) Suba a pasta backend/ num repositório Git privado (ou use o repositório do site).
+# 2) No Render: New -> Blueprint -> conecte o repositório -> Apply.
+# 3) Depois, em Environment, defina os valores de ADMIN_PASSWORD, MP_ACCESS_TOKEN,
+#    PUBLIC_URL (a URL que o Render gerar, ex.: https://fg-salgados-api.onrender.com)
+#    e ALLOWED_ORIGIN (https://Gobato15.github.io).
+# 4) No config.js do site: pixApiUrl = 'https://fg-salgados-api.onrender.com/api'
+services:
+  - type: web
+    name: fg-salgados-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ADMIN_PASSWORD
+        value: troque-esta-senha
+      - key: WEBHOOK_SECRET
+        value: troque-este-segredo
+      - key: PUBLIC_URL
+        value: https://fg-salgados-api.onrender.com
+      - key: ALLOWED_ORIGIN
+        value: https://Gobato15.github.io
+      - key: MP_ACCESS_TOKEN
+        value: ''

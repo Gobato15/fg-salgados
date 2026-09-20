@@ -13,9 +13,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
-const fs = require('fs');
 const path = require('path');
-const menuData = require('../menuData');
+const pool = require('./db');
 
 const app = express();
 
@@ -28,8 +27,6 @@ const WEBHOOK_SECRET = (process.env.WEBHOOK_SECRET || '').trim();
 const ALLOWED_ORIGIN = (process.env.ALLOWED_ORIGIN || '').trim();
 const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '1031').trim();
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'admin@fgsalgados.com.br').trim().toLowerCase();
-const DATA_DIR = path.join(__dirname, 'data');
-const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 const IS_SANDBOX = MP_ENV === 'sandbox';
@@ -85,58 +82,33 @@ function sanitizeText(str, max = 200) {
 
 /* ------------------------- Cardápio e área restrita ------------------------- */
 
-function ensureDataDirs() {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
-ensureDataDirs();
+require('fs').mkdirSync(UPLOADS_DIR, { recursive: true });
 
-function readStore() {
-    try {
-        return JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'));
-    } catch (e) {
-        return { products: {}, deleted: [] };
-    }
-}
-
-function writeStore(store) {
-    const tmp = PRODUCTS_FILE + '.tmp';
-    fs.writeFileSync(tmp, JSON.stringify(store, null, 2));
-    fs.renameSync(tmp, PRODUCTS_FILE);
-}
-
-function normalizeItem(it) {
+function normalizeItem(row) {
     return {
-        id: String(it.id || ''),
-        name: sanitizeText(it.name, 120),
-        price: Number(it.price) || 0,
-        units: Math.max(1, parseInt(it.units, 10) || 1),
-        category: String(it.category || 'fritos').trim() || 'fritos',
-        desc: sanitizeText(it.desc || it.description, 500),
-        image: String(it.image || '').trim(),
-        active: it.active !== false,
+        id: String(row.id),
+        name: row.nome,
+        price: Number(row.preco) || 0,
+        units: Math.max(1, parseInt(row.qtd, 10) || 1),
+        category: String(row.categoria || 'fritos').trim(),
+        desc: String(row.descricao || '').trim(),
+        image: String(row.foto || '').trim(),
+        active: !!row.ativo,
+        ordem: Number(row.ordem) || 0
     };
 }
 
-// Cardápio final = base (menuData.js) + edições persistidas − produtos excluídos.
-function getMergedMenu(includeInactive = false) {
-    const store = readStore();
-    const deleted = new Set(store.deleted || []);
-    const saved = store.products || {};
-
-    const out = (menuData || []).map(it => normalizeItem({ ...it, desc: it.desc || it.description }));
-
-    Object.keys(saved).forEach((id) => {
-        if (deleted.has(id)) return;
-        const norm = normalizeItem(saved[id]);
-        const idx = out.findIndex(o => o.id === id);
-        if (idx >= 0) out[idx] = { ...out[idx], ...norm };
-        else out.push(norm);
-    });
-
-    return out
-        .filter(it => it.id && it.image && !deleted.has(it.id))
-        .filter(it => includeInactive || it.active);
+async function getMergedMenu(includeInactive = false) {
+    const query = includeInactive 
+        ? 'SELECT * FROM fg_produtos ORDER BY ordem ASC' 
+        : 'SELECT * FROM fg_produtos WHERE ativo = 1 ORDER BY ordem ASC';
+    try {
+        const [rows] = await pool.query(query);
+        return rows.map(normalizeItem);
+    } catch (e) {
+        console.error("Erro ao buscar cardápio:", e);
+        return [];
+    }
 }
 
 /* Sessões do administrador (em memória, expiram após 12h). */
@@ -183,7 +155,7 @@ function buildDescription(items) {
 
 /* ------------------------- Validação de entrada ------------------------- */
 // Nunca confie no que o navegador envia: o total é recalculado no servidor
-function validatePayload(body) {
+function validatePayload(body, menuItems) {
     if (!body || typeof body !== 'object') return { error: 'Corpo inválido' };
 
     const label = sanitizeText(body.label, 60) || 'Pedido FG Salgados';
@@ -198,7 +170,7 @@ function validatePayload(body) {
 
     for (const item of items) {
         // Buscar o preço real no cardápio do servidor
-        const menuItem = menuData.find(m => m.id === item.id);
+        const menuItem = menuItems.find(m => String(m.id) === String(item.id));
         if (!menuItem) {
             return { error: `Item inválido ou não encontrado: ${item.id}` };
         }
@@ -292,8 +264,8 @@ app.get('/api/health', (req, res) => {
 /* ------------------------- Cardápio público ------------------------- */
 
 // Cardápio que o site usa (somente produtos ativos).
-app.get('/api/menu', (req, res) => {
-    res.json({ ok: true, items: getMergedMenu(false), updatedAt: Date.now() });
+app.get('/api/menu', async (req, res) => {
+    res.json({ ok: true, items: await getMergedMenu(false), updatedAt: Date.now() });
 });
 
 /* ------------------------- Área restrita (admin) ------------------------- */
@@ -319,43 +291,65 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 // Lista todos os produtos (incluindo inativos) para edição.
-app.get('/api/admin/products', requireAdmin, (req, res) => {
-    res.json({ ok: true, items: getMergedMenu(true) });
+app.get('/api/admin/products', requireAdmin, async (req, res) => {
+    res.json({ ok: true, items: await getMergedMenu(true) });
 });
 
-// Cria ou atualiza um produto (upsert pelo id).
-app.post('/api/admin/products', requireAdmin, (req, res) => {
+// Cria ou atualiza um produto no MySQL
+app.post('/api/admin/products', requireAdmin, async (req, res) => {
     const b = req.body || {};
-    const id = String(b.id || '').trim();
-    if (!/^[A-Za-z0-9_-]{1,40}$/.test(id)) {
-        return res.status(400).json({ error: 'ID de produto inválido.' });
-    }
-    const item = normalizeItem({ ...b, id });
-    if (!item.name || item.price <= 0) {
+    let id = parseInt(String(b.id).replace(/\D/g, ''), 10);
+    if (isNaN(id) || !b.id) id = null;
+
+    if (!b.name || Number(b.price) <= 0) {
         return res.status(400).json({ error: 'Nome e preço válidos são obrigatórios.' });
     }
-    if (!/^https?:|^(\.\/)?images\//i.test(item.image)) {
-        return res.status(400).json({ error: 'Imagem inválida.' });
+
+    try {
+        if (id) {
+            await pool.query(
+                `UPDATE fg_produtos SET nome=?, descricao=?, preco=?, foto=?, categoria=?, ativo=?, ordem=?, qtd=? WHERE id=?`,
+                [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', b.active !== false ? 1 : 0, Number(b.ordem) || 0, Math.max(1, parseInt(b.units, 10) || 1), id]
+            );
+        } else {
+            const [result] = await pool.query(
+                `INSERT INTO fg_produtos (nome, descricao, preco, foto, categoria, ativo, ordem, qtd) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', b.active !== false ? 1 : 0, Number(b.ordem) || 0, Math.max(1, parseInt(b.units, 10) || 1)]
+            );
+            id = result.insertId;
+        }
+        
+        // Retornar o item no formato esperado
+        const item = {
+            id: String(id),
+            name: b.name,
+            price: Number(b.price),
+            units: Math.max(1, parseInt(b.units, 10) || 1),
+            category: b.category || 'fritos',
+            desc: b.desc || '',
+            image: b.image || '',
+            active: b.active !== false
+        };
+        return res.json({ ok: true, item });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ error: 'Erro interno ao salvar no banco de dados.' });
     }
-    const store = readStore();
-    store.products[id] = item;
-    const idx = (store.deleted || []).indexOf(id);
-    if (idx >= 0) store.deleted.splice(idx, 1);
-    writeStore(store);
-    return res.json({ ok: true, item });
 });
 
-// Exclui um produto (marca como removido mesmo se ele vier do menuData.js).
-app.delete('/api/admin/products/:id', requireAdmin, (req, res) => {
-    const id = String(req.params.id || '').trim();
-    if (!/^[A-Za-z0-9_-]{1,40}$/.test(id)) {
+// Exclui um produto no MySQL
+app.delete('/api/admin/products/:id', requireAdmin, async (req, res) => {
+    const id = parseInt(String(req.params.id).replace(/\D/g, ''), 10);
+    if (isNaN(id)) {
         return res.status(400).json({ error: 'ID de produto inválido.' });
     }
-    const store = readStore();
-    delete store.products[id];
-    if (!store.deleted.includes(id)) store.deleted.push(id);
-    writeStore(store);
-    return res.json({ ok: true, id });
+    try {
+        await pool.query(`DELETE FROM fg_produtos WHERE id=?`, [id]);
+        return res.json({ ok: true, id: String(id) });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ error: 'Erro interno ao excluir.' });
+    }
 });
 
 // Upload de imagem de produto. Envie o arquivo cru (multipart-driven via um POST
@@ -387,6 +381,13 @@ app.post(
 
 // Serve as imagens enviadas pela área restrita.
 app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '7d' }));
+
+// Em ambiente local, também serve o site estático (index.html, admin/ etc.)
+// para testar tudo em http://localhost:3000 sem problemas de CORS/URL.
+// Em produção o site continua no GitHub Pages; esta linha não atrapalha.
+if (process.env.SERVE_SITE !== 'false') {
+    app.use(express.static(path.join(__dirname, '..')));
+}
 
 // Cria uma cobrança PIX dinâmica.
 app.post('/api/pix', async (req, res) => {
