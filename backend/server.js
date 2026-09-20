@@ -90,19 +90,17 @@ function normalizeItem(row) {
         id: String(row.id),
         name: row.nome,
         price: Number(row.preco) || 0,
-        units: Math.max(1, parseInt(row.qtd, 10) || 1),
+        units: 1, // Default, as table no longer has qtd
         category: String(row.categoria || 'fritos').trim(),
         desc: String(row.descricao || '').trim(),
         image: String(row.foto || '').trim(),
-        active: !!row.ativo,
+        active: true, // Default, as table no longer has ativo
         ordem: Number(row.ordem) || 0
     };
 }
 
 async function getMergedMenu(includeInactive = false) {
-    const query = includeInactive 
-        ? 'SELECT * FROM fg_produtos ORDER BY ordem ASC' 
-        : 'SELECT * FROM fg_produtos WHERE ativo = 1 ORDER BY ordem ASC';
+    const query = 'SELECT * FROM fg_produtos ORDER BY ordem ASC';
     try {
         const rows = await pool.all(query);
         return rows.map(normalizeItem);
@@ -309,13 +307,13 @@ app.post('/api/admin/products', requireAdmin, async (req, res) => {
     try {
         if (id) {
             await pool.run(
-                `UPDATE fg_produtos SET nome=?, descricao=?, preco=?, foto=?, categoria=?, ativo=?, ordem=?, qtd=? WHERE id=?`,
-                [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', b.active !== false ? 1 : 0, Number(b.ordem) || 0, Math.max(1, parseInt(b.units, 10) || 1), id]
+                `UPDATE fg_produtos SET nome=?, descricao=?, preco=?, foto=?, categoria=?, ordem=? WHERE id=?`,
+                [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', Number(b.ordem) || 0, id]
             );
         } else {
             const result = await pool.run(
-                `INSERT INTO fg_produtos (nome, descricao, preco, foto, categoria, ativo, ordem, qtd) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', b.active !== false ? 1 : 0, Number(b.ordem) || 0, Math.max(1, parseInt(b.units, 10) || 1)]
+                `INSERT INTO fg_produtos (nome, descricao, preco, foto, categoria, ordem) VALUES (?, ?, ?, ?, ?, ?)`,
+                [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', Number(b.ordem) || 0]
             );
             id = result.lastID;
         }
@@ -329,7 +327,7 @@ app.post('/api/admin/products', requireAdmin, async (req, res) => {
             category: b.category || 'fritos',
             desc: b.desc || '',
             image: b.image || '',
-            active: b.active !== false
+            active: true // active logic removed from db
         };
         return res.json({ ok: true, item });
     } catch (e) {

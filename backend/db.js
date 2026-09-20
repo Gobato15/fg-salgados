@@ -13,14 +13,8 @@ const SQL_CREATE_TABLE = `
         descricao TEXT DEFAULT NULL,
         preco REAL NOT NULL DEFAULT 0.00,
         foto TEXT DEFAULT NULL,
-        itemPromocao INTEGER NOT NULL DEFAULT 0,
-        qtd INTEGER NOT NULL DEFAULT 100,
-        diasPromocao TEXT NOT NULL DEFAULT '',
-        descontoPromo REAL NOT NULL DEFAULT 1.00,
         categoria TEXT DEFAULT NULL,
-        ativo INTEGER NOT NULL DEFAULT 1,
-        ordem INTEGER NOT NULL DEFAULT 0,
-        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+        ordem INTEGER NOT NULL DEFAULT 0
     );
 `;
 
@@ -33,9 +27,9 @@ async function seedIfEmpty(exec) {
     let ordem = 1;
     for (const p of seedProducts) {
         await exec(
-            `INSERT INTO fg_produtos (nome, categoria, preco, descricao, foto, itemPromocao, qtd, diasPromocao, descontoPromo, ativo, ordem)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [p.nome, p.categoria || 'fritos', Number(p.preco) || 0, p.descricao || '', p.foto || '', p.itemPromocao ? 1 : 0, p.qtd || 1, p.diasPromocao || '', Number(p.descontoPromo) !== 0 ? p.descontoPromo : 1.00, p.ativo !== 0 ? 1 : 0, p.ordem || ordem]
+            `INSERT INTO fg_produtos (nome, categoria, preco, descricao, foto, ordem)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [p.nome, p.categoria || 'fritos', Number(p.preco) || 0, p.descricao || '', p.foto || '', p.ordem || ordem]
         );
         ordem++;
     }
