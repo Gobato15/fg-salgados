@@ -27,6 +27,7 @@ const PUBLIC_URL = (process.env.PUBLIC_URL || '').trim().replace(/\/+$/, '');
 const WEBHOOK_SECRET = (process.env.WEBHOOK_SECRET || '').trim();
 const ALLOWED_ORIGIN = (process.env.ALLOWED_ORIGIN || '').trim();
 const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '1031').trim();
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'admin@fgsalgados.com.br').trim().toLowerCase();
 const DATA_DIR = path.join(__dirname, 'data');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
@@ -303,10 +304,16 @@ app.post('/api/admin/login', (req, res) => {
         return res.status(429).json({ error: 'Muitas tentativas. Aguarde um instante.' });
     }
     const pass = String((req.body && req.body.password) || '');
+    const email = String((req.body && req.body.email) || '').trim().toLowerCase();
+    
+    if (!email || email !== ADMIN_EMAIL) {
+        return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+    }
+
     const expected = crypto.createHmac('sha256', ADMIN_PASSWORD).update('fg-admin').digest('hex');
     const got = crypto.createHmac('sha256', pass).update('fg-admin').digest('hex');
     if (!pass || !secureEqualHex(got, expected)) {
-        return res.status(401).json({ error: 'Senha incorreta.' });
+        return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
     }
     res.json({ ok: true, token: createAdminToken(), expiresIn: Math.round(SESSION_TTL / 1000) });
 });

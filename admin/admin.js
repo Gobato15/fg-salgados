@@ -75,14 +75,16 @@ function showLoginError(message) {
 }
 
 async function tryLogin() {
-    const input = document.getElementById('loginPass');
-    const pass = input ? input.value : '';
-    if (!pass) return;
+    const inputPass = document.getElementById('loginPass');
+    const inputEmail = document.getElementById('loginEmail');
+    const pass = inputPass ? inputPass.value : '';
+    const email = inputEmail ? inputEmail.value.trim() : '';
+    if (!pass || !email) return;
     try {
-        const data = await apiReq('/admin/login', { method: 'POST', body: JSON.stringify({ password: pass }) });
+        const data = await apiReq('/admin/login', { method: 'POST', body: JSON.stringify({ email, password: pass }) });
         sessionStorage.setItem('fg_admin_token', data.token);
         sessionStorage.setItem('fg_admin_logged', '1');
-        if (input) input.value = '';
+        if (inputPass) inputPass.value = '';
         showPanel();
     } catch (e) {
         if (!e.silent) showLoginError(e.message);

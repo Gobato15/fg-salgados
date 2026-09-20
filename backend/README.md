@@ -94,10 +94,10 @@ que é o mais simples para webhook).
 A pasta `admin/` do site (botão “Acesso Restrito”) usa este backend para salvar
 produtos e imagens para **todos os visitantes**:
 
-| Endpoint | Função |
-|---|---|
-| `POST /api/admin/login` | Entra com `ADMIN_PASSWORD` e recebe um token de sessão |
-| `GET /api/admin/products` | Lista produtos (incluindo inativos) |
+| Endpoint | Ação |
+|----------|------|
+| `POST /api/admin/login` | Entra com `email` (`ADMIN_EMAIL`) e `password` (`ADMIN_PASSWORD`) e recebe um token de sessão |
+| `GET /api/admin/products` | Lista todos os produtos (incluindo inativos e sem imagem) |
 | `POST /api/admin/products` | Cria/atualiza um produto (upsert pelo `id`) |
 | `DELETE /api/admin/products/:id` | Exclui um produto |
 | `POST /api/admin/upload` | Envia a imagem (corpo cru com `Content-Type: image/webp|png|jpeg|gif`) e devolve a URL pública |
