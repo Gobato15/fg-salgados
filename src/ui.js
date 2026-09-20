@@ -68,15 +68,12 @@ export function createProductCard(item, index = 0) {
     let imgSrc = item.image || 'images/ags_coxinha.webp';
     if (imgSrc.startsWith('images/')) imgSrc = './' + imgSrc;
 
-    const isPack = item.units > 1;
-    const priceLabelText = isPack ? `Pacote com ${item.units || 6} unidades` : 'Por unidade';
-    const packBadge = isPack
-        ? `<span class="product-tag product-tag-pack"><i class="fa-solid fa-box-open"></i> ${item.units || 6} unidades</span>`
-        : '';
+    const priceLabelText = 'Por unidade';
+    const packBadge = '';
 
     return `
         <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card${isPack ? ' pack-card' : ''}" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden product-card" style="animation: slideUp 0.5s ease forwards; animation-delay: ${index * 0.05}s">
                 <div class="product-card-top">
                     <span class="product-card-top-icon"><i class="fa-solid fa-snowflake"></i></span>
                 </div>
