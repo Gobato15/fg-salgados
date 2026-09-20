@@ -74,9 +74,10 @@ function initMySQL() {
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASS || '',
+            database: DB_NAME
         });
-        await conn.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-        await conn.query(`USE \`${DB_NAME}\`;`);
+        // Em hospedagens cPanel, o banco já deve estar criado e o usuário deve ter privilégios.
+        // O CREATE DATABASE costuma dar erro de permissão (Access denied).
         await conn.query(SQL_CREATE_TABLE.replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'INT UNSIGNED AUTO_INCREMENT PRIMARY KEY'));
         await conn.end();
 
