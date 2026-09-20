@@ -17,7 +17,7 @@
 
     <div id="loginScreen" class="login-screen">
         <div class="login-card">
-            <div class="brand-chip"><i class="fa-solid fa-snowflake"></i> FG Salgados</div>
+            <div class="brand-chip">FG Salgados</div>
             <h3 class="fw-bold text-dark mb-4">Área Restrita</h3>
             <div class="text-start mb-1"><label for="loginPass" class="form-label small fw-bold text-muted mb-1">Senha de acesso</label></div>
             <input type="password" id="loginPass" class="form-control rounded-pill py-2 mb-3"
@@ -51,6 +51,7 @@
                 <button type="button" class="btn btn-tab" data-tab="cozinha"><i class="fa-solid fa-fire-burner me-1"></i> Cozinha</button>
                 <button type="button" class="btn btn-tab" data-tab="movimentos"><i class="fa-solid fa-boxes-stacked me-1"></i> Movimentos</button>
                 <button type="button" class="btn btn-tab" data-tab="senha"><i class="fa-solid fa-key me-1"></i> Senha</button>
+                <button type="button" class="btn btn-tab" data-tab="github"><i class="fa-brands fa-github me-1"></i> GitHub</button>
             </div>
         </nav>
 
@@ -59,7 +60,11 @@
             <section id="tab-cardapio" class="tab-section">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <h5 class="fw-bold mb-0">Cardápio</h5>
-                    <button type="button" class="btn btn-amber rounded-pill fw-bold" onclick="openProductForm()"><i class="fa-solid fa-plus me-1"></i> Novo Produto</button>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-amber rounded-pill fw-bold" onclick="openProductForm()">
+                            <i class="fa-solid fa-plus me-1"></i> Novo Produto
+                        </button>
+                    </div>
                 </div>
                 <div id="productFormWrap" class="d-none bg-white border rounded-4 p-3 mb-4 shadow-sm"></div>
                 <div class="table-responsive bg-white rounded-4 shadow-sm">
@@ -144,6 +149,48 @@
                         (arquivo <code>.env</code> no Render/Railway). Edite lá,
                         reinicie o serviço e use a nova senha aqui.
                     </div>
+                </div>
+            </section>
+
+            <section id="tab-github" class="tab-section d-none">
+                <div class="bg-white rounded-4 shadow-sm p-4" style="max-width: 680px;">
+                    <h5 class="fw-bold mb-1"><i class="fa-brands fa-github me-2"></i>Publicação no GitHub</h5>
+                    <p class="text-muted small mb-4">Configure seu token do GitHub para publicar alterações do cardápio diretamente no site, sem precisar do computador.</p>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">GitHub Personal Access Token</label>
+                        <div class="input-group">
+                            <input type="password" id="ghToken" class="form-control rounded-start-3"
+                                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                autocomplete="off">
+                            <button class="btn btn-light border" type="button" onclick="toggleGhToken()" title="Mostrar/ocultar">
+                                <i class="fa-solid fa-eye" id="ghTokenEyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            <i class="fa-solid fa-circle-info me-1 text-primary"></i>
+                            Crie em: <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">github.com/settings/tokens</a>
+                            &mdash; marque a permissão <strong>repo &gt; Contents (write)</strong>. O token fica salvo apenas neste navegador.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-amber rounded-pill fw-bold px-4" onclick="salvarToken()">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Salvar Token
+                        </button>
+                        <button type="button" class="btn btn-outline-amber rounded-pill fw-bold px-4" onclick="testarToken()">
+                            <i class="fa-solid fa-plug me-1"></i> Testar Conexão
+                        </button>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-cloud-arrow-up me-2 text-success"></i>Publicar Cardápio no Site</h6>
+                    <p class="text-muted small mb-3">Clique abaixo para enviar todas as alterações do cardápio diretamente para o site (GitHub Pages). O site atualiza em até 2 minutos.</p>
+                    <button type="button" class="btn btn-success rounded-pill fw-bold px-5 py-2" onclick="publicarNoSite()" id="btnPublicar">
+                        <i class="fa-solid fa-rocket me-2"></i> Publicar no Site Agora
+                    </button>
+                    <div id="publishStatus" class="mt-3 d-none"></div>
                 </div>
             </section>
 

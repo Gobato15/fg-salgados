@@ -15,5 +15,6 @@
  * e a área restrita avisa que a API não está configurada.
  * ========================================================================== */
 window.FG_CONFIG = {
-    pixApiUrl: '' // ex.: 'https://fg-salgados-api.onrender.com/api'
+    pixApiUrl: '', // ex.: 'https://fg-salgados-api.onrender.com/api'
+    apiBase: 'https://agsdelivery.com.br'
 };
