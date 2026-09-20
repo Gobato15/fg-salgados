@@ -103,7 +103,7 @@ async function getMergedMenu(includeInactive = false) {
         ? 'SELECT * FROM fg_produtos ORDER BY ordem ASC' 
         : 'SELECT * FROM fg_produtos WHERE ativo = 1 ORDER BY ordem ASC';
     try {
-        const [rows] = await pool.query(query);
+        const rows = await pool.all(query);
         return rows.map(normalizeItem);
     } catch (e) {
         console.error("Erro ao buscar cardápio:", e);
@@ -307,16 +307,16 @@ app.post('/api/admin/products', requireAdmin, async (req, res) => {
 
     try {
         if (id) {
-            await pool.query(
+            await pool.run(
                 `UPDATE fg_produtos SET nome=?, descricao=?, preco=?, foto=?, categoria=?, ativo=?, ordem=?, qtd=? WHERE id=?`,
                 [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', b.active !== false ? 1 : 0, Number(b.ordem) || 0, Math.max(1, parseInt(b.units, 10) || 1), id]
             );
         } else {
-            const [result] = await pool.query(
+            const result = await pool.run(
                 `INSERT INTO fg_produtos (nome, descricao, preco, foto, categoria, ativo, ordem, qtd) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', b.active !== false ? 1 : 0, Number(b.ordem) || 0, Math.max(1, parseInt(b.units, 10) || 1)]
             );
-            id = result.insertId;
+            id = result.lastID;
         }
         
         // Retornar o item no formato esperado
@@ -344,7 +344,7 @@ app.delete('/api/admin/products/:id', requireAdmin, async (req, res) => {
         return res.status(400).json({ error: 'ID de produto inválido.' });
     }
     try {
-        await pool.query(`DELETE FROM fg_produtos WHERE id=?`, [id]);
+        await pool.run(`DELETE FROM fg_produtos WHERE id=?`, [id]);
         return res.json({ ok: true, id: String(id) });
     } catch (e) {
         console.error(e);
