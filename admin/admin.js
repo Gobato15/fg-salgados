@@ -1,5 +1,11 @@
 const ORDERS_KEY = 'fg_admin_orders';
 const MOVEMENTS_KEY = 'fg_admin_movimentos';
+const SITE_KEY = 'fg_salgados_v9';
+const DEFAULT_PASSWORD = '1031';
+const DEFAULT_EMAIL = 'gobato59@gmail.com';
+const AUTH_VERSION = 3; // incrementado para resetar credenciais em todos os navegadores
+const MAX_ATTEMPTS = 5;
+const LOCK_MINUTES = 15;
 const INACTIVITY_MINUTES = 30;
 
 const STATUSES = {
@@ -95,6 +101,7 @@ function showPanel() {
     refreshProducts();
     renderOrders();
     renderMovements();
+    carregarToken();
     startInactivityWatch();
 }
 
@@ -141,6 +148,172 @@ function fixImagePath(src) {
     if (!src) return '';
     if (/^(https?:|data:|blob:|\/)/i.test(src) || src.startsWith('../')) return src;
     return '../' + src;
+}
+
+/* ---------------- EXPORTAR / PUBLICAR menuData.js ---------------- */
+
+function gerarConteudoMenuData() {
+    const items = getMenuItems();
+    const linhas = items.map(p => {
+        const obj = {
+            id: p.id,
+            name: p.name,
+            category: p.category || 'pacotes',
+            price: parseFloat(p.price) || 0,
+            description: p.desc || p.description || '',
+            image: (p.image || '').replace(/^\.\.\//, ''),
+            units: parseInt(p.units) || 1
+        };
+        if (p.active === false) obj.active = false;
+
+        const campos = Object.entries(obj).map(([k, v]) => {
+            if (typeof v === 'string') return `        ${k}: ${JSON.stringify(v)}`;
+            return `        ${k}: ${v}`;
+        }).join(',\n');
+
+        return `    {\n${campos}\n    }`;
+    });
+
+    return `window.fgMenuItems = [\n${linhas.join(',\n')}\n]\n`;
+}
+
+function exportarMenuData() {
+    const conteudo = gerarConteudoMenuData();
+    const blob = new Blob([conteudo], { type: 'text/javascript;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'menuData.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+
+    const info = document.getElementById('exportInfo');
+    if (info) {
+        info.classList.remove('d-none');
+        setTimeout(() => info.classList.add('d-none'), 8000);
+    }
+    showToast('menuData.js exportado! (Opção manual)');
+}
+
+/* ---------------- INTEGRAÇÃO GITHUB ---------------- */
+
+function toggleGhToken() {
+    const el = document.getElementById('ghToken');
+    const icon = document.getElementById('ghTokenEyeIcon');
+    if (el.type === 'password') {
+        el.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+    } else {
+        el.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+    }
+}
+
+function carregarToken() {
+    const token = localStorage.getItem('fg_gh_token');
+    if (token) {
+        document.getElementById('ghToken').value = token;
+    }
+}
+
+function salvarToken() {
+    const token = document.getElementById('ghToken').value.trim();
+    if (!token) {
+        localStorage.removeItem('fg_gh_token');
+        showToast('Token removido.');
+    } else {
+        localStorage.setItem('fg_gh_token', token);
+        showToast('Token salvo localmente!');
+    }
+}
+
+async function testarToken() {
+    const token = localStorage.getItem('fg_gh_token') || document.getElementById('ghToken').value.trim();
+    if (!token) return showToast('Preencha e salve o token primeiro.');
+
+    try {
+        const res = await fetch('https://api.github.com/user', {
+            headers: { 'Authorization': `token ${token}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            showToast(`Conectado como: ${data.login} ✅`);
+        } else {
+            showToast('Erro: Token inválido ou sem permissão.');
+        }
+    } catch (e) {
+        showToast('Erro de rede ao testar token.');
+    }
+}
+
+function toBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+
+async function publicarNoSite() {
+    const token = localStorage.getItem('fg_gh_token') || document.getElementById('ghToken').value.trim();
+    if (!token) {
+        switchTab('github');
+        return showToast('Configure o Token do GitHub para publicar!');
+    }
+
+    const btn = document.getElementById('btnPublicar');
+    const status = document.getElementById('publishStatus');
+    const repo = 'Gobato15/fg-salgados';
+    const path = 'menuData.js';
+    const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Publicando...';
+    status.className = 'mt-3 d-none';
+
+    try {
+        // 1. Obter o SHA do arquivo atual
+        const resGet = await fetch(url, {
+            headers: { 'Authorization': `token ${token}` }
+        });
+        
+        if (!resGet.ok) throw new Error('Não foi possível acessar o arquivo no repositório.');
+        
+        const dataGet = await resGet.json();
+        const sha = dataGet.sha;
+
+        // 2. Gerar novo conteúdo
+        const novoConteudo = gerarConteudoMenuData();
+        const conteudoBase64 = toBase64(novoConteudo);
+
+        // 3. Fazer commit da alteração
+        const resPut = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: 'Atualiza cardápio via Admin',
+                content: conteudoBase64,
+                sha: sha,
+                branch: 'main'
+            })
+        });
+
+        if (resPut.ok) {
+            showToast('✅ Publicado com sucesso no site!');
+            status.className = 'mt-3 alert alert-success border-0 small py-2';
+            status.innerHTML = '<strong>Sucesso!</strong> As alterações foram enviadas para o site. Atualize a página da loja em ~2 minutos.';
+        } else {
+            const erroData = await resPut.json();
+            throw new Error(erroData.message || 'Erro ao salvar no GitHub.');
+        }
+    } catch (err) {
+        status.className = 'mt-3 alert alert-danger border-0 small py-2';
+        status.innerHTML = `<strong>Erro:</strong> ${err.message}`;
+        showToast('Falha ao publicar.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-rocket me-2"></i> Publicar no Site Agora';
+    }
 }
 
 /* ---------------- CARDÁPIO ---------------- */

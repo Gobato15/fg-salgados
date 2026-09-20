@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FG Salgados Congelados — Salgados por Unidade</title>
+    <title>FG Salgados — Salgados Artesanais</title>
     <meta name="description"
-        content="Salgados congelados artesanais vendidos por unidade. Coxinhas, croissants, tortas, baurus, X-lanches e bolos salgados prontos para airfryer ou forno em 12 minutos. Peça pelo WhatsApp!">
+        content="Salgados artesanais. Coxinhas, croissants, tortas, baurus, X-lanches e bolos salgados. Peça pelo WhatsApp!">
     <link rel="canonical" href="https://Gobato15.github.io/fg-salgados/">
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -14,13 +14,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./style.css?v=20">
+    <link rel="stylesheet" href="./style.css?v=36">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="FG Salgados">
-    <meta property="og:title" content="FG Salgados Congelados — Salgados por Unidade">
+    <meta property="og:title" content="FG Salgados — Salgados Artesanais">
     <meta property="og:description"
-        content="Salgados congelados artesanais vendidos por unidade. Coxinhas, croissants, tortas, baurus, X-lanches e bolos salgados prontos para airfryer ou forno em 12 minutos. Peça pelo WhatsApp!">
+        content="Salgados artesanais. Coxinhas, croissants, tortas, baurus, X-lanches e bolos salgados. Peça pelo WhatsApp!">
     <meta property="og:url" content="https://Gobato15.github.io/fg-salgados/">
     <meta property="og:image" content="https://Gobato15.github.io/fg-salgados/images/ags_coxinha.webp">
     <meta property="og:locale" content="pt_BR">
@@ -38,9 +38,9 @@
             "image": "https://Gobato15.github.io/fg-salgados/images/ags_coxinha.webp",
             "url": "https://Gobato15.github.io/fg-salgados/",
             "telephone": "(19) 99609-0540",
-            "servesCuisine": "Salgados Congelados",
+            "servesCuisine": "Salgados Artesanais",
             "priceRange": "R$",
-            "description": "Salgados congelados artesanais vendidos por unidade. Prontos para airfryer ou forno em 12 minutos.",
+            "description": "Salgados artesanais. Coxinhas, croissants, tortas, baurus, X-lanches e bolos salgados.",
             "address": {
                 "@type": "PostalAddress",
                 "addressCountry": "BR"
@@ -57,17 +57,19 @@
     <header class="glass">
         <div class="container position-relative py-2">
             <div class="d-flex justify-content-between align-items-center">
-                <a href="#" class="brand">
-                    <span class="brand-logo">FG</span>
-                    <span class="brand-text">
-                        <span class="brand-title">FG Salgados</span>
-                        <span class="brand-tag">Congelados por unidade ❄️</span>
-                    </span>
-                </a>
-
                 <div class="d-flex align-items-center gap-2">
+                    <a href="#" class="brand">
+                        <span class="brand-logo">FG</span>
+                        <span class="brand-text">
+                            <span class="brand-title">FG Salgados</span>
+                            <span class="brand-tag">Salgados Artesanais</span>
+                        </span>
+                    </a>
+                </div>
+
+                <div class="d-flex align-items-center gap-1 gap-md-2">
                     <a href="admin/admin.html"
-                        class="btn btn-outline-amber rounded-pill fw-bold d-flex align-items-center gap-2 btn-sm-custom">
+                        class="btn btn-outline-dark rounded-pill fw-bold d-flex align-items-center gap-2 btn-sm-custom btn-outline-dark-custom">
                         <i class="fa-solid fa-lock"></i> <span class="d-none d-md-inline">Acesso Restrito</span>
                     </a>
                     <button type="button" onclick="openMyOrders()"
@@ -76,8 +78,13 @@
                         <i class="fa-solid fa-clock-rotate-left"></i> <span class="d-none d-md-inline">Meus
                             Pedidos</span>
                     </button>
-                    <button class="cart-header-btn bg-transparent border-0 position-relative p-2" data-bs-toggle="modal"
-                        data-bs-target="#cartModal" aria-label="Abrir Carrinho">
+                    <a href="https://agsdelivery.com.br/"
+                        class="btn btn-outline-dark rounded-pill fw-bold d-flex align-items-center gap-2 btn-sm-custom btn-outline-dark-custom"
+                        title="AGS Delivery">
+                        <i class="fa-solid fa-store"></i> <span class="d-none d-md-inline">AGS Delivery</span>
+                    </a>
+                    <button class="cart-header-btn bg-transparent border-0 position-relative p-2" data-bs-toggle="offcanvas"
+                        data-bs-target="#cartModal" aria-controls="cartModal" aria-label="Abrir Carrinho">
                         <i class="fa-solid fa-box text-dark cart-icon-lg"></i>
                         <span
                             class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm cart-badge"
@@ -85,6 +92,8 @@
                     </button>
                 </div>
             </div>
+
+
 
             <div class="search-container w-100 mt-3 pb-1">
                 <div class="input-group shadow-sm rounded-pill">
@@ -101,13 +110,13 @@
     <main class="container">
         <section class="hero text-center">
             <span class="hero-tag-pill">
-                <i class="fa-solid fa-snowflake"></i> 100% Congelados & Práticos
+                100% Artesanais & Práticos
             </span>
             <h1 class="display-4 fw-bold mb-4 hero-title editable" id="heroTitle" data-field="title">
-                Salgados <span class="text-gradient">congelados e práticos</span>. Tire do freezer e prepare!
+                Salgados <span class="text-gradient">artesanais e práticos</span>. O sabor que você procura!
             </h1>
             <p class="lead text-muted mx-auto mb-4 hero-desc editable hero-desc-custom" id="heroDesc" data-field="desc">
-                Coxinhas, Croissants, Tortas, Baurus, X-Lanches e Bolos Salgados. Tudo congelado por unidade —
+                Coxinhas, Croissants, Tortas, Baurus, X-Lanches e Bolos Salgados. Tudo artesanal —
                 direto ao Forno em 25 minutos 180 à 230C° !
             </p>
 
@@ -137,7 +146,7 @@
                 <span class="trust-divider d-none d-sm-inline">•</span>
                 <div class="d-flex align-items-center gap-2">
                     <i class="fa-solid fa-medal trust-medal"></i>
-                    <span class="trust-text">Feito na hora, congelado por unidade ❄️</span>
+                    <span class="trust-text">Feito na hora, sabor de verdade</span>
                 </div>
             </div>
         </section>
@@ -158,11 +167,11 @@
                         <span class="brand-logo">FG</span>
                         <div>
                             <div class="footer-logo mb-0">FG Salgados</div>
-                            <div class="footer-tag">Salgados Congelados</div>
+                            <div class="footer-tag">Salgados Artesanais</div>
                         </div>
                     </div>
                     <p class="footer-about editable" id="footAbout" data-field="about">
-                        Salgados artesanais congelados vendidos por unidade. Qualidade gourmet, ingredientes
+                        Salgados artesanais de qualidade gourmet, ingredientes
                         selecionados e sabor de verdade.
                     </p>
                 </div>
@@ -196,222 +205,155 @@
                 </div>
             </div>
 
-            <p class="footer-copy mb-0 mt-5">© FG Salgados Congelados — Todos os direitos reservados</p>
+            <p class="footer-copy mb-0 mt-5">© FG Salgados — Todos os direitos reservados</p>
         </div>
     </footer>
 
-    <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 rounded-4 shadow-lg">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold fs-4" id="cartModalLabel"><i
-                            class="fa-solid fa-box me-2 text-amber"></i>Seu Pedido</h5>
-                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+    <!-- Cart Sidebar (Offcanvas) -->
+    <div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="cartModal" aria-labelledby="cartModalLabel"
+        style="width: 100%; max-width: 500px; border-left: none;">
+        <div class="offcanvas-header border-bottom py-3 px-4 bg-light">
+            <h5 class="offcanvas-title fw-bold fs-4 mb-0 text-dark" id="cartModalLabel"><i
+                    class="fa-solid fa-box me-2 text-amber"></i>Seu Carrinho</h5>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas"
+                aria-label="Fechar"></button>
+        </div>
+        <div class="offcanvas-body p-4 custom-scrollbar">
+            <div id="cartItems" class="mb-4" aria-live="polite">
+                <p class="text-muted text-center my-4 py-4 bg-light rounded-4">Seu pedido está vazio.</p>
+            </div>
+
+            <div class="mb-4">
+                <span class="form-label fw-bold d-block text-dark">Modalidade de Consumo</span>
+                <div class="d-flex gap-2">
+                    <input type="radio" class="btn-check" name="deliveryMode" id="modeRetirada" value="retirada"
+                        autocomplete="off" checked onchange="toggleDeliveryFields()">
+                    <label class="btn btn-outline-amber rounded-pill flex-grow-1 fw-bold" for="modeRetirada"><i
+                            class="fa-solid fa-store me-1"></i> Retirada</label>
+
+                    <input type="radio" class="btn-check" name="deliveryMode" id="modeEntrega" value="entrega"
+                        autocomplete="off" onchange="toggleDeliveryFields()">
+                    <label class="btn btn-outline-amber rounded-pill flex-grow-1 fw-bold" for="modeEntrega"><i
+                            class="fa-solid fa-truck me-1"></i> Entrega</label>
                 </div>
-                <div class="modal-body p-4">
-                    <div id="cartItems" class="mb-4">
-                        <p class="text-muted text-center my-4 py-4 bg-light rounded-4">Seu pedido está vazio.</p>
+            </div>
+
+            <div class="checkout-fields mb-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="customerName" class="form-label fw-bold small text-muted text-uppercase">Nome
+                            Completo</label>
+                        <input type="text" id="customerName" class="form-control rounded-3 border-0 shadow-sm"
+                            oninput="updateCartUI()">
+                    </div>
+                    <div class="col-12">
+                        <label for="customerPhone" class="form-label fw-bold small text-muted text-uppercase">Telefone
+                            de Contato</label>
+                        <input type="tel" id="customerPhone" class="form-control rounded-3 border-0 shadow-sm" inputmode="numeric" autocomplete="tel">
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark">Modalidade de Consumo</label>
-                        <div class="d-flex gap-2">
-                            <input type="radio" class="btn-check" name="deliveryMode" id="modeRetirada" value="retirada"
-                                autocomplete="off" checked onchange="toggleDeliveryFields()">
-                            <label class="btn btn-outline-amber rounded-pill flex-grow-1 fw-bold" for="modeRetirada"><i
-                                    class="fa-solid fa-store me-1"></i> Retirada</label>
-
-                            <input type="radio" class="btn-check" name="deliveryMode" id="modeEntrega" value="entrega"
-                                autocomplete="off" onchange="toggleDeliveryFields()">
-                            <label class="btn btn-outline-amber rounded-pill flex-grow-1 fw-bold" for="modeEntrega"><i
-                                    class="fa-solid fa-truck me-1"></i> Entrega</label>
-                        </div>
-                    </div>
-
-                    <div class="checkout-fields mb-4">
+                    <!-- Campos de Endereço (Ocultos por padrão se for Retirada) -->
+                    <div id="deliveryAddressFields" style="display: none;">
                         <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Nome Completo</label>
-                                <input type="text" id="customerName" class="form-control rounded-3 border-0 shadow-sm"
-                                    data-msg="Informe nome e sobrenome válidos"
-                                    oninput="updateCartUI()">
-                                <div class="field-feedback small mt-1"></div>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Telefone de
-                                    Contato</label>
-                                <input type="tel" id="customerPhone" class="form-control rounded-3 border-0 shadow-sm"
-                                    maxlength="16" autocomplete="tel"
-                                    data-msg="Informe um telefone válido com DDD">
-                                <div class="field-feedback small mt-1"></div>
-                            </div>
-
-                            <div id="deliveryAddressFields" style="display: none;">
-                                <div class="row g-3">
-                                    <div class="col-md-5">
-                                        <label class="form-label fw-bold small text-muted text-uppercase">CEP</label>
-                                        <input type="text" id="deliveryCep"
-                                            class="form-control rounded-3 border-0 shadow-sm" maxlength="9"
-                                            placeholder="00000-000" data-msg="Informe um CEP válido (8 dígitos)"
-                                            onkeyup="checkCep(this)">
-                                        <div class="field-feedback small mt-1"></div>
-                                    </div>
-                                    <div class="col-md-7">
-                                        <label
-                                            class="form-label fw-bold small text-muted text-uppercase">Cidade/Bairro</label>
-                                        <input type="text" id="deliveryCity"
-                                            class="form-control rounded-3 border-0 shadow-sm bg-light" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-bold small text-muted text-uppercase">Rua /
-                                            Logradouro</label>
-                                        <input type="text" id="deliveryStreet"
-                                            class="form-control rounded-3 border-0 shadow-sm bg-light" readonly
-                                            data-msg="Informe o logradouro">
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="form-label fw-bold small text-muted text-uppercase">Nº</label>
-                                        <input type="text" id="deliveryNumber"
-                                            class="form-control rounded-3 border-0 shadow-sm" oninput="updateCartUI()"
-                                            data-msg="Informe o número">
-                                    </div>
-                                    <div class="col-8">
-                                        <label
-                                            class="form-label fw-bold small text-muted text-uppercase">Complemento</label>
-                                        <input type="text" id="deliveryNote"
-                                            class="form-control rounded-3 border-0 shadow-sm" oninput="updateCartUI()">
-                                    </div>
+                            <div class="col-md-5">
+                                <label for="deliveryCep"
+                                    class="form-label fw-bold small text-muted text-uppercase">CEP</label>
+                                <div class="input-group">
+                                    <input type="text" id="deliveryCep"
+                                        class="form-control rounded-start-3 border-0 shadow-sm" maxlength="9"
+                                        onkeyup="checkCep(this)">
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-light p-4 rounded-4 mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-secondary fw-semibold">Total de Itens:</span>
-                            <span class="fw-bold" id="summaryTrays">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-secondary fw-semibold">Total de Salgados:</span>
-                            <span class="fw-bold" id="summaryUnits">0</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-secondary fw-semibold">Subtotal:</span>
-                            <span class="fw-bold" id="cartSubtotal">R$ 0,00</span>
-                        </div>
-                        <div id="freightRow"
-                            class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom"
-                            style="display: none !important;">
-                            <span class="text-secondary fw-semibold">Taxa de Entrega:</span>
-                            <span class="fw-bold text-success" id="cartFreight">R$ 0,00</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="fw-bold mb-0 text-dark">Total a Pagar:</h5>
-                            <h3 class="fw-bold text-danger mb-0" id="cartTotal">R$ 0,00</h3>
-                        </div>
-                    </div>
-
-                    <div id="descritivoPedido" class="bg-light p-3 rounded-4 mb-4 border"
-                        style="font-size: 0.85rem; display: none;">
-                        <p class="mb-2">✅ <strong>RESUMO DO PEDIDO — FG Salgados</strong></p>
-                        <hr class="my-2">
-                        <p class="mb-1">👤 <strong>CLIENTE:</strong> <span id="resumoNome">...</span></p>
-                        <p class="mb-1">📍 <strong>LOCAL:</strong> <span id="resumoEnd">...</span></p>
-                        <p class="mb-1">📦 <strong>ÍTENS:</strong> <span id="resumoItens">...</span></p>
-                        <p class="mb-1">💳 <strong>PAGAMENTO:</strong> <span id="resumoPag">...</span></p>
-                        <p class="mb-0">💰 <strong>TOTAL: <span id="resumoTotal" class="text-danger">R$
-                                    0,00</span></strong></p>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark fs-6 mb-3">Forma de Pagamento</label>
-                        <div class="d-flex gap-2">
-                            <input type="radio" class="btn-check" name="paymentMethod" id="payPix" value="pix"
-                                autocomplete="off" checked onchange="togglePaymentMethod()">
-                            <label class="btn btn-outline-amber rounded-pill flex-grow-1 fw-bold" for="payPix"><i
-                                    class="fa-solid fa-qrcode me-1"></i> PIX</label>
-
-                            <input type="radio" class="btn-check" name="paymentMethod" id="payLocal" value="local"
-                                autocomplete="off" onchange="togglePaymentMethod()">
-                            <label class="btn btn-outline-amber rounded-pill flex-grow-1 fw-bold" for="payLocal"><i
-                                    class="fa-solid fa-handshake me-1"></i> No Local</label>
-                        </div>
-                    </div>
-
-                    <div id="pixPanel" class="p-4 rounded-4 bg-white shadow-sm border text-center mb-4"
-                        style="border-color: #32BCAD !important;">
-                        <h6 class="fw-bold text-dark mb-1">Pague com PIX</h6>
-
-                        <div id="pixStaticBlock">
-                            <p class="text-muted small mb-2">Escaneie o QR Code ou copie a chave abaixo e envie o valor
-                                total do pedido. Depois confirme enviando o pedido pelo WhatsApp.</p>
-                            <img src="./images/pix_qr_code.webp" alt="QR Code PIX FG Salgados"
-                                style="max-width: 220px; width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0 auto 14px; display: block;">
-                            <input type="text" id="pixKey"
-                                class="form-control rounded-3 border-0 shadow-sm text-center fw-bold mb-2"
-                                value="agsdelivery24@gmail.com">
-                            <button type="button" class="btn btn-amber rounded-pill px-4 py-2 fw-bold w-100"
-                                onclick="copyPixKey()"><i class="fa-solid fa-copy me-2"></i> Copiar Chave PIX</button>
-                        </div>
-
-                        <hr class="my-3">
-
-                        <div id="pixDynamicBlock" style="display: none;">
-                            <p class="text-muted small mb-2">Gere um QR Code PIX com o valor exato do seu pedido. Após
-                                o pagamento, o sistema confirma automaticamente.</p>
-                            <img id="pixDynamicQR" src="" alt="QR Code PIX dinâmico"
-                                style="max-width: 220px; width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0 auto 14px; display: none;">
-                            <div id="pixDynamicPlaceholder" class="py-3 text-muted small">
-                                <i class="fa-solid fa-qrcode me-1"></i> QR Code aparecerá aqui
+                            <div class="col-md-7">
+                                <label for="deliveryCity"
+                                    class="form-label fw-bold small text-muted text-uppercase">Cidade</label>
+                                <input type="text" id="deliveryCity"
+                                    class="form-control rounded-3 border-0 shadow-sm">
                             </div>
-                            <input type="text" id="pixDynamicCopy" readonly
-                                class="form-control rounded-3 border-0 shadow-sm text-center fw-bold mb-2"
-                                placeholder="PIX copia-e-cola">
-                            <div class="d-flex gap-2">
-                                <button type="button" id="btnGerarPix" class="btn btn-amber rounded-pill px-4 py-2 fw-bold flex-grow-1"
-                                    onclick="gerarPixDinamico()"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Gerar PIX</button>
-                                <button type="button" class="btn btn-light rounded-pill px-3 py-2 fw-bold border"
-                                    onclick="copiarPixDinamico()" title="Copiar código PIX"><i class="fa-solid fa-copy"></i></button>
+                            <div class="col-md-6">
+                                <label for="deliveryNeighborhood"
+                                    class="form-label fw-bold small text-muted text-uppercase">Bairro</label>
+                                <input type="text" id="deliveryNeighborhood"
+                                    class="form-control rounded-3 border-0 shadow-sm">
                             </div>
-                            <div id="pixStatus" class="mt-2 small fw-bold"></div>
+                            <div class="col-md-6">
+                                <label for="deliveryState"
+                                    class="form-label fw-bold small text-muted text-uppercase">Estado
+                                    (UF)</label>
+                                <input type="text" id="deliveryState"
+                                    class="form-control rounded-3 border-0 shadow-sm">
+                            </div>
+                            <div class="col-12">
+                                <label for="deliveryStreet"
+                                    class="form-label fw-bold small text-muted text-uppercase">Rua /
+                                    Logradouro</label>
+                                <input type="text" id="deliveryStreet"
+                                    class="form-control rounded-3 border-0 shadow-sm" placeholder="">
+                            </div>
+                            <div class="col-4">
+                                <label for="deliveryNumber"
+                                    class="form-label fw-bold small text-muted text-uppercase">Nº</label>
+                                <input type="text" id="deliveryNumber" class="form-control rounded-3 border-0 shadow-sm"
+                                    oninput="updateCartUI()">
+                            </div>
+                            <div class="col-8">
+                                <label for="deliveryNote"
+                                    class="form-label fw-bold small text-muted text-uppercase">Complemento</label>
+                                <input type="text" id="deliveryNote" class="form-control rounded-3 border-0 shadow-sm"
+                                    oninput="updateCartUI()">
+                            </div>
                         </div>
-                    </div>
-
-                    <div id="localPanel" class="p-4 rounded-4 bg-white shadow-sm border text-center mb-4"
-                        style="border-color: #D97706 !important; display: none;">
-                        <i class="fa-solid fa-handshake"
-                            style="font-size: 46px; color: #D97706; margin-bottom: 12px;"></i>
-                        <h6 class="fw-bold text-dark mb-1">Pagar no Local</h6>
-                        <p class="text-muted small mb-0">Pague em dinheiro ou PIX na hora da entrega ou retirada.</p>
-                    </div>
-
-                    <div class="mp-payment-container p-4 rounded-4 bg-white shadow-sm border text-center"
-                        style="border-color: #25D366 !important;">
-                        <i class="fa-brands fa-whatsapp"
-                            style="font-size: 46px; color: #25D366; margin-bottom: 12px;"></i>
-                        <h6 class="fw-bold text-dark mb-1">Pedido pelo WhatsApp</h6>
-                        <p class="text-muted small mb-0">Ao finalizar, você será direcionado ao WhatsApp da FG Salgados
-                            com o
-                            resumo completo do pedido e a forma de pagamento escolhida.</p>
-                    </div>
-
-                    <div class="form-check bg-light p-3 rounded-4 mb-4 border">
-                        <input class="form-check-input" type="checkbox" value="" id="confirmDados">
-                        <label class="form-check-label small text-dark fw-semibold" for="confirmDados">
-                            Declaro que meus dados (nome, telefone e endereço) estão corretos e concordo em receber a
-                            confirmação do pedido pelo WhatsApp.
-                        </label>
-                        <div class="field-feedback small mt-1"></div>
                     </div>
                 </div>
-                <div class="modal-footer border-top-0 pt-0 pb-4 px-4 d-flex flex-column flex-sm-row gap-2">
-                    <button type="button" class="btn btn-light rounded-pill px-4 py-2 w-100 fw-bold border"
-                        data-bs-dismiss="modal">Continuar Comprando</button>
-                    <button id="btnFinalizar" type="button"
-                        class="btn rounded-pill px-4 py-2 w-100 fw-bold m-0 shadow-sm btn-whatsapp"
-                        onclick="checkout()" disabled><i class="fa-brands fa-whatsapp me-2"></i> Finalizar no WhatsApp</button>
+            </div>
+
+            <div class="p-4 rounded-4 mb-4 checkout-summary bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-secondary fw-semibold">Total de Salgados:</span>
+                    <span class="fw-bold text-dark" id="summaryUnits">0</span>
                 </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-secondary fw-semibold">Subtotal:</span>
+                    <span class="fw-bold price-vibrant text-dark" id="cartSubtotal">R$ 0,00</span>
+                </div>
+                <div id="freightRow" class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom"
+                    style="display: none !important;">
+                    <span class="text-secondary fw-semibold">Taxa de Entrega:</span>
+                    <span class="fw-bold price-vibrant text-dark" id="cartFreight">R$ 0,00</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Total a Pagar:</h5>
+                    <h3 class="fw-black mb-0 price-total text-danger" id="cartTotal"
+                        style="font-size: 1.8rem; font-weight: 900;">R$ 0,00</h3>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <span class="form-label fw-bold fs-5 mb-3 d-block text-dark">Forma de Pagamento</span>
+
+                <div id="descritivoPedido" class="p-3 rounded-4 mb-4 border checkout-summary bg-light"
+                    style="font-size: 0.85rem; display: none;">
+                    <p class="mb-2">✅ <strong>RESUMO DO PEDIDO — FG Salgados</strong></p>
+                    <hr class="my-2">
+                    <p class="mb-1">👤 <strong>CLIENTE:</strong> <span id="resumoNome">...</span></p>
+                    <p class="mb-1">📍 <strong>LOCAL:</strong> <span id="resumoEnd">...</span></p>
+                    <p class="mb-1">📦 <strong>ÍTENS:</strong> <span id="resumoItens">...</span></p>
+                    <p class="mb-0">💰 <strong>TOTAL: <span id="resumoTotal"
+                                class="fw-black text-danger">R$ 0,00</span></strong></p>
+                </div>
+
+                <div id="paymentBrick_container" class="mt-3"></div>
+                <input type="hidden" id="paymentMethod" value="mercadopago">
+            </div>
+        </div>
+        <div class="offcanvas-footer border-top p-4 bg-white shadow-sm"
+            style="position: sticky; bottom: 0; z-index: 10;">
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <button type="button" class="btn btn-light rounded-pill px-4 py-3 w-100 fw-bold border text-secondary"
+                    data-bs-dismiss="offcanvas">Voltar ao Cardápio</button>
+                <button id="btnFinalizar" type="button" class="btn rounded-pill px-4 py-3 w-100 fw-bold m-0 shadow-sm"
+                    style="background-color: #009EE3; color: white;" onclick="checkout()"><i
+                        class="fa-solid fa-lock me-2"></i> Ir para Pagamento</button>
             </div>
         </div>
     </div>
@@ -440,9 +382,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-    <script src="menuData.js?v=14"></script>
-    <script src="config.js"></script>
-    <script type="module" src="src/main.js?v=21"></script>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script>
+        window.MP_PUBLIC_KEY = "APP_USR-ccddbea8-7479-47a1-892b-3b74ca21fc89";
+        window.CHECKOUT_URL = "https://agsdelivery.com.br/checkout_transparente.php";
+    </script>
+    <script src="config.js?v=36"></script>
+    <script src="menuData.js?v=36"></script>
+    <script type="module" src="src/main.js?v=36"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
