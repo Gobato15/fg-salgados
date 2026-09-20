@@ -369,3 +369,4 @@ window.copyPixUnica = copyPixUnica;
 window.toggleDeliveryFields = toggleDeliveryFields;
 window.checkCep = checkCep;
 window.openMyOrders = openMyOrders;
+window.updateCartUI = updateCartUI;
