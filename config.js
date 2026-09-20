@@ -1,22 +1,17 @@
 /* ============================================================================
  * FG SALGADOS — Configuração da API (PIX dinâmico + cardápio + uploads)
  *
- * Preencha FG_CONFIG.pixApiUrl com a URL pública do backend
- * (ex.: https://fg-salgados-api.onrender.com/api) e carregue este arquivo
- * ANTES dos scripts que usam a API.
- *
- * O que esta URL controla:
- *   - PIX: POST /api/pix -> QR Code dinâmico por pedido.
- *   - Cardápio: GET /api/menu -> produtos (base menuData.js + edições da
+ * FG_CONFIG.pixApiUrl:
+ *   - POST /api/pix          -> QR Code dinâmico por pedido.
+ *   - GET  /api/menu         -> produtos (base menuData.js + edições da
  *     área restrita). O site cacheia e usa offline se a API cair.
- *   - Área restrita: login, CRUD de produtos e upload de imagens.
+ *   - Área restrita          -> login, CRUD de produtos e upload de imagens.
  *
- * Se ficar vazio, o site usa o QR Code PIX e o cardápio padrão (nada quebra),
- * e a área restrita avisa que a API não está configurada.
+ * Em produção (www.fgsalgados.com.br) o backend usa o MySQL da Hostinger.
+ * Quando aberto em http://localhost:3000 (teste local), usa a API local.
  * ========================================================================== */
 window.FG_CONFIG = {
-    // TEMPORÁRIO (teste local): backend rodando nesta máquina na porta 3000.
-    // Para produção (site público/todos os visitantes), troque para a URL
-    // pública do backend, ex.: https://fg-salgados-api.onrender.com/api
-    pixApiUrl: 'http://localhost:3000/api'
+    pixApiUrl: (window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+        ? 'http://localhost:3000/api'
+        : 'https://www.fgsalgados.com.br/api'
 };

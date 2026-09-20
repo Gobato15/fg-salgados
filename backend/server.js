@@ -36,9 +36,17 @@ const configured = !!MP_ACCESS_TOKEN;
 const MP_API = 'https://api.mercadopago.com';
 
 /* ------------------------- Middlewares ------------------------- */
-// Só aceita requisições vindas do nosso site (GitHub Pages).
+// Só aceita requisições vindas do nosso site (GitHub Pages ou domínio próprio).
+// ALLOWED_ORIGIN pode receber várias origens separadas por vírgula.
+const allowedOrigins = String(ALLOWED_ORIGIN || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
 app.use(cors({
-    origin: ALLOWED_ORIGIN || true,
+    origin: allowedOrigins.length > 0
+        ? (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin))
+        : true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
