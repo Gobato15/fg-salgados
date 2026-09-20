@@ -15,6 +15,6 @@
  * e a área restrita avisa que a API não está configurada.
  * ========================================================================== */
 window.FG_CONFIG = {
-    pixApiUrl: 'http://localhost:3000/api', // Altere para a URL pública quando publicar o backend no Render, Railway, etc.
+    pixApiUrl: 'https://agsdelivery.com.br/api', // Conectado à mesma infraestrutura da AGS Delivery
     apiBase: 'https://agsdelivery.com.br'
 };
