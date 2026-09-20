@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
-const menuData = require('../menuData.js');
+const seedProducts = require('./seed_products');
 
 async function seed() {
     console.log("Conectando ao MySQL...");
@@ -10,9 +10,10 @@ async function seed() {
         password: process.env.DB_PASS || '',
     });
 
-    console.log("Criando banco de dados mau07755_fg_produtos se não existir...");
-    await connection.query('CREATE DATABASE IF NOT EXISTS mau07755_fg_produtos;');
-    await connection.query('USE mau07755_fg_produtos;');
+    const dbName = process.env.DB_NAME || 'mau07755_fg_produtos';
+    console.log(`Criando banco de dados ${dbName} se não existir...`);
+    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+    await connection.query(`USE \`${dbName}\`;`);
 
     console.log("Criando tabela fg_produtos...");
     await connection.query(`
@@ -37,26 +38,27 @@ async function seed() {
     console.log("Limpando dados antigos...");
     await connection.query('TRUNCATE TABLE fg_produtos;');
 
-    console.log("Inserindo produtos do menuData.js...");
+    console.log("Inserindo produtos da FG Salgados...");
     let ordem = 1;
-    for (const item of menuData) {
-        let precoNum = parseFloat(String(item.price).replace(',', '.'));
-        if (isNaN(precoNum)) precoNum = 0;
-        
-        // Remove text like 'p' from ID if exists, though auto_increment will ignore it
+    for (const p of seedProducts) {
         await connection.query(`
-            INSERT INTO fg_produtos (nome, categoria, preco, descricao, foto, ordem, ativo)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO fg_produtos (nome, categoria, preco, descricao, foto, itemPromocao, qtd, diasPromocao, descontoPromo, ativo, ordem)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
-            item.name, 
-            item.category || 'fritos', 
-            precoNum, 
-            item.desc || item.description || '', 
-            item.image || '', 
-            ordem++,
-            1
+            p.nome,
+            p.categoria || 'fritos',
+            Number(p.preco) || 0,
+            p.descricao || '',
+            p.foto || '',
+            p.itemPromocao ? 1 : 0,
+            p.qtd || 1,
+            p.diasPromocao || '',
+            Number(p.descontoPromo) !== 0 ? p.descontoPromo : 1.00,
+            p.ativo !== 0 ? 1 : 0,
+            p.ordem || ordem
         ]);
-        console.log(`Inserido: ${item.name}`);
+        console.log(`Inserido: ${p.nome}`);
+        ordem++;
     }
 
     console.log("Finalizado com sucesso!");

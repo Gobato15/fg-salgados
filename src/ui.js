@@ -7,7 +7,11 @@ const categoryLabels = {
     'fritos': '🍗 Salgados Fritos',
     'assados': '🥐 Salgados Assados',
     'burgers': '🍔 Lanches / Hambúrgueres',
-    'pacotes': '📦 Pacotes com 6 e 1 Unidade'
+    'pacotes': '📦 Pacotes com 6 e 1 Unidade',
+    'coxinha': '🍗 Coxinhas',
+    'croissant': '🥐 Croissants',
+    'lanches': '🥪 Lanches Naturais',
+    'salgados': '🥖 Salgados'
 };
 
 export function getWhatsNumber() {

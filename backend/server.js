@@ -13,6 +13,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const fs = require('fs');
 const path = require('path');
 const pool = require('./db');
 
@@ -398,7 +399,8 @@ app.post('/api/pix', async (req, res) => {
         return res.status(429).json({ error: 'Muitas tentativas. Aguarde um instante e tente de novo.' });
     }
 
-    const { error, label, items, amount } = validatePayload(req.body);
+    const menuItems = await getMergedMenu(false);
+    const { error, label, items, amount } = validatePayload(req.body, menuItems);
     if (error) return res.status(400).json({ error });
 
     const externalReference = `FG-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
