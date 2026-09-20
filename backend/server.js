@@ -26,7 +26,7 @@ const PUBLIC_URL = (process.env.PUBLIC_URL || '').trim().replace(/\/+$/, '');
 const WEBHOOK_SECRET = (process.env.WEBHOOK_SECRET || '').trim();
 const ALLOWED_ORIGIN = (process.env.ALLOWED_ORIGIN || '').trim();
 const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '1031').trim();
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'admin@fgsalgados.com.br').trim().toLowerCase();
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'gobato59@gmail.com').trim().toLowerCase();
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 const IS_SANDBOX = MP_ENV === 'sandbox';

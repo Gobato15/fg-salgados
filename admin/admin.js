@@ -84,7 +84,10 @@ async function tryLogin() {
     const inputEmail = document.getElementById('loginEmail');
     const pass = inputPass ? inputPass.value : '';
     const email = inputEmail ? inputEmail.value.trim() : '';
-    if (!pass || !email) return;
+    if (!pass || !email) {
+        showLoginError('Por favor, informe o e-mail e a senha.');
+        return;
+    }
     try {
         const data = await apiReq('/admin/login', { method: 'POST', body: JSON.stringify({ email, password: pass }) });
         sessionStorage.setItem('fg_admin_token', data.token);
