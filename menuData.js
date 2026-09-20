@@ -1,4 +1,4 @@
-window.fgMenuItems = [
+const fgMenuItems = [
     // ── PACOTES COM 6 UNIDADES ────────────────────────────────────────────────
     {
         id: "p1",
@@ -82,3 +82,10 @@ window.fgMenuItems = [
         units: 1
     }
 ]
+
+if (typeof window !== 'undefined') {
+    window.fgMenuItems = fgMenuItems;
+}
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = fgMenuItems;
+}

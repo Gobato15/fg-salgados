@@ -13,6 +13,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const menuData = require('../menuData');
 
 const app = express();
 
@@ -23,6 +26,10 @@ const MP_ENV = (process.env.MP_ENV || 'production').trim().toLowerCase();
 const PUBLIC_URL = (process.env.PUBLIC_URL || '').trim().replace(/\/+$/, '');
 const WEBHOOK_SECRET = (process.env.WEBHOOK_SECRET || '').trim();
 const ALLOWED_ORIGIN = (process.env.ALLOWED_ORIGIN || '').trim();
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '1031').trim();
+const DATA_DIR = path.join(__dirname, 'data');
+const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 const IS_SANDBOX = MP_ENV === 'sandbox';
 const configured = !!MP_ACCESS_TOKEN;
@@ -33,13 +40,15 @@ const MP_API = 'https://api.mercadopago.com';
 // Só aceita requisições vindas do nosso site (GitHub Pages).
 app.use(cors({
     origin: ALLOWED_ORIGIN || true,
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
 app.use(express.json({ limit: '50kb' }));
 
 // Proteção simples contra requisições com corpo anormal (webhook envia JSON curto).
+// O upload de imagem é a exceção: o corpo é o arquivo de imagem, não JSON.
 app.use((req, res, next) => {
+    if (req.path === '/api/admin/upload') return next();
     if (req.method === 'POST' && req.headers['content-type'] && !req.headers['content-type'].includes('application/json')) {
         return res.status(415).json({ error: 'Content-Type deve ser application/json' });
     }
@@ -73,6 +82,93 @@ function sanitizeText(str, max = 200) {
     return String(str == null ? '' : str).replace(/[\r\n]+/g, ' ').trim().slice(0, max);
 }
 
+/* ------------------------- Cardápio e área restrita ------------------------- */
+
+function ensureDataDirs() {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+ensureDataDirs();
+
+function readStore() {
+    try {
+        return JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'));
+    } catch (e) {
+        return { products: {}, deleted: [] };
+    }
+}
+
+function writeStore(store) {
+    const tmp = PRODUCTS_FILE + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(store, null, 2));
+    fs.renameSync(tmp, PRODUCTS_FILE);
+}
+
+function normalizeItem(it) {
+    return {
+        id: String(it.id || ''),
+        name: sanitizeText(it.name, 120),
+        price: Number(it.price) || 0,
+        units: Math.max(1, parseInt(it.units, 10) || 1),
+        category: String(it.category || 'fritos').trim() || 'fritos',
+        desc: sanitizeText(it.desc || it.description, 500),
+        image: String(it.image || '').trim(),
+        active: it.active !== false,
+    };
+}
+
+// Cardápio final = base (menuData.js) + edições persistidas − produtos excluídos.
+function getMergedMenu(includeInactive = false) {
+    const store = readStore();
+    const deleted = new Set(store.deleted || []);
+    const saved = store.products || {};
+
+    const out = (menuData || []).map(it => normalizeItem({ ...it, desc: it.desc || it.description }));
+
+    Object.keys(saved).forEach((id) => {
+        if (deleted.has(id)) return;
+        const norm = normalizeItem(saved[id]);
+        const idx = out.findIndex(o => o.id === id);
+        if (idx >= 0) out[idx] = { ...out[idx], ...norm };
+        else out.push(norm);
+    });
+
+    return out
+        .filter(it => it.id && it.image && !deleted.has(it.id))
+        .filter(it => includeInactive || it.active);
+}
+
+/* Sessões do administrador (em memória, expiram após 12h). */
+const sessions = new Map();
+const SESSION_TTL = 12 * 60 * 60 * 1000;
+function createAdminToken() {
+    const token = crypto.randomBytes(24).toString('hex');
+    sessions.set(token, Date.now() + SESSION_TTL);
+    return token;
+}
+function requireAdmin(req, res, next) {
+    const header = (req.headers.authorization || '');
+    const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+    const expiresAt = sessions.get(token);
+    if (!expiresAt || expiresAt < Date.now()) {
+        sessions.delete(token);
+        return res.status(401).json({ error: 'Sessão expirada. Entre novamente.' });
+    }
+    next();
+}
+setInterval(() => {
+    const now = Date.now();
+    sessions.forEach((exp, token) => { if (exp < now) sessions.delete(token); });
+}, 60 * 60 * 1000);
+
+function secureEqualHex(a, b) {
+    try {
+        return crypto.timingSafeEqual(Buffer.from(String(a), 'hex'), Buffer.from(String(b), 'hex'));
+    } catch (e) {
+        return false;
+    }
+}
+
 function buildDescription(items) {
     if (Array.isArray(items) && items.length) {
         return items
@@ -86,31 +182,53 @@ function buildDescription(items) {
 
 /* ------------------------- Validação de entrada ------------------------- */
 // Nunca confie no que o navegador envia: o total é recalculado no servidor
-// a partir de uma tabela de preços. Como este backend não tem o cardápio,
-// exigimos envio assinado é inviável sem DB. Aqui limitamos o escopo:
-// o total enviado é aceito dentro de limites plausíveis e com poucos itens.
 function validatePayload(body) {
     if (!body || typeof body !== 'object') return { error: 'Corpo inválido' };
 
     const label = sanitizeText(body.label, 60) || 'Pedido FG Salgados';
     const items = Array.isArray(body.items) ? body.items.slice(0, 20) : [];
-    const amountRaw = Number(body.amount);
-    const amount = Number.isFinite(amountRaw) ? Math.round(amountRaw * 100) / 100 : 0;
-
-    if (items.length === 0 && !(amount > 0)) {
-        return { error: 'Informe os itens ou um valor maior que zero' };
+    
+    if (items.length === 0) {
+        return { error: 'Informe os itens do pedido' };
     }
-    if (!(amount > 0)) {
-        // Recalcula a partir dos itens (o preço já vem do cardápio do site).
-        const sum = items.reduce((acc, i) => acc + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
-        const computed = Math.round(sum * 100) / 100;
-        if (!(computed > 0)) return { error: 'Valor do pedido inválido' };
-        return { label, items, amount: computed };
-    }
-    // Travas: valores negativos/absurdos são bloqueados.
-    if (amount > 5000) return { error: 'Valor acima do limite' };
 
-    return { label, items, amount };
+    let calculatedAmount = 0;
+    const validatedItems = [];
+
+    for (const item of items) {
+        // Buscar o preço real no cardápio do servidor
+        const menuItem = menuData.find(m => m.id === item.id);
+        if (!menuItem) {
+            return { error: `Item inválido ou não encontrado: ${item.id}` };
+        }
+        
+        const quantity = Number(item.quantity) || 1;
+        if (quantity <= 0 || quantity > 100) {
+            return { error: 'Quantidade de itens inválida' };
+        }
+
+        calculatedAmount += menuItem.price * quantity;
+        
+        validatedItems.push({
+            id: menuItem.id,
+            name: menuItem.name,
+            quantity: quantity,
+            price: menuItem.price
+        });
+    }
+
+    // Aceita a taxa de entrega enviada pelo cliente (com limites de segurança)
+    const deliveryFee = Number(body.deliveryFee) || 0;
+    if (deliveryFee < 0 || deliveryFee > 100) {
+        return { error: 'Taxa de entrega inválida' };
+    }
+
+    calculatedAmount += deliveryFee;
+    const amount = Math.round(calculatedAmount * 100) / 100;
+
+    if (amount <= 0 || amount > 5000) return { error: 'Valor do pedido inválido ou acima do limite' };
+
+    return { label, items: validatedItems, amount };
 }
 
 /* ------------------------- Mercado Pago ------------------------- */
@@ -169,6 +287,99 @@ app.get('/api/health', (req, res) => {
         time: new Date().toISOString(),
     });
 });
+
+/* ------------------------- Cardápio público ------------------------- */
+
+// Cardápio que o site usa (somente produtos ativos).
+app.get('/api/menu', (req, res) => {
+    res.json({ ok: true, items: getMergedMenu(false), updatedAt: Date.now() });
+});
+
+/* ------------------------- Área restrita (admin) ------------------------- */
+
+// Login com a senha de administração; devolve um token de sessão.
+app.post('/api/admin/login', (req, res) => {
+    if (rateLimit(`admin-login:${clientIp(req)}`, 8, 60 * 1000)) {
+        return res.status(429).json({ error: 'Muitas tentativas. Aguarde um instante.' });
+    }
+    const pass = String((req.body && req.body.password) || '');
+    const expected = crypto.createHmac('sha256', ADMIN_PASSWORD).update('fg-admin').digest('hex');
+    const got = crypto.createHmac('sha256', pass).update('fg-admin').digest('hex');
+    if (!pass || !secureEqualHex(got, expected)) {
+        return res.status(401).json({ error: 'Senha incorreta.' });
+    }
+    res.json({ ok: true, token: createAdminToken(), expiresIn: Math.round(SESSION_TTL / 1000) });
+});
+
+// Lista todos os produtos (incluindo inativos) para edição.
+app.get('/api/admin/products', requireAdmin, (req, res) => {
+    res.json({ ok: true, items: getMergedMenu(true) });
+});
+
+// Cria ou atualiza um produto (upsert pelo id).
+app.post('/api/admin/products', requireAdmin, (req, res) => {
+    const b = req.body || {};
+    const id = String(b.id || '').trim();
+    if (!/^[A-Za-z0-9_-]{1,40}$/.test(id)) {
+        return res.status(400).json({ error: 'ID de produto inválido.' });
+    }
+    const item = normalizeItem({ ...b, id });
+    if (!item.name || item.price <= 0) {
+        return res.status(400).json({ error: 'Nome e preço válidos são obrigatórios.' });
+    }
+    if (!/^https?:|^(\.\/)?images\//i.test(item.image)) {
+        return res.status(400).json({ error: 'Imagem inválida.' });
+    }
+    const store = readStore();
+    store.products[id] = item;
+    const idx = (store.deleted || []).indexOf(id);
+    if (idx >= 0) store.deleted.splice(idx, 1);
+    writeStore(store);
+    return res.json({ ok: true, item });
+});
+
+// Exclui um produto (marca como removido mesmo se ele vier do menuData.js).
+app.delete('/api/admin/products/:id', requireAdmin, (req, res) => {
+    const id = String(req.params.id || '').trim();
+    if (!/^[A-Za-z0-9_-]{1,40}$/.test(id)) {
+        return res.status(400).json({ error: 'ID de produto inválido.' });
+    }
+    const store = readStore();
+    delete store.products[id];
+    if (!store.deleted.includes(id)) store.deleted.push(id);
+    writeStore(store);
+    return res.json({ ok: true, id });
+});
+
+// Upload de imagem de produto. Envie o arquivo cru (multipart-driven via um POST
+// com Content-Type = imagem, ex.: image/webp) e receba a URL pública de volta.
+const UPLOAD_EXT = {
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+};
+app.post(
+    '/api/admin/upload',
+    requireAdmin,
+    express.raw({ type: Object.keys(UPLOAD_EXT), limit: '10mb' }),
+    (req, res) => {
+        const ctype = String(req.headers['content-type'] || '').toLowerCase();
+        const ext = UPLOAD_EXT[ctype.split(';')[0].trim()];
+        const bytes = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+        if (!ext || bytes.length === 0) {
+            return res.status(415).json({ error: 'Envie uma imagem PNG, JPG, WEBP ou GIF.' });
+        }
+        const fname = `prod_${Date.now()}_${crypto.randomBytes(3).toString('hex')}.${ext}`;
+        fs.writeFileSync(path.join(UPLOADS_DIR, fname), bytes);
+        const base = PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
+        return res.json({ ok: true, url: `${base}/uploads/${fname}`, name: fname });
+    }
+);
+
+// Serve as imagens enviadas pela área restrita.
+app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '7d' }));
 
 // Cria uma cobrança PIX dinâmica.
 app.post('/api/pix', async (req, res) => {

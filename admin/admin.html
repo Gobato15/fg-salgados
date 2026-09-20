@@ -19,11 +19,7 @@
         <div class="login-card">
             <div class="brand-chip"><i class="fa-solid fa-snowflake"></i> FG Salgados</div>
             <h3 class="fw-bold text-dark mb-4">Área Restrita</h3>
-            <div class="text-start mb-1"><label for="loginEmail" class="form-label small fw-bold text-muted mb-1">E-mail</label></div>
-            <input type="email" id="loginEmail" class="form-control rounded-pill py-2 mb-3"
-                autocomplete="off"
-                onkeydown="if(event.key==='Enter')tryLogin()">
-            <div class="text-start mb-1"><label for="loginPass" class="form-label small fw-bold text-muted mb-1">Senha</label></div>
+            <div class="text-start mb-1"><label for="loginPass" class="form-label small fw-bold text-muted mb-1">Senha de acesso</label></div>
             <input type="password" id="loginPass" class="form-control rounded-pill py-2 mb-3"
                 onkeydown="if(event.key==='Enter')tryLogin()">
             <button type="button" class="btn btn-amber w-100 rounded-pill fw-bold py-2" onclick="tryLogin()">
@@ -140,10 +136,14 @@
 
             <section id="tab-senha" class="tab-section d-none">
                 <div class="bg-white rounded-4 shadow-sm p-4" style="max-width: 600px;">
-                    <h5 class="fw-bold mb-3">Trocar Senha</h5>
-                    <input type="password" id="newPass1" class="form-control rounded-3 mb-2" placeholder="Nova senha">
-                    <input type="password" id="newPass2" class="form-control rounded-3 mb-3" placeholder="Confirmar nova senha">
-                    <button type="button" class="btn btn-amber rounded-pill fw-bold w-100" onclick="changePassword()">Salvar Senha</button>
+                    <h5 class="fw-bold mb-3">Senha de Acesso</h5>
+                    <div class="alert alert-warning small mb-0">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>
+                        A senha desta área restrita é definida na variável
+                        <code>ADMIN_PASSWORD</code> dos servidores do backend
+                        (arquivo <code>.env</code> no Render/Railway). Edite lá,
+                        reinicie o serviço e use a nova senha aqui.
+                    </div>
                 </div>
             </section>
 
@@ -155,7 +155,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="../menuData.js"></script>
-    <script src="./admin.js?v=4"></script>
+    <script src="../config.js"></script>
+    <script src="./admin.js?v=5"></script>
 </body>
 
 </html>

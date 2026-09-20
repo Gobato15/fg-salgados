@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -67,23 +67,21 @@
 
                 <div class="d-flex align-items-center gap-2">
                     <a href="admin/admin.html"
-                        class="btn btn-outline-amber rounded-pill fw-bold d-flex align-items-center gap-2"
-                        style="font-size: 0.75rem; padding: 5px 10px;">
+                        class="btn btn-outline-amber rounded-pill fw-bold d-flex align-items-center gap-2 btn-sm-custom">
                         <i class="fa-solid fa-lock"></i> <span class="d-none d-md-inline">Acesso Restrito</span>
                     </a>
                     <button type="button" onclick="openMyOrders()"
-                        class="btn btn-outline-dark rounded-pill fw-bold d-flex align-items-center gap-2"
-                        style="font-size: 0.75rem; border-color: rgba(0,0,0,0.1); padding: 5px 10px;"
+                        class="btn btn-outline-dark rounded-pill fw-bold d-flex align-items-center gap-2 btn-sm-custom btn-outline-dark-custom"
                         title="Meus Pedidos">
                         <i class="fa-solid fa-clock-rotate-left"></i> <span class="d-none d-md-inline">Meus
                             Pedidos</span>
                     </button>
                     <button class="cart-header-btn bg-transparent border-0 position-relative p-2" data-bs-toggle="modal"
                         data-bs-target="#cartModal" aria-label="Abrir Carrinho">
-                        <i class="fa-solid fa-box text-dark" style="font-size: 1.6rem;"></i>
+                        <i class="fa-solid fa-box text-dark cart-icon-lg"></i>
                         <span
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
-                            id="cartCount" style="font-size: 0.65rem;">0</span>
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm cart-badge"
+                            id="cartCount">0</span>
                     </button>
                 </div>
             </div>
@@ -108,8 +106,7 @@
             <h1 class="display-4 fw-bold mb-4 hero-title editable" id="heroTitle" data-field="title">
                 Salgados <span class="text-gradient">congelados e práticos</span>. Tire do freezer e prepare!
             </h1>
-            <p class="lead text-muted mx-auto mb-4 hero-desc editable" id="heroDesc" data-field="desc"
-                style="max-width: 680px;">
+            <p class="lead text-muted mx-auto mb-4 hero-desc editable hero-desc-custom" id="heroDesc" data-field="desc">
                 Coxinhas, Croissants, Tortas, Baurus, X-Lanches e Bolos Salgados. Tudo congelado por unidade —
                 direto ao Forno em 25 minutos 180 à 230C° !
             </p>
@@ -445,7 +442,7 @@
         crossorigin="anonymous"></script>
     <script src="menuData.js?v=14"></script>
     <script src="config.js"></script>
-    <script src="script.js?v=21"></script>
+    <script type="module" src="src/main.js?v=21"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

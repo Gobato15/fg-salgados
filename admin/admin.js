@@ -1,13 +1,5 @@
-const AUTH_KEY = 'fg_admin_auth';
-const RATE_KEY = 'fg_admin_rate';
 const ORDERS_KEY = 'fg_admin_orders';
 const MOVEMENTS_KEY = 'fg_admin_movimentos';
-const SITE_KEY = 'fg_salgados_v9';
-const DEFAULT_PASSWORD = '1031';
-const DEFAULT_EMAIL = 'gobato59@gmail.com';
-const AUTH_VERSION = 2;
-const MAX_ATTEMPTS = 5;
-const LOCK_MINUTES = 15;
 const INACTIVITY_MINUTES = 30;
 
 const STATUSES = {
@@ -30,38 +22,29 @@ function writeJSON(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
 
-async function sha256(str) {
-    const data = new TextEncoder().encode(str);
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+/* ------------------------- API (backend) ------------------------- */
+
+function apiBase() {
+    const cfg = window.FG_CONFIG || {};
+    return String(cfg.pixApiUrl || '').trim().replace(/\/+$/, '');
 }
 
-function fallbackHash(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) {
-        h = ((h << 5) - h) + str.charCodeAt(i);
-        h |= 0;
+async function apiReq(path, opts = {}) {
+    const base = apiBase();
+    if (!base) throw new Error('API não configurada. Defina FG_CONFIG.pixApiUrl em config.js.');
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+    const token = sessionStorage.getItem('fg_admin_token');
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(base + path, Object.assign({}, opts, { headers }));
+    if (res.status === 401) {
+        logout();
+        const err = new Error('Sessão expirada. Entre novamente.');
+        err.silent = true;
+        throw err;
     }
-    return 'h' + h;
-}
-
-async function hashPass(str) {
-    if (window.crypto && crypto.subtle && crypto.subtle.digest) return sha256(str);
-    return fallbackHash(str);
-}
-
-function randomSalt() {
-    const bytes = new Uint8Array(16);
-    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(bytes);
-    else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
-    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function safeEqual(a, b) {
-    if (!a || !b || a.length !== b.length) return false;
-    let diff = 0;
-    for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-    return diff === 0;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Erro ${res.status} na requisição.`);
+    return data;
 }
 
 function showToast(message) {
@@ -85,84 +68,23 @@ function showLoginError(message) {
     el.classList.remove('d-none');
 }
 
-async function initAuth() {
-    const auth = readJSON(AUTH_KEY, null);
-    if (!auth || auth.version !== AUTH_VERSION) {
-        const salt = randomSalt();
-        writeJSON(AUTH_KEY, {
-            version: AUTH_VERSION,
-            salt: salt,
-            hash: await hashPass(DEFAULT_PASSWORD + ':' + salt),
-            mustChange: false
-        });
-    }
-}
-
-function checkRateLimit() {
-    const rate = readJSON(RATE_KEY, { attempts: 0, locked_until: 0 });
-    const now = Date.now();
-    if (rate.locked_until > now) {
-        const min = Math.ceil((rate.locked_until - now) / 60000);
-        return { blocked: true, min: min };
-    }
-    return { blocked: false, min: 0 };
-}
-
-function recordFailedAttempt() {
-    const rate = readJSON(RATE_KEY, { attempts: 0, locked_until: 0 });
-    rate.attempts = (rate.attempts || 0) + 1;
-    rate.last_attempt = Date.now();
-    if (rate.attempts >= MAX_ATTEMPTS) {
-        rate.locked_until = Date.now() + LOCK_MINUTES * 60 * 1000;
-        rate.attempts = 0;
-    }
-    writeJSON(RATE_KEY, rate);
-}
-
-function resetRateLimit() {
-    writeJSON(RATE_KEY, { attempts: 0, locked_until: 0 });
-}
-
 async function tryLogin() {
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    const input = document.getElementById('loginPass').value;
-    if (!email || !input) return;
-
-    const limit = checkRateLimit();
-    if (limit.blocked) {
-        showLoginError(`🔒 Muitas tentativas inválidas! Acesso bloqueado. Tente novamente em ${limit.min} minuto(s).`);
-        return;
-    }
-
-    const auth = readJSON(AUTH_KEY, {});
-    let ok = email === DEFAULT_EMAIL.toLowerCase();
-    if (ok && auth.salt && auth.hash) {
-        ok = safeEqual(await hashPass(input + ':' + auth.salt), auth.hash);
-    } else if (ok && auth.hash) {
-        ok = safeEqual(await hashPass(input), auth.hash);
-    }
-
-    if (ok) {
-        resetRateLimit();
+    const input = document.getElementById('loginPass');
+    const pass = input ? input.value : '';
+    if (!pass) return;
+    try {
+        const data = await apiReq('/admin/login', { method: 'POST', body: JSON.stringify({ password: pass }) });
+        sessionStorage.setItem('fg_admin_token', data.token);
         sessionStorage.setItem('fg_admin_logged', '1');
+        if (input) input.value = '';
         showPanel();
-        if (auth.mustChange) {
-            showToast('Troque a senha padrão agora!');
-            switchTab('senha');
-        }
-    } else {
-        recordFailedAttempt();
-        const limit2 = checkRateLimit();
-        if (limit2.blocked) {
-            showLoginError(`🔒 Acesso bloqueado por excesso de tentativas! Tente novamente em ${limit2.min} minutos.`);
-        } else {
-            showLoginError('E-mail ou senha incorretos.');
-        }
-        document.getElementById('loginPass').value = '';
+    } catch (e) {
+        if (!e.silent) showLoginError(e.message);
     }
 }
 
 function logout() {
+    sessionStorage.removeItem('fg_admin_token');
     sessionStorage.removeItem('fg_admin_logged');
     location.reload();
 }
@@ -170,7 +92,7 @@ function logout() {
 function showPanel() {
     document.getElementById('loginScreen').classList.add('d-none');
     document.getElementById('panelScreen').classList.remove('d-none');
-    renderProducts();
+    refreshProducts();
     renderOrders();
     renderMovements();
     startInactivityWatch();
@@ -188,24 +110,12 @@ function startInactivityWatch() {
     }, 60000);
 }
 
-async function changePassword() {
-    const p1 = document.getElementById('newPass1').value;
-    const p2 = document.getElementById('newPass2').value;
-    if (!p1 || p1.length < 4) return showToast('Senha deve ter ao menos 4 caracteres!');
-    if (p1 !== p2) return showToast('As senhas não conferem!');
-    const salt = randomSalt();
-    writeJSON(AUTH_KEY, { version: AUTH_VERSION, salt: salt, hash: await hashPass(p1 + ':' + salt), mustChange: false });
-    document.getElementById('newPass1').value = '';
-    document.getElementById('newPass2').value = '';
-    showToast('Senha alterada com sucesso!');
-}
-
 function switchTab(tab) {
     document.querySelectorAll('.btn-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.querySelectorAll('.tab-section').forEach(s => {
         s.classList.toggle('d-none', s.id !== 'tab-' + tab);
     });
-    if (tab === 'cardapio') renderProducts();
+    if (tab === 'cardapio') refreshProducts();
     if (tab === 'cozinha') renderOrders();
     if (tab === 'movimentos') renderMovements();
 }
@@ -235,47 +145,36 @@ function fixImagePath(src) {
 
 /* ---------------- CARDÁPIO ---------------- */
 
-function getMenuItems() {
-    const items = (window.fgMenuItems || []).map(it =>
-        Object.assign({}, it, { desc: it.description, active: it.active !== false }));
-    const saved = readJSON(SITE_KEY, {}).products || {};
-    Object.keys(saved).forEach(id => {
-        const prod = items.find(p => p.id === id);
-        if (prod) {
-            Object.assign(prod, saved[id]);
-        } else {
-            items.push(Object.assign({ id: id, active: true, units: 1 }, saved[id]));
-        }
-    });
-    const seen = new Set();
-    return items.filter(it => {
-        if (!it.image) return false;
-        if (seen.has(it.id)) return false;
-        seen.add(it.id);
-        return true;
-    });
+let itemsCache = [];
+let itemsLoaded = false;
+
+async function getMenuItems() {
+    if (!itemsLoaded) {
+        const data = await apiReq('/admin/products');
+        itemsCache = data.items || [];
+        itemsLoaded = true;
+    }
+    return itemsCache;
 }
 
-function saveProducts(items) {
-    const saved = readJSON(SITE_KEY, {});
-    saved.products = saved.products || {};
-    items.forEach(p => {
-        saved.products[p.id] = {
-            name: p.name,
-            desc: p.desc,
-            price: p.price,
-            image: p.image,
-            units: p.units,
-            category: p.category,
-            active: p.active !== false
-        };
-    });
-    localStorage.setItem(SITE_KEY, JSON.stringify(saved));
+async function refreshProducts() {
+    itemsLoaded = false;
+    try {
+        await getMenuItems();
+    } catch (e) {
+        if (!e.silent) showToast('⚠️ ' + e.message);
+    }
+    renderProducts();
 }
 
 function renderProducts() {
-    const items = getMenuItems();
     const tbody = document.getElementById('productTable');
+    if (!tbody) return;
+    if (!itemsLoaded) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Carregando produtos…</td></tr>';
+        return;
+    }
+    const items = itemsCache;
     if (items.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Nenhum produto cadastrado.</td></tr>';
         return;
@@ -284,7 +183,7 @@ function renderProducts() {
         <tr>
             <td>
                 <div class="d-flex align-items-center gap-2">
-                    ${p.image && !p.image.startsWith('data:') ? `<img src="${esc(fixImagePath(p.image))}" class="product-thumb" alt="${esc(p.name)}">` : '<div class="product-thumb bg-light d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-image"></i></div>'}
+                    ${p.image ? `<img src="${esc(fixImagePath(p.image))}" class="product-thumb" alt="${esc(p.name)}">` : '<div class="product-thumb bg-light d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-image"></i></div>'}
                     <div>
                         <div class="fw-bold">${esc(p.name)}</div>
                         <div class="small text-muted">${esc(p.desc || '')}</div>
@@ -307,35 +206,49 @@ function renderProducts() {
     `).join('');
 }
 
-function toggleActive(id, active) {
-    const items = getMenuItems();
-    const p = items.find(x => x.id === id);
-    if (p) {
-        p.active = active;
-        saveProducts(items);
+async function toggleActive(id, active) {
+    const p = itemsCache.find(x => x.id === id);
+    if (!p) return;
+    try {
+        await apiReq('/admin/products', { method: 'POST', body: JSON.stringify(Object.assign({}, p, { active: !!active })) });
+        p.active = !!active;
         showToast(active ? 'Produto ativado!' : 'Produto desativado (oculto do site)');
+    } catch (e) {
+        if (e.silent) return;
+        showToast('⚠️ ' + e.message);
+        renderProducts();
     }
 }
 
-function deleteProduct(id) {
-    const items = getMenuItems();
-    const p = items.find(x => x.id === id);
+async function deleteProduct(id) {
+    const p = itemsCache.find(x => x.id === id);
     if (!p) return;
     if (!confirm(`Excluir "${p.name}"?`)) return;
-    const rest = items.filter(x => x.id !== id);
-    saveProducts(rest);
-    renderProducts();
-    showToast('Produto excluído!');
+    try {
+        await apiReq('/admin/products/' + encodeURIComponent(id), { method: 'DELETE' });
+        await refreshProducts();
+        showToast('Produto excluído!');
+    } catch (e) {
+        if (e.silent) return;
+        showToast('⚠️ ' + e.message);
+    }
 }
 
-function openProductForm(id) {
-    const items = getMenuItems();
+async function openProductForm(id) {
+    let items;
+    try {
+        items = await getMenuItems();
+    } catch (e) {
+        if (e.silent) return;
+        return showToast('⚠️ ' + e.message);
+    }
     const p = id ? items.find(x => x.id === id) : null;
     const categories = [...new Set(items.map(i => i.category).filter(Boolean))];
     if (!categories.includes('fritos')) categories.unshift('fritos');
     if (!categories.includes('assados')) categories.unshift('assados');
     const catOptions = categories.map(c =>
         `<option value="${esc(c)}" ${p && p.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('');
+    const previewSrc = p && p.image ? esc(fixImagePath(p.image)) : '';
 
     const wrap = document.getElementById('productFormWrap');
     wrap.classList.remove('d-none');
@@ -362,9 +275,21 @@ function openProductForm(id) {
                 <label class="form-label small fw-bold text-muted text-uppercase">Descrição</label>
                 <input type="text" id="pfDesc" class="form-control rounded-3" value="${p ? esc(p.desc || '') : ''}">
             </div>
-            <div class="col-12">
-                <label class="form-label small fw-bold text-muted text-uppercase">URL da imagem</label>
-                <input type="text" id="pfImage" class="form-control rounded-3" value="${p ? esc(p.image || '') : ''}" placeholder="https://... ou ./images/produto.webp">
+            <div class="col-md-6">
+                <label class="form-label small fw-bold text-muted text-uppercase">Imagem (URL)</label>
+                <input type="text" id="pfImage" class="form-control rounded-3" value="${p ? esc(p.image || '') : ''}" placeholder="https://... ou ./images/produto.webp" oninput="updatePfPreview(this.value)">
+                <small class="text-muted">Ou envie um arquivo ao lado.</small>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-bold text-muted text-uppercase">Enviar imagem do dispositivo</label>
+                <input type="file" id="pfFile" accept="image/png,image/jpeg,image/webp,image/gif" class="form-control rounded-3" onchange="previewProductImage(this)">
+                <small class="text-muted">PNG, JPG, WEBP ou GIF · a imagem é enviada e salva no backend.</small>
+            </div>
+            <div class="col-12 ${previewSrc ? '' : 'd-none'}" id="pfPreviewWrap">
+                <label class="form-label small fw-bold text-muted text-uppercase">Pré-visualização</label>
+                <div>
+                    <img id="pfPreview" src="${previewSrc}" alt="Pré-visualização" class="img-thumbnail" style="max-height: 160px; max-width: 220px; object-fit: cover;">
+                </div>
             </div>
             <div class="col-12 d-flex gap-2">
                 <button class="btn btn-amber rounded-pill px-4 fw-bold" onclick="saveProductForm('${p ? esc(p.id) : ''}')"><i class="fa-solid fa-check me-1"></i> Salvar</button>
@@ -374,29 +299,89 @@ function openProductForm(id) {
     `;
 }
 
-function saveProductForm(id) {
+function updatePfPreview(url) {
+    const img = document.getElementById('pfPreview');
+    const wrap = document.getElementById('pfPreviewWrap');
+    if (!img || !wrap) return;
+    const v = String(url || '').trim();
+    if (v) {
+        img.src = v;
+        wrap.classList.remove('d-none');
+    } else {
+        wrap.classList.add('d-none');
+    }
+}
+
+function previewProductImage(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const img = document.getElementById('pfPreview');
+    const wrap = document.getElementById('pfPreviewWrap');
+    if (img && wrap) {
+        img.src = URL.createObjectURL(file);
+        wrap.classList.remove('d-none');
+    }
+}
+
+function mimeFromName(name) {
+    const ext = String(name || '').split('.').pop().toLowerCase();
+    return { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' }[ext] || 'image/webp';
+}
+
+async function uploadImage(file) {
+    const base = apiBase();
+    if (!base) throw new Error('API não configurada.');
+    const headers = { 'Content-Type': file.type || mimeFromName(file.name) };
+    const token = sessionStorage.getItem('fg_admin_token');
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(base + '/admin/upload', { method: 'POST', headers, body: file });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Falha no upload da imagem.');
+    return data.url;
+}
+
+async function saveProductForm(id) {
     const name = document.getElementById('pfName').value.trim();
     const price = parseFloat(document.getElementById('pfPrice').value);
-    if (!name || isNaN(price)) return showToast('Informe nome e preço válidos!');
+    if (!name || isNaN(price) || price <= 0) return showToast('Informe nome e preço válidos!');
 
-    const items = getMenuItems();
-    let p = id ? items.find(x => x.id === id) : null;
-    if (!p) {
-        const maxId = items.reduce((m, i) => Math.max(m, parseInt(i.id) || 0), 0);
-        p = { id: String(maxId + 1), active: true };
-        items.push(p);
+    let image = document.getElementById('pfImage').value.trim();
+    const fileInput = document.getElementById('pfFile');
+    const file = fileInput && fileInput.files && fileInput.files[0];
+
+    if (file) {
+        try {
+            showToast('Enviando imagem…');
+            image = await uploadImage(file);
+        } catch (e) {
+            showToast('⚠️ ' + e.message);
+            return;
+        }
     }
-    p.name = name;
-    p.category = document.getElementById('pfCategory').value;
-    p.price = price;
-    p.units = parseInt(document.getElementById('pfUnits').value) || 1;
-    p.desc = document.getElementById('pfDesc').value.trim();
-    p.image = document.getElementById('pfImage').value.trim();
+    if (!image) return showToast('Informe uma imagem (URL ou upload)!');
 
-    saveProducts(items);
-    renderProducts();
-    document.getElementById('productFormWrap').classList.add('d-none');
-    showToast('Cardápio atualizado!');
+    const existing = id ? itemsCache.find(x => x.id === id) : null;
+    const pid = id || ('p' + Date.now());
+    const payload = {
+        id: pid,
+        name: name,
+        category: document.getElementById('pfCategory').value,
+        price: price,
+        units: parseInt(document.getElementById('pfUnits').value) || 1,
+        desc: document.getElementById('pfDesc').value.trim(),
+        image: image,
+        active: existing ? existing.active !== false : true
+    };
+
+    try {
+        await apiReq('/admin/products', { method: 'POST', body: JSON.stringify(payload) });
+        await refreshProducts();
+        document.getElementById('productFormWrap').classList.add('d-none');
+        showToast('Cardápio atualizado!');
+    } catch (e) {
+        if (e.silent) return;
+        showToast('⚠️ ' + e.message);
+    }
 }
 
 /* ---------------- COZINHA ---------------- */
@@ -613,9 +598,16 @@ function renderMovements() {
     }
 }
 
-function openMovementForm() {
-    const items = getMenuItems().filter(i => i.active !== false);
-    const options = items.map(i => `<option value="${esc(i.name)}">${esc(i.name)}</option>`).join('');
+async function openMovementForm() {
+    let items;
+    try {
+        items = await getMenuItems();
+    } catch (e) {
+        if (e.silent) return;
+        return showToast('⚠️ ' + e.message);
+    }
+    const active = items.filter(i => i.active !== false);
+    const options = active.map(i => `<option value="${esc(i.name)}">${esc(i.name)}</option>`).join('');
     const wrap = document.getElementById('movementFormWrap');
     wrap.classList.remove('d-none');
     wrap.innerHTML = `
@@ -699,8 +691,8 @@ function formatDate(iso) {
     return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
-initAuth().then(() => {
-    if (sessionStorage.getItem('fg_admin_logged') === '1') {
+document.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem('fg_admin_logged') === '1' && sessionStorage.getItem('fg_admin_token')) {
         showPanel();
     }
 });

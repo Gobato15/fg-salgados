@@ -834,3 +834,10 @@ footer {
         gap: 6px;
     }
 }
+
+/* Utility classes extracted from inline styles */
+.btn-sm-custom { font-size: 0.75rem; padding: 5px 10px; }
+.btn-outline-dark-custom { border-color: rgba(0,0,0,0.1); }
+.cart-icon-lg { font-size: 1.6rem; }
+.cart-badge { font-size: 0.65rem; }
+.hero-desc-custom { max-width: 680px; }

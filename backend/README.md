@@ -83,11 +83,32 @@ que é o mais simples para webhook).
    (e carregue antes do `script.js` no `index.html`).
 2. Quando o cliente escolher **PIX**, o site chama `POST /pix` com os itens e mostra
    o QR Code dinâmico e o código copia-e-cola, com **validação + travas** já embutidas.
+3. O **cardápio** é carregado de `GET /menu` (base `menuData.js` + edições da área
+   restrita), com cache no navegador e fallback offline.
 
 > Se o backend não estiver configurado ainda, o site **usa automaticamente** o QR
-> estático atual — nada quebra.
+> estático atual e o cardápio padrão — nada quebra.
 
-## Passo 6 — Testar (sandbox, opcional)
+## Área Restrita — editar produtos e imagens
+
+A pasta `admin/` do site (botão “Acesso Restrito”) usa este backend para salvar
+produtos e imagens para **todos os visitantes**:
+
+| Endpoint | Função |
+|---|---|
+| `POST /api/admin/login` | Entra com `ADMIN_PASSWORD` e recebe um token de sessão |
+| `GET /api/admin/products` | Lista produtos (incluindo inativos) |
+| `POST /api/admin/products` | Cria/atualiza um produto (upsert pelo `id`) |
+| `DELETE /api/admin/products/:id` | Exclui um produto |
+| `POST /api/admin/upload` | Envia a imagem (corpo cru com `Content-Type: image/webp|png|jpeg|gif`) e devolve a URL pública |
+| `GET /api/menu` | Cardápio final que o site público usa (somente ativos) |
+
+- Persistência em `data/products.json` (automaticamente criado).
+- Imagens enviadas ficam em `uploads/` e são servidas em `/uploads/...`.
+- Ambos os diretórios estão no `.gitignore` — é preciso fazer backup do `data/` e `uploads/`.
+- Configure a senha na variável **`ADMIN_PASSWORD`** do seu serviço (Render/Railway).
+
+### Passo 6 — Testar (sandbox, opcional)
 
 Para testar sem dinheiro real:
 1. No painel do MP, ative o modo **sandbox** e copie o Access Token de teste.

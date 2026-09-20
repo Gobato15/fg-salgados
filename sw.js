@@ -5,7 +5,6 @@ const CORE = [
     './sucesso.html',
     './offline.html',
     './style.css',
-    './script.js',
     './config.js',
     './menuData.js',
     './manifest.json',
