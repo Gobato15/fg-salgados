@@ -459,14 +459,30 @@ async function openProductForm(id) {
                 <input type="text" id="pfDesc" class="form-control rounded-3" value="${p ? esc(p.desc || '') : ''}">
             </div>
             <div class="col-md-6">
-                <label class="form-label small fw-bold text-muted text-uppercase">Imagem (URL)</label>
-                <input type="text" id="pfImage" class="form-control rounded-3" value="${p ? esc(p.image || '') : ''}" placeholder="https://... ou ./images/produto.webp" oninput="updatePfPreview(this.value)">
-                <small class="text-muted">Ou envie um arquivo ao lado.</small>
+                <label class="form-label small fw-bold text-muted text-uppercase">Foto (URL webp)</label>
+                <input type="text" id="pfImage" class="form-control rounded-3" value="${p ? esc(p.image || '') : ''}" placeholder="./images/produto.webp" oninput="updatePfPreview(this.value)">
+                <small class="text-muted">Ou escolha uma das fotos do cardápio abaixo.</small>
             </div>
             <div class="col-md-6">
-                <label class="form-label small fw-bold text-muted text-uppercase">Enviar imagem do dispositivo</label>
-                <input type="file" id="pfFile" accept="image/png,image/jpeg,image/webp,image/gif" class="form-control rounded-3" onchange="previewProductImage(this)">
-                <small class="text-muted">PNG, JPG, WEBP ou GIF · a imagem é enviada e salva no backend.</small>
+                <label class="form-label small fw-bold text-muted text-uppercase">Fotos do cardápio (webp)</label>
+                <select id="pfImageSelect" class="form-select rounded-3" onchange="selectPfImage(this.value)">
+                    <option value="">— Escolher foto existente —</option>
+                    <option value="images/x_carne.webp">X Carne</option>
+                    <option value="images/x_picanha.webp">X Picanha</option>
+                    <option value="images/duplo_cheddar.webp">Duplo Cheddar</option>
+                    <option value="images/coxinha_premium.webp">Coxinha de Frango</option>
+                    <option value="images/croissant_presunto_queijo_premium.webp">Croissant Presunto e Queijo</option>
+                    <option value="images/lanche_natural_frango.webp">Lanche Natural de Frango</option>
+                    <option value="images/bauru_queijo_presunto.webp">Bauru Presunto e Queijo</option>
+                    <option value="images/fg_xbacon.webp">X Bacon</option>
+                    <option value="images/x_ags_premium.webp">X AGS</option>
+                </select>
+                <small class="text-muted">Atualize a foto e clique em Salvar.</small>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-bold text-muted text-uppercase">Enviar foto do dispositivo</label>
+                <input type="file" id="pfFile" accept="image/webp,image/png,image/jpeg,image/gif" class="form-control rounded-3" onchange="previewProductImage(this)">
+                <small class="text-muted">WEBP, PNG, JPG ou GIF · enviada e salva no backend.</small>
             </div>
             <div class="col-12 ${previewSrc ? '' : 'd-none'}" id="pfPreviewWrap">
                 <label class="form-label small fw-bold text-muted text-uppercase">Pré-visualização</label>
@@ -493,6 +509,13 @@ function updatePfPreview(url) {
     } else {
         wrap.classList.add('d-none');
     }
+}
+
+function selectPfImage(value) {
+    const input = document.getElementById('pfImage');
+    if (!input) return;
+    input.value = String(value || '').trim();
+    updatePfPreview(input.value);
 }
 
 function previewProductImage(input) {
