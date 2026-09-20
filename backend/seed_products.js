@@ -5,7 +5,7 @@ module.exports = [
         categoria: 'burgers',
         preco: 10.00,
         descricao: 'Carne suculenta de 56g, mussarela derretida, presunto, tomate, orégano no pão macio.',
-        foto: 'assets/x_carne.webp',
+        foto: 'images/x_carne.webp',
         ordem: 1
     },
     {
@@ -14,7 +14,7 @@ module.exports = [
         categoria: 'burgers',
         preco: 11.00,
         descricao: 'Carne de picanha de 56g, presunto, mussarela e catupiry cremoso.',
-        foto: 'assets/x_picanha.webp',
+        foto: 'images/x_picanha.webp',
         ordem: 2
     },
     {
@@ -23,7 +23,7 @@ module.exports = [
         categoria: 'burgers',
         preco: 10.00,
         descricao: 'Pão macio, duas carnes suculentas de 56g e cheddar delicioso.',
-        foto: 'assets/duplo_cheddar.webp',
+        foto: 'images/duplo_cheddar.webp',
         ordem: 3
     },
     {
@@ -32,7 +32,7 @@ module.exports = [
         categoria: 'coxinha',
         preco: 9.00,
         descricao: 'Coxinha de frango cremosa de 100g, feita com massa artesanal de batata. Receita da casa.',
-        foto: 'assets/coxinha_premium.webp',
+        foto: 'images/coxinha_premium.webp',
         ordem: 4
     },
     {
@@ -41,7 +41,7 @@ module.exports = [
         categoria: 'croissant',
         preco: 10.00,
         descricao: 'O clássico folhado recheado com presunto fatiado e queijo derretido.',
-        foto: 'assets/croissant_presunto_queijo_premium.webp',
+        foto: 'images/croissant_presunto_queijo_premium.webp',
         ordem: 5
     },
     {
@@ -50,7 +50,7 @@ module.exports = [
         categoria: 'lanches',
         preco: 9.00,
         descricao: 'Lanche natural com frango desfiado, maionese, alface e cenoura ralada no pão de forma macio.',
-        foto: 'assets/lanche_natural_frango.webp',
+        foto: 'images/lanche_natural_frango.webp',
         ordem: 6
     },
     {
@@ -59,7 +59,7 @@ module.exports = [
         categoria: 'salgados',
         preco: 9.00,
         descricao: 'Clássico bauru com massa fofinha e recheio generoso de presunto e queijo derretido, temperado com um toque de orégano.',
-        foto: 'assets/bauru_queijo_presunto.webp',
+        foto: 'images/bauru_queijo_presunto.webp',
         ordem: 7
     },
     {
@@ -68,7 +68,7 @@ module.exports = [
         categoria: 'burgers',
         preco: 10.00,
         descricao: 'Carne de 56g, bacon crocante, mussarela derretida e maionese da casa no pão macio.',
-        foto: 'assets/x_bacon.webp',
+        foto: 'images/fg_xbacon.webp',
         ordem: 8
     },
     {
@@ -77,7 +77,7 @@ module.exports = [
         categoria: 'burgers',
         preco: 14.00,
         descricao: 'Pão macio, duas carnes suculentas de 56g, tomate, presunto, queijo, requeijão, calabresa e bacon.',
-        foto: 'assets/x_ags_premium.webp',
+        foto: 'images/x_ags_premium.webp',
         ordem: 9
     }
 ];

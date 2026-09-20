@@ -1,4 +1,4 @@
-const CACHE = 'fg-salgados-v37';
+const CACHE = 'fg-salgados-v38';
 const CORE = [
     './',
     './index.html',
@@ -10,15 +10,15 @@ const CORE = [
     './manifest.json',
     './images/icon-192.png',
     './images/icon-512.png',
-    './images/ags_coxinha.webp',
-    './images/ags_croissant.webp',
-    './images/ags_torta_frango.webp',
-    './images/ags_bauru.webp',
-    './images/ags_bolo_salgado.webp',
-    './images/ags_croissant_queijo.webp',
+    './images/x_carne.webp',
+    './images/x_picanha.webp',
+    './images/duplo_cheddar.webp',
+    './images/coxinha_premium.webp',
+    './images/croissant_presunto_queijo_premium.webp',
+    './images/lanche_natural_frango.webp',
+    './images/bauru_queijo_presunto.webp',
+    './images/x_ags_premium.webp',
     './images/fg_xbacon.webp',
-    './images/fg_xcheddar.webp',
-    './images/fg_xpicanha.webp',
     './images/pix_qr_code.webp'
 ];
 

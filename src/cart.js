@@ -11,7 +11,7 @@ export let savedData = {};
 
 const STORAGE_KEY = 'fg_salgados_v9';
 const CLIENT_ORDERS_KEY = 'fg_client_orders';
-const REMOTE_MENU_KEY = 'fg_remote_menu_v1';
+const REMOTE_MENU_KEY = 'fg_remote_menu_v2';
 
 export const DEFAULT_CONTACT = {
     whats: "(19) 99609-0540",
