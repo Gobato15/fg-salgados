@@ -1,119 +1,83 @@
 module.exports = [
     {
+        id: 1,
         nome: 'X Carne',
+        categoria: 'burgers',
+        preco: 10.00,
         descricao: 'Carne suculenta de 56g, mussarela derretida, presunto, tomate, orégano no pão macio.',
-        preco: 10.00,
         foto: 'assets/x_carne.webp',
-        categoria: 'burgers',
-        ativo: 1,
-        ordem: 1,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
+        ordem: 1
     },
     {
+        id: 2,
         nome: 'X Picanha',
-        descricao: 'Carne de picanha de 56g, presunto, mussarela e catupiry cremoso.',
+        categoria: 'burgers',
         preco: 11.00,
+        descricao: 'Carne de picanha de 56g, presunto, mussarela e catupiry cremoso.',
         foto: 'assets/x_picanha.webp',
-        categoria: 'burgers',
-        ativo: 1,
-        ordem: 2,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
+        ordem: 2
     },
     {
+        id: 3,
         nome: 'Duplo Cheddar',
+        categoria: 'burgers',
+        preco: 10.00,
         descricao: 'Pão macio, duas carnes suculentas de 56g e cheddar delicioso.',
-        preco: 10.00,
         foto: 'assets/duplo_cheddar.webp',
-        categoria: 'burgers',
-        ativo: 1,
-        ordem: 3,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
+        ordem: 3
     },
     {
+        id: 4,
         nome: 'Coxinha de Frango',
-        descricao: 'Coxinha de frango cremosa de 100g, feita com massa artesanal de batata. Receita da casa.',
-        preco: 9.00,
-        foto: 'assets/coxinha_premium.webp',
         categoria: 'coxinha',
-        ativo: 1,
-        ordem: 4,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
+        preco: 9.00,
+        descricao: 'Coxinha de frango cremosa de 100g, feita com massa artesanal de batata. Receita da casa.',
+        foto: 'assets/coxinha_premium.webp',
+        ordem: 4
     },
     {
+        id: 5,
         nome: 'Croissant Presunto e Queijo',
-        descricao: 'O clássico folhado recheado com presunto fatiado e queijo derretido.',
-        preco: 10.00,
-        foto: 'assets/croissant_presunto_queijo_premium.webp',
         categoria: 'croissant',
-        ativo: 1,
-        ordem: 5,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
-    },
-    {
-        nome: 'Lanche Natural de Frango',
-        descricao: 'Lanche natural com frango desfiado, maionese, alface e cenoura ralada no pão de forma macio.',
-        preco: 9.00,
-        foto: 'assets/lanche_natural_frango.webp',
-        categoria: 'lanches',
-        ativo: 1,
-        ordem: 6,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
-    },
-    {
-        nome: 'Bauru de Presunto e Queijo',
-        descricao: 'Clássico bauru com massa fofinha e recheio generoso de presunto e queijo derretido, temperado com um toque de orégano.',
-        preco: 9.00,
-        foto: 'assets/bauru_queijo_presunto.webp',
-        categoria: 'salgados',
-        ativo: 1,
-        ordem: 7,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
-    },
-    {
-        nome: 'X Bacon',
-        descricao: 'Carne de 56g, bacon crocante, mussarela derretida e maionese da casa no pão macio.',
         preco: 10.00,
-        foto: 'assets/x_bacon.webp',
-        categoria: 'burgers',
-        ativo: 1,
-        ordem: 8,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
+        descricao: 'O clássico folhado recheado com presunto fatiado e queijo derretido.',
+        foto: 'assets/croissant_presunto_queijo_premium.webp',
+        ordem: 5
     },
     {
-        nome: 'X AGS',
-        descricao: 'Pão macio, duas carnes suculentas de 56g, tomate, presunto, queijo, requeijão, calabresa e bacon.',
-        preco: 14.00,
-        foto: 'assets/x_ags_premium.webp',
+        id: 6,
+        nome: 'Lanche Natural de Frango',
+        categoria: 'lanches',
+        preco: 9.00,
+        descricao: 'Lanche natural com frango desfiado, maionese, alface e cenoura ralada no pão de forma macio.',
+        foto: 'assets/lanche_natural_frango.webp',
+        ordem: 6
+    },
+    {
+        id: 7,
+        nome: 'Bauru de Presunto e Queijo',
+        categoria: 'salgados',
+        preco: 9.00,
+        descricao: 'Clássico bauru com massa fofinha e recheio generoso de presunto e queijo derretido, temperado com um toque de orégano.',
+        foto: 'assets/bauru_queijo_presunto.webp',
+        ordem: 7
+    },
+    {
+        id: 8,
+        nome: 'X Bacon',
         categoria: 'burgers',
-        ativo: 1,
-        ordem: 9,
-        qtd: 1,
-        itemPromocao: 0,
-        diasPromocao: '',
-        descontoPromo: 1.00
+        preco: 10.00,
+        descricao: 'Carne de 56g, bacon crocante, mussarela derretida e maionese da casa no pão macio.',
+        foto: 'assets/x_bacon.webp',
+        ordem: 8
+    },
+    {
+        id: 9,
+        nome: 'X AGS',
+        categoria: 'burgers',
+        preco: 14.00,
+        descricao: 'Pão macio, duas carnes suculentas de 56g, tomate, presunto, queijo, requeijão, calabresa e bacon.',
+        foto: 'assets/x_ags_premium.webp',
+        ordem: 9
     }
 ];
