@@ -30,6 +30,64 @@ function writeJSON(key, value) {
 
 /* ------------------------- API (backend) ------------------------- */
 
+let LOCAL_MODE = false;
+
+function isConnectionError(e) {
+    return /Não foi possível conectar|API não configurada/i.test(String((e && e.message) || ''));
+}
+
+function localCheckLogin(email, pass) {
+    const lock = readJSON('fg_admin_lock', {});
+    if (lock.blockedUntil && Date.now() < lock.blockedUntil) {
+        const mins = Math.ceil((lock.blockedUntil - Date.now()) / 60000);
+        showLoginError(`Muitas tentativas. Tente novamente em ${mins} min.`);
+        return false;
+    }
+    if (email.toLowerCase() === DEFAULT_EMAIL.toLowerCase() && pass === DEFAULT_PASSWORD) {
+        localStorage.removeItem('fg_admin_lock');
+        return true;
+    }
+    const attempts = (lock.attempts || 0) + 1;
+    if (attempts >= MAX_ATTEMPTS) {
+        writeJSON('fg_admin_lock', { attempts: 0, blockedUntil: Date.now() + LOCK_MINUTES * 60000 });
+        showLoginError(`Muitas tentativas. Bloqueado por ${LOCK_MINUTES} min.`);
+    } else {
+        writeJSON('fg_admin_lock', { attempts });
+        showLoginError(`E-mail ou senha incorretos. (${attempts}/${MAX_ATTEMPTS})`);
+    }
+    return false;
+}
+
+function loadLocalItems() {
+    const base = (window.fgMenuItems || []).map(item => Object.assign({}, item, { desc: item.description, active: item.active !== false }));
+    const saved = readJSON(SITE_KEY, {});
+    if (saved.products) {
+        Object.keys(saved.products).forEach(id => {
+            const prod = base.find(p => String(p.id) === String(id));
+            if (prod) Object.assign(prod, saved.products[id]);
+            else base.push(Object.assign({ id, active: true, units: 1 }, saved.products[id]));
+        });
+    }
+    const seen = new Set();
+    return base.filter(it => {
+        if (!it.image) return false;
+        if (seen.has(String(it.id))) return false;
+        seen.add(String(it.id));
+        return true;
+    });
+}
+
+function saveLocalProductMap(map) {
+    const saved = readJSON(SITE_KEY, {});
+    saved.products = map;
+    writeJSON(SITE_KEY, saved);
+}
+
+function localProductMap() {
+    const saved = readJSON(SITE_KEY, {});
+    return saved.products || {};
+}
+
 function apiBase() {
     const cfg = window.FG_CONFIG || {};
     return String(cfg.pixApiUrl || '').trim().replace(/\/+$/, '');
@@ -92,10 +150,22 @@ async function tryLogin() {
         const data = await apiReq('/admin/login', { method: 'POST', body: JSON.stringify({ email, password: pass }) });
         sessionStorage.setItem('fg_admin_token', data.token);
         sessionStorage.setItem('fg_admin_logged', '1');
+        LOCAL_MODE = false;
         if (inputPass) inputPass.value = '';
         showPanel();
     } catch (e) {
-        if (!e.silent) showLoginError(e.message);
+        if (e.silent) return;
+        if (isConnectionError(e)) {
+            LOCAL_MODE = true;
+            if (localCheckLogin(email, pass)) {
+                sessionStorage.setItem('fg_admin_token', 'local');
+                sessionStorage.setItem('fg_admin_logged', '1');
+                if (inputPass) inputPass.value = '';
+                showPanel();
+            }
+            return;
+        }
+        showLoginError(e.message);
     }
 }
 
@@ -333,8 +403,28 @@ let itemsLoaded = false;
 
 async function getMenuItems() {
     if (!itemsLoaded) {
-        const data = await apiReq('/admin/products');
-        itemsCache = data.items || [];
+        if (LOCAL_MODE) {
+            try {
+                itemsCache = loadLocalItems();
+            } catch (e) {
+                itemsCache = (window.fgMenuItems || []).map(i => Object.assign({}, i, { desc: i.desc || i.description, active: i.active !== false }));
+            }
+            itemsLoaded = true;
+            return itemsCache;
+        }
+        try {
+            const data = await apiReq('/admin/products');
+            itemsCache = data.items || [];
+        } catch (e) {
+            if (e.silent) throw e;
+            if (isConnectionError(e)) {
+                LOCAL_MODE = true;
+                itemsCache = loadLocalItems();
+                showToast('⚠️ API indisponível — usando dados locais (salvos no navegador).');
+            } else {
+                throw e;
+            }
+        }
         itemsLoaded = true;
     }
     return itemsCache;
@@ -390,16 +480,73 @@ function renderProducts() {
 }
 
 async function toggleActive(id, active) {
-    const p = itemsCache.find(x => x.id === id);
+    const p = itemsCache.find(x => String(x.id) === String(id));
     if (!p) return;
+    p.active = !!active;
+
+    if (LOCAL_MODE) {
+        const saved = readJSON(SITE_KEY, {});
+        saved.products = saved.products || {};
+        saved.products[String(id)] = Object.assign({}, p, { active: p.active });
+        writeJSON(SITE_KEY, saved);
+        renderProducts();
+        showToast(active ? 'Produto ativado!' : 'Produto desativado (oculto do site)');
+        return;
+    }
+
     try {
         await apiReq('/admin/products', { method: 'POST', body: JSON.stringify(Object.assign({}, p, { active: !!active })) });
-        p.active = !!active;
         showToast(active ? 'Produto ativado!' : 'Produto desativado (oculto do site)');
     } catch (e) {
         if (e.silent) return;
+        if (isConnectionError(e)) {
+            LOCAL_MODE = true;
+            const saved = readJSON(SITE_KEY, {});
+            saved.products = saved.products || {};
+            saved.products[String(id)] = Object.assign({}, p, { active: p.active });
+            writeJSON(SITE_KEY, saved);
+            renderProducts();
+            showToast(active ? 'Produto ativado! (local)' : 'Produto desativado! (local)');
+            return;
+        }
         showToast('⚠️ ' + e.message);
         renderProducts();
+    }
+}
+
+async function deleteProduct(id) {
+    const p = itemsCache.find(x => String(x.id) === String(id));
+    if (!p) return;
+    if (!confirm(`Excluir "${p.name}"?`)) return;
+
+    if (LOCAL_MODE) {
+        const saved = readJSON(SITE_KEY, {});
+        if (saved.products) delete saved.products[String(id)];
+        writeJSON(SITE_KEY, saved);
+        itemsCache = itemsCache.filter(x => String(x.id) !== String(id));
+        renderProducts();
+        showToast('Produto excluído!');
+        return;
+    }
+
+    try {
+        await apiReq('/admin/products/' + encodeURIComponent(id), { method: 'DELETE' });
+        itemsCache = itemsCache.filter(x => String(x.id) !== String(id));
+        renderProducts();
+        showToast('Produto excluído!');
+    } catch (e) {
+        if (e.silent) return;
+        if (isConnectionError(e)) {
+            LOCAL_MODE = true;
+            const saved = readJSON(SITE_KEY, {});
+            if (saved.products) delete saved.products[String(id)];
+            writeJSON(SITE_KEY, saved);
+            itemsCache = itemsCache.filter(x => String(x.id) !== String(id));
+            renderProducts();
+            showToast('Produto excluído! (local)');
+            return;
+        }
+        showToast('⚠️ ' + e.message);
     }
 }
 
@@ -407,13 +554,33 @@ async function deleteProduct(id) {
     const p = itemsCache.find(x => x.id === id);
     if (!p) return;
     if (!confirm(`Excluir "${p.name}"?`)) return;
+
+    if (LOCAL_MODE) {
+        try {
+            const saved = readJSON(SITE_KEY, {});
+            if (saved.products) delete saved.products[String(id)];
+            writeJSON(SITE_KEY, saved);
+            await refreshProducts();
+            showToast('Produto excluído!');
+        } catch (e) {
+            if (!e.silent) showToast('⚠️ ' + e.message);
+        }
+        return;
+    }
+
     try {
         await apiReq('/admin/products/' + encodeURIComponent(id), { method: 'DELETE' });
         await refreshProducts();
         showToast('Produto excluído!');
     } catch (e) {
         if (e.silent) return;
-        showToast('⚠️ ' + e.message);
+        if (e.message && /Não foi possível|não foi possível conectar|API/i.test(e.message)) {
+            LOCAL_MODE = true;
+            showToast('⚠️ API indisponível — ativando modo local.');
+            await refreshProducts();
+        } else {
+            showToast('⚠️ ' + e.message);
+        }
     }
 }
 
@@ -585,12 +752,47 @@ async function saveProductForm(id) {
     };
 
     try {
+        if (LOCAL_MODE) {
+            const saved = readJSON(SITE_KEY, {});
+            saved.products = saved.products || {};
+            const nid = id || 'p' + Date.now();
+            payload.id = nid;
+            saved.products[String(nid)] = payload;
+            writeJSON(SITE_KEY, saved);
+
+            const idx = itemsCache.findIndex(x => String(x.id) === String(nid));
+            if (idx >= 0) itemsCache[idx] = payload;
+            else itemsCache.push(payload);
+
+            document.getElementById('productFormWrap').classList.add('d-none');
+            showToast('Cardápio salvo localmente!');
+            renderProducts();
+            return;
+        }
         await apiReq('/admin/products', { method: 'POST', body: JSON.stringify(payload) });
         await refreshProducts();
         document.getElementById('productFormWrap').classList.add('d-none');
         showToast('Cardápio atualizado!');
     } catch (e) {
         if (e.silent) return;
+        if (isConnectionError(e)) {
+            LOCAL_MODE = true;
+            const saved = readJSON(SITE_KEY, {});
+            saved.products = saved.products || {};
+            const nid = id || 'p' + Date.now();
+            payload.id = nid;
+            saved.products[String(nid)] = payload;
+            writeJSON(SITE_KEY, saved);
+
+            const idx = itemsCache.findIndex(x => String(x.id) === String(nid));
+            if (idx >= 0) itemsCache[idx] = payload;
+            else itemsCache.push(payload);
+
+            document.getElementById('productFormWrap').classList.add('d-none');
+            showToast('Cardápio salvo (modo local)! Publique pelo GitHub quando quiser.');
+            renderProducts();
+            return;
+        }
         showToast('⚠️ ' + e.message);
     }
 }
