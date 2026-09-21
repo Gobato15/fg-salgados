@@ -1,0 +1,8 @@
+﻿
+backend/*.zip
+backend/.env
+*.env
+*.env.production
+*.env.local
+node_modules/
+uploads/
