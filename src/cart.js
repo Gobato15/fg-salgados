@@ -38,17 +38,25 @@ export function loadSavedData() {
 
     if (savedData.products) {
         Object.keys(savedData.products).forEach(id => {
-            const prod = menuItems.find(p => p.id === id);
-            if (prod) Object.assign(prod, savedData.products[id]);
-            else menuItems.push(Object.assign({ id, active: true, units: 1 }, savedData.products[id]));
+            const so = savedData.products[id] || {};
+            const byId = menuItems.find(p => String(p.id) === String(id));
+            const norm = n => String(n || '').toLowerCase().replace(/\s+/g, ' ').trim();
+            const byName = menuItems.find(p => norm(p.name) === norm(so.name));
+            const target = byId || byName;
+            if (target) Object.assign(target, so, { id: target.id, name: so.name || target.name });
+            else menuItems.push(Object.assign({ id, active: true, units: 1 }, so));
         });
     }
 
     const seen = new Set();
+    const seenName = new Set();
     menuItems = menuItems.filter(it => {
         if (!it.image) return false;
         if (seen.has(it.id)) return false;
         seen.add(it.id);
+        const nm = String(it.name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        if (nm && seenName.has(nm)) return false;
+        if (nm) seenName.add(nm);
         return true;
     });
 
