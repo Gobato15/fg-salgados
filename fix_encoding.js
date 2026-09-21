@@ -1,8 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const file = path.join(__dirname, 'index.html');
-let content = fs.readFileSync(file, 'utf8');
+const filePaths = [
+    path.join(__dirname, 'index.html'),
+    path.join(__dirname, 'admin', 'admin.html'),
+    path.join(__dirname, 'admin', 'admin.js'),
+    path.join(__dirname, 'backend', 'server.js'),
+    path.join(__dirname, 'backend', 'update_server.js')
+];
 
 const replacements = {
     'Ã§': 'ç',
@@ -23,29 +28,31 @@ const replacements = {
     'Ã“': 'Ó',
     'Ã”': 'Ô',
     'Ãš': 'Ú',
-    'Ã': 'Í',
+    'Ã ': 'Í',
     'â€”': '—',
     'â€“': '–',
     'â€œ': '“',
-    'â€': '”',
+    'â€ ': '”',
     'â€˜': '‘',
     'â€™': '’',
     'CÂ°': 'C°',
     'Â°': '°',
     'Âº': 'º',
     'Âª': 'ª',
-    'Ã¢â‚¬â€': '—',
+    'Ã¢â‚¬â€ ': '—',
     'Ã¢â‚¬â€œ': '–',
     'â‚¬': '€',
     'Ã§Ã£o': 'ção' // safety
 };
 
-for (const [bad, good] of Object.entries(replacements)) {
-    content = content.split(bad).join(good);
+for (const file of filePaths) {
+    if (!fs.existsSync(file)) continue;
+    let content = fs.readFileSync(file, 'utf8');
+
+    for (const [bad, good] of Object.entries(replacements)) {
+        content = content.split(bad).join(good);
+    }
+
+    fs.writeFileSync(file, content, 'utf8');
+    console.log('Done with ' + file);
 }
-
-// Any remaining generic ones
-content = content.replace(/Ã/g, 'à'); // Very aggressive, let's skip
-
-fs.writeFileSync(file, content, 'utf8');
-console.log('Done!');
