@@ -60,6 +60,25 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
+// Extensões permitidas para upload
+const UPLOAD_EXT = {
+    'image/jpeg': 'jpg',
+    'image/jpg':  'jpg',
+    'image/png':  'png',
+    'image/webp': 'webp',
+    'image/gif':  'gif',
+};
+
+// Parseia o body RAW para uploads de imagem ANTES do json middleware.
+// Somente ativo para a rota exata de upload.
+app.use((req, res, next) => {
+    if (req.method === 'POST' && req.path === '/api/admin/upload') {
+        express.raw({ type: Object.keys(UPLOAD_EXT), limit: '10mb' })(req, res, next);
+    } else {
+        next();
+    }
+});
+
 app.use(express.json({ limit: '50kb' }));
 
 // Proteção simples contra requisições com corpo anormal (webhook envia JSON curto).
@@ -410,30 +429,40 @@ app.delete('/api/admin/products/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// Upload de imagem de produto. Envie o arquivo cru (multipart-driven via um POST
-// com Content-Type = imagem, ex.: image/webp) e receba a URL pública de volta.
-const UPLOAD_EXT = {
-    'image/jpeg': 'jpg',
-    'image/jpg': 'jpg',
-    'image/png': 'png',
-    'image/webp': 'webp',
-    'image/gif': 'gif',
-};
+// Upload de imagem de produto.
+// Recebe o arquivo bruto no body (Content-Type = image/*) e devolve a URL pública.
 app.post(
     '/api/admin/upload',
     requireAdmin,
-    express.raw({ type: Object.keys(UPLOAD_EXT), limit: '10mb' }),
     (req, res) => {
-        const ctype = String(req.headers['content-type'] || '').toLowerCase();
-        const ext = UPLOAD_EXT[ctype.split(';')[0].trim()];
-        const bytes = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
-        if (!ext || bytes.length === 0) {
-            return res.status(415).json({ error: 'Envie uma imagem PNG, JPG, WEBP ou GIF.' });
+        const ctype = String(req.headers['content-type'] || '').toLowerCase().split(';')[0].trim();
+        const ext = UPLOAD_EXT[ctype];
+        const bytes = Buffer.isBuffer(req.body) ? req.body : null;
+
+        console.log(`[upload] Content-Type: ${ctype} | Ext: ${ext || 'n/a'} | Body: ${bytes ? bytes.length + ' bytes' : 'não parseado (raw middleware não capturou)'}`);
+
+        if (!ext) {
+            return res.status(415).json({
+                error: `Tipo de imagem não suportado: "${ctype}". Use PNG, JPG, WEBP ou GIF.`
+            });
         }
-        const fname = `prod_${Date.now()}_${crypto.randomBytes(3).toString('hex')}.${ext}`;
-        fs.writeFileSync(path.join(UPLOADS_DIR, fname), bytes);
-        const base = PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
-        return res.json({ ok: true, url: `${base}/uploads/${fname}`, name: fname });
+        if (!bytes || bytes.length === 0) {
+            return res.status(400).json({
+                error: 'Corpo da requisição vazio. Verifique se o arquivo foi enviado corretamente.'
+            });
+        }
+
+        try {
+            require('fs').mkdirSync(UPLOADS_DIR, { recursive: true });
+            const fname = `prod_${Date.now()}_${crypto.randomBytes(3).toString('hex')}.${ext}`;
+            require('fs').writeFileSync(require('path').join(UPLOADS_DIR, fname), bytes);
+            const base = PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
+            console.log(`[upload] Imagem salva: ${fname} (${bytes.length} bytes)`);
+            return res.json({ ok: true, url: `${base}/uploads/${fname}`, name: fname });
+        } catch (saveErr) {
+            console.error('[upload] Erro ao salvar imagem:', saveErr.message);
+            return res.status(500).json({ error: 'Falha ao salvar a imagem no servidor.' });
+        }
     }
 );
 
