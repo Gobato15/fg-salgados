@@ -8,6 +8,35 @@ const MAX_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
 const INACTIVITY_MINUTES = 30;
 
+const GH_REPO = 'Gobato15/fg-salgados';
+const GH_BRANCH = 'main';
+const GH_BASE = 'https://api.github.com/repos/' + GH_REPO + '/contents/';
+const UPLOAD_DIR = 'images/uploads';
+const PENDING_IMG_KEY = 'fg_pending_img';
+
+function getGhToken() {
+    const saved = localStorage.getItem('fg_gh_token') || '';
+    if (saved) return saved;
+    try {
+        const el = document.getElementById('ghToken');
+        if (el) return el.value.trim();
+    } catch (e) {}
+    return '';
+}
+
+function readPendingImages() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(PENDING_IMG_KEY) || 'null');
+        return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function savePendingImages(list) {
+    localStorage.setItem(PENDING_IMG_KEY, JSON.stringify(list));
+}
+
 const STATUSES = {
     pendente: { label: 'Pendente', next: 'preparo' },
     preparo: { label: 'Em preparo', next: 'pronto' },
@@ -151,6 +180,7 @@ async function tryLogin() {
         sessionStorage.setItem('fg_admin_token', data.token);
         sessionStorage.setItem('fg_admin_logged', '1');
         LOCAL_MODE = false;
+        localStorage.removeItem('fg_admin_lock');
         if (inputPass) inputPass.value = '';
         showPanel();
     } catch (e) {
@@ -183,6 +213,30 @@ function showPanel() {
     renderMovements();
     carregarToken();
     startInactivityWatch();
+    checkDbHealth();
+}
+
+// Verifica a saúde do banco e mostra badge no header
+async function checkDbHealth() {
+    const badge = document.getElementById('dbStatusBadge');
+    if (!badge) return;
+    try {
+        const data = await apiReq('/admin/db-health');
+        badge.className = 'badge bg-success rounded-pill ms-2';
+        badge.innerHTML = `<i class="fa-solid fa-database me-1"></i>MySQL • ${data.produtos} produtos`;
+        badge.title = 'Conectado ao MySQL da Hostinger';
+    } catch (e) {
+        if (e.silent) return;
+        if (isConnectionError(e)) {
+            badge.className = 'badge bg-warning text-dark rounded-pill ms-2';
+            badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i>Modo Local';
+            badge.title = 'API offline — usando dados do navegador';
+        } else {
+            badge.className = 'badge bg-danger rounded-pill ms-2';
+            badge.innerHTML = '<i class="fa-solid fa-xmark me-1"></i>Erro de Banco';
+            badge.title = e.message;
+        }
+    }
 }
 
 function startInactivityWatch() {
@@ -232,8 +286,8 @@ function fixImagePath(src) {
 
 /* ---------------- EXPORTAR / PUBLICAR menuData.js ---------------- */
 
-function gerarConteudoMenuData() {
-    const items = getMenuItems();
+async function gerarConteudoMenuData() {
+    const items = await getMenuItems();
     const linhas = items.map(p => {
         const obj = {
             id: p.id,
@@ -254,11 +308,16 @@ function gerarConteudoMenuData() {
         return `    {\n${campos}\n    }`;
     });
 
-    return `window.fgMenuItems = [\n${linhas.join(',\n')}\n]\n`;
+    return `const fgMenuItems = [\n${linhas.join(',\n')}\n]\n\nif (typeof window !== 'undefined') {\n    window.fgMenuItems = fgMenuItems;\n}\nif (typeof module !== 'undefined' && module.exports) {\n    module.exports = fgMenuItems;\n}\n`;
 }
 
-function exportarMenuData() {
-    const conteudo = gerarConteudoMenuData();
+async function exportarMenuData() {
+    let conteudo;
+    try {
+        conteudo = await gerarConteudoMenuData();
+    } catch (e) {
+        return showToast('⚠️ Erro ao gerar menuData: ' + e.message);
+    }
     const blob = new Blob([conteudo], { type: 'text/javascript;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -332,7 +391,7 @@ function toBase64(str) {
 }
 
 async function publicarNoSite() {
-    const token = localStorage.getItem('fg_gh_token') || document.getElementById('ghToken').value.trim();
+    const token = getGhToken();
     if (!token) {
         switchTab('github');
         return showToast('Configure o Token do GitHub para publicar!');
@@ -340,30 +399,48 @@ async function publicarNoSite() {
 
     const btn = document.getElementById('btnPublicar');
     const status = document.getElementById('publishStatus');
-    const repo = 'Gobato15/fg-salgados';
     const path = 'menuData.js';
-    const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+    const url = `https://api.github.com/repos/${GH_REPO}/contents/${path}`;
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Publicando...';
     status.className = 'mt-3 d-none';
 
     try {
-        // 1. Obter o SHA do arquivo atual
+        // 1. Enviar imagens pendentes antes do cardápio
+        const pending = readPendingImages();
+        const naoEnviadas = pending.filter(p => !p.uploaded);
+        for (const p of naoEnviadas) {
+            status.className = 'mt-3 small text-muted';
+            status.innerHTML = 'Enviando imagem: ' + p.path.replace(/^images\//, '') + '…';
+            try {
+                await pushImageToGithub(p, token);
+                p.uploaded = true;
+            } catch (imgErr) {
+                throw new Error('Falha ao enviar a imagem ' + p.path + ': ' + (imgErr.message || ''));
+            }
+        }
+        savePendingImages(pending.filter(p => !p.uploaded));
+
+        // 2. Obter o SHA do menuData.js atual
         const resGet = await fetch(url, {
             headers: { 'Authorization': `token ${token}` }
         });
-        
+
         if (!resGet.ok) throw new Error('Não foi possível acessar o arquivo no repositório.');
-        
+
         const dataGet = await resGet.json();
         const sha = dataGet.sha;
 
-        // 2. Gerar novo conteúdo
-        const novoConteudo = gerarConteudoMenuData();
+        // 3. Gerar novo conteúdo e fazer commit
+        let novoConteudo;
+        try {
+            novoConteudo = await gerarConteudoMenuData();
+        } catch (genErr) {
+            throw new Error('Erro ao gerar conteúdo do cardápio: ' + (genErr.message || ''));
+        }
         const conteudoBase64 = toBase64(novoConteudo);
 
-        // 3. Fazer commit da alteração
         const resPut = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -374,14 +451,14 @@ async function publicarNoSite() {
                 message: 'Atualiza cardápio via Admin',
                 content: conteudoBase64,
                 sha: sha,
-                branch: 'main'
+                branch: GH_BRANCH
             })
         });
 
         if (resPut.ok) {
             showToast('✅ Publicado com sucesso no site!');
             status.className = 'mt-3 alert alert-success border-0 small py-2';
-            status.innerHTML = '<strong>Sucesso!</strong> As alterações foram enviadas para o site. Atualize a página da loja em ~2 minutos.';
+            status.innerHTML = '<strong>Sucesso!</strong> Imagens e cardápio enviados para o site. Atualize a página da loja em ~2 minutos.';
         } else {
             const erroData = await resPut.json();
             throw new Error(erroData.message || 'Erro ao salvar no GitHub.');
@@ -515,42 +592,6 @@ async function toggleActive(id, active) {
 }
 
 async function deleteProduct(id) {
-    const p = itemsCache.find(x => String(x.id) === String(id));
-    if (!p) return;
-    if (!confirm(`Excluir "${p.name}"?`)) return;
-
-    if (LOCAL_MODE) {
-        const saved = readJSON(SITE_KEY, {});
-        if (saved.products) delete saved.products[String(id)];
-        writeJSON(SITE_KEY, saved);
-        itemsCache = itemsCache.filter(x => String(x.id) !== String(id));
-        renderProducts();
-        showToast('Produto excluído!');
-        return;
-    }
-
-    try {
-        await apiReq('/admin/products/' + encodeURIComponent(id), { method: 'DELETE' });
-        itemsCache = itemsCache.filter(x => String(x.id) !== String(id));
-        renderProducts();
-        showToast('Produto excluído!');
-    } catch (e) {
-        if (e.silent) return;
-        if (isConnectionError(e)) {
-            LOCAL_MODE = true;
-            const saved = readJSON(SITE_KEY, {});
-            if (saved.products) delete saved.products[String(id)];
-            writeJSON(SITE_KEY, saved);
-            itemsCache = itemsCache.filter(x => String(x.id) !== String(id));
-            renderProducts();
-            showToast('Produto excluído! (local)');
-            return;
-        }
-        showToast('⚠️ ' + e.message);
-    }
-}
-
-async function deleteProduct(id) {
     const p = itemsCache.find(x => x.id === id);
     if (!p) return;
     if (!confirm(`Excluir "${p.name}"?`)) return;
@@ -649,7 +690,7 @@ async function openProductForm(id) {
             <div class="col-md-6">
                 <label class="form-label small fw-bold text-muted text-uppercase">Enviar foto do dispositivo</label>
                 <input type="file" id="pfFile" accept="image/webp,image/png,image/jpeg,image/gif" class="form-control rounded-3" onchange="previewProductImage(this)">
-                <small class="text-muted">WEBP, PNG, JPG ou GIF · enviada e salva no backend.</small>
+                <small class="text-muted">Foto otimizada e enviada para o repositório do site na publicação.</small>
             </div>
             <div class="col-12 ${previewSrc ? '' : 'd-none'}" id="pfPreviewWrap">
                 <label class="form-label small fw-bold text-muted text-uppercase">Pré-visualização</label>
@@ -701,21 +742,99 @@ function mimeFromName(name) {
     return { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' }[ext] || 'image/webp';
 }
 
+function optimizeImage(file, maxSize = 1000) {
+    return new Promise((resolve, reject) => {
+        if (!file || !file.type || !file.type.startsWith('image/')) {
+            reject(new Error('Arquivo selecionado não é uma imagem.'));
+            return;
+        }
+        if (file.type === 'image/gif') {
+            resolve({ webp: false });
+            return;
+        }
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            try {
+                const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+                const w = Math.max(1, Math.round(img.width * scale));
+                const h = Math.max(1, Math.round(img.height * scale));
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const dataUrl = canvas.toDataURL('image/webp', 0.82);
+                URL.revokeObjectURL(url);
+                resolve({ webp: true, base64: dataUrl.split(',')[1] || '' });
+            } catch (e) {
+                URL.revokeObjectURL(url);
+                reject(new Error('Falha ao otimizar a imagem.'));
+            }
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error('Imagem inválida ou corrompida.'));
+        };
+        img.src = url;
+    });
+}
+
 async function uploadImage(file) {
     const base = apiBase();
-    if (!base) throw new Error('API não configurada.');
-    const headers = { 'Content-Type': file.type || mimeFromName(file.name) };
+    if (!base) throw new Error('API não configurada. Defina FG_CONFIG.pixApiUrl em config.js.');
     const token = sessionStorage.getItem('fg_admin_token');
+
+    let body = file;
+    let contentType = file.type || mimeFromName(file.name);
+    if (contentType !== 'image/gif') {
+        try {
+            const opt = await optimizeImage(file);
+            if (opt && opt.webp) {
+                const bin = atob(opt.base64);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                body = new Blob([bytes], { type: 'image/webp' });
+                contentType = 'image/webp';
+            }
+        } catch (e) { /* não otimizável: envia o arquivo original */ }
+    }
+
+    const headers = { 'Content-Type': contentType };
     if (token) headers['Authorization'] = 'Bearer ' + token;
     let res;
     try {
-        res = await fetch(base + '/admin/upload', { method: 'POST', headers, body: file });
+        res = await fetch(base + '/admin/upload', { method: 'POST', headers, body: body });
     } catch (e) {
         throw new Error(`Não foi possível conectar à API em ${base}. Confira a URL em config.js e se o backend está no ar.`);
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Falha no upload da imagem.');
     return data.url;
+}
+
+async function pushImageToGithub(entry, token) {
+    const headers = { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' };
+    const encodedPath = String(entry.path).split('/').map(encodeURIComponent).join('/');
+    const imgUrl = GH_BASE + encodedPath;
+
+    let sha = null;
+    try {
+        const resGet = await fetch(imgUrl, { headers });
+        if (resGet.ok) {
+            const d = await resGet.json();
+            sha = d.sha;
+        }
+    } catch (e) { /* arquivo novo: segue sem sha */ }
+
+    const body = { message: 'Upload imagem via Admin', content: entry.base64, branch: GH_BRANCH };
+    if (sha) body.sha = sha;
+
+    const resPut = await fetch(imgUrl, { method: 'PUT', headers, body: JSON.stringify(body) });
+    if (!resPut.ok) {
+        const err = await resPut.json().catch(() => ({}));
+        throw new Error((err && err.message) || 'Falha ao enviar a imagem para o GitHub.');
+    }
+    return true;
 }
 
 async function saveProductForm(id) {

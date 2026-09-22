@@ -36,18 +36,6 @@ export function loadSavedData() {
 
     menuItems = (window.fgMenuItems || []).map(item => Object.assign({}, item, { desc: item.description, active: item.active !== false }));
 
-    if (savedData.products) {
-        Object.keys(savedData.products).forEach(id => {
-            const so = savedData.products[id] || {};
-            const byId = menuItems.find(p => String(p.id) === String(id));
-            const norm = n => String(n || '').toLowerCase().replace(/\s+/g, ' ').trim();
-            const byName = menuItems.find(p => norm(p.name) === norm(so.name));
-            const target = byId || byName;
-            if (target) Object.assign(target, so, { id: target.id, name: so.name || target.name });
-            else menuItems.push(Object.assign({ id, active: true, units: 1 }, so));
-        });
-    }
-
     const seen = new Set();
     const seenName = new Set();
     menuItems = menuItems.filter(it => {

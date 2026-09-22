@@ -1,12 +1,21 @@
 /* ============================================================================
- * FG SALGADOS — Backend de Pagamento PIX (Mercado Pago)
- * Node.js + Express. Independente do site estático (GitHub Pages).
+ * FG SALGADOS — Backend de Pagamento PIX (Mercado Pago) + Área Restrita
+ * Node.js + Express.
  *
- * Endpoints:
- *   GET  /api/health        -> status da integração
- *   POST /api/pix           -> cria uma cobrança PIX (QR dinâmico) para um pedido
- *   POST /api/webhook       -> recebe a confirmação de pagamento do Mercado Pago
- *   POST /api/simulate-pay  -> (somente se MP_ENV=sandbox) simula um pagamento
+ * Endpoints públicos:
+ *   GET  /api/health              -> status da integração
+ *   GET  /api/menu                -> cardápio público
+ *   POST /api/pix                 -> cria uma cobrança PIX (QR dinâmico)
+ *   POST /api/webhook             -> confirmação de pagamento do Mercado Pago
+ *   POST /api/simulate-pay        -> (sandbox) simula um pagamento
+ *
+ * Área Restrita (requer token de admin):
+ *   POST /api/admin/login         -> autenticação
+ *   GET  /api/admin/products      -> lista produtos
+ *   POST /api/admin/products      -> cria/atualiza produto
+ *   DELETE /api/admin/products/:id -> exclui produto
+ *   POST /api/admin/upload        -> upload de imagem
+ *   GET  /api/admin/db-health     -> diagnóstico da conexão com o banco
  * ========================================================================== */
 
 require('dotenv').config();
@@ -29,6 +38,7 @@ const ALLOWED_ORIGIN = (process.env.ALLOWED_ORIGIN || '').trim();
 const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '1031').trim();
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'gobato59@gmail.com').trim().toLowerCase();
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const MYSQL_ENABLED = !!(process.env.DB_HOST && process.env.DB_USER);
 
 const IS_SANDBOX = MP_ENV === 'sandbox';
 const configured = !!MP_ACCESS_TOKEN;
@@ -264,8 +274,20 @@ app.get('/api/health', (req, res) => {
         ok: true,
         configured,
         env: IS_SANDBOX ? 'sandbox' : 'production',
+        db: MYSQL_ENABLED ? 'mysql' : 'sqlite',
         time: new Date().toISOString(),
     });
+});
+
+// Diagnóstico da conexão com o banco (requer admin).
+app.get('/api/admin/db-health', requireAdmin, async (req, res) => {
+    try {
+        const rows = await pool.all('SELECT COUNT(*) as cnt FROM fg_produtos');
+        const cnt = Array.isArray(rows) ? (rows[0] && rows[0].cnt) : rows.cnt;
+        res.json({ ok: true, db: MYSQL_ENABLED ? 'mysql' : 'sqlite', produtos: Number(cnt) || 0 });
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
 });
 
 /* ------------------------- Cardápio público ------------------------- */
@@ -302,60 +324,89 @@ app.get('/api/admin/products', requireAdmin, async (req, res) => {
     res.json({ ok: true, items: await getMergedMenu(true) });
 });
 
-// Cria ou atualiza um produto no MySQL
+// Cria ou atualiza um produto
 app.post('/api/admin/products', requireAdmin, async (req, res) => {
     const b = req.body || {};
-    let id = parseInt(String(b.id).replace(/\D/g, ''), 10);
-    if (isNaN(id) || !b.id) id = null;
+    let id = b.id ? parseInt(String(b.id).replace(/\D/g, ''), 10) : null;
+    if (isNaN(id)) id = null;
 
-    if (!b.name || Number(b.price) <= 0) {
-        return res.status(400).json({ error: 'Nome e preço válidos são obrigatórios.' });
+    if (!b.name || !b.name.trim()) {
+        return res.status(400).json({ error: 'O nome do produto é obrigatório.' });
+    }
+    if (Number(b.price) <= 0 || isNaN(Number(b.price))) {
+        return res.status(400).json({ error: 'Informe um preço válido maior que zero.' });
     }
 
     try {
         if (id) {
-            await pool.run(
+            // UPDATE — produto existente
+            const result = await pool.run(
                 `UPDATE fg_produtos SET nome=?, descricao=?, preco=?, foto=?, categoria=?, ordem=? WHERE id=?`,
-                [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', Number(b.ordem) || 0, id]
+                [
+                    b.name.trim(),
+                    b.desc || '',
+                    Number(b.price),
+                    b.image || '',
+                    b.category || 'fritos',
+                    Number(b.ordem) || 0,
+                    id
+                ]
             );
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: 'Produto não encontrado para atualização.' });
+            }
         } else {
+            // INSERT — produto novo
             const result = await pool.run(
                 `INSERT INTO fg_produtos (nome, descricao, preco, foto, categoria, ordem) VALUES (?, ?, ?, ?, ?, ?)`,
-                [b.name, b.desc || '', Number(b.price), b.image || '', b.category || 'fritos', Number(b.ordem) || 0]
+                [
+                    b.name.trim(),
+                    b.desc || '',
+                    Number(b.price),
+                    b.image || '',
+                    b.category || 'fritos',
+                    Number(b.ordem) || 0
+                ]
             );
             id = result.lastID;
+            if (!id) {
+                return res.status(500).json({ error: 'Produto inserido, mas ID não retornado pelo banco.' });
+            }
         }
-        
-        // Retornar o item no formato esperado
+
         const item = {
             id: String(id),
-            name: b.name,
+            name: b.name.trim(),
             price: Number(b.price),
             units: Math.max(1, parseInt(b.units, 10) || 1),
             category: b.category || 'fritos',
             desc: b.desc || '',
             image: b.image || '',
-            active: true // active logic removed from db
+            active: true,
+            ordem: Number(b.ordem) || 0
         };
         return res.json({ ok: true, item });
     } catch (e) {
-        console.error(e);
-        return res.status(500).json({ error: 'Erro interno ao salvar no banco de dados.' });
+        console.error('[admin/products POST] erro:', e.message);
+        return res.status(500).json({ error: 'Erro ao salvar produto no banco de dados. Verifique a conexão.' });
     }
 });
 
-// Exclui um produto no MySQL
+// Exclui um produto
 app.delete('/api/admin/products/:id', requireAdmin, async (req, res) => {
     const id = parseInt(String(req.params.id).replace(/\D/g, ''), 10);
-    if (isNaN(id)) {
+    if (isNaN(id) || id <= 0) {
         return res.status(400).json({ error: 'ID de produto inválido.' });
     }
     try {
-        await pool.run(`DELETE FROM fg_produtos WHERE id=?`, [id]);
+        const result = await pool.run(`DELETE FROM fg_produtos WHERE id=?`, [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Produto não encontrado.' });
+        }
         return res.json({ ok: true, id: String(id) });
     } catch (e) {
-        console.error(e);
-        return res.status(500).json({ error: 'Erro interno ao excluir.' });
+        console.error('[admin/products DELETE] erro:', e.message);
+        return res.status(500).json({ error: 'Erro ao excluir produto. Verifique a conexão com o banco.' });
     }
 });
 
@@ -530,10 +581,27 @@ app.post('/api/simulate-pay', async (req, res) => {
 });
 
 /* ------------------------- Iniciar ------------------------- */
-app.listen(PORT, () => {
-    console.log(`FG Salgados PIX backend rodando na porta ${PORT}`);
-    console.log(`Modo: ${IS_SANDBOX ? 'SANDBOX' : 'PRODUÇÃO'} | Configurado: ${configured}`);
+app.listen(PORT, async () => {
+    console.log(`\n╔══════════════════════════════════════════════╗`);
+    console.log(`║   FG SALGADOS — Backend iniciado             ║`);
+    console.log(`╠══════════════════════════════════════════════╣`);
+    console.log(`║  Porta  : ${String(PORT).padEnd(34)}║`);
+    console.log(`║  PIX    : ${(configured ? 'CONFIGURADO' : 'NÃO CONFIGURADO').padEnd(34)}║`);
+    console.log(`║  Modo MP: ${(IS_SANDBOX ? 'SANDBOX' : 'PRODUÇÃO').padEnd(34)}║`);
+    console.log(`║  Banco  : ${(MYSQL_ENABLED ? 'MySQL (Hostinger)' : 'SQLite (local)').padEnd(34)}║`);
+    console.log(`╚══════════════════════════════════════════════╝\n`);
     if (!configured) {
-        console.warn('AVISO: Defina MP_ACCESS_TOKEN no arquivo .env para ativar o PIX.');
+        console.warn('⚠️  AVISO: Defina MP_ACCESS_TOKEN no .env para ativar o PIX.');
+    }
+    // Testa a conexão com o banco ao iniciar (não falha o servidor se der erro)
+    if (MYSQL_ENABLED) {
+        try {
+            const rows = await pool.all('SELECT COUNT(*) as cnt FROM fg_produtos');
+            const cnt = Array.isArray(rows) ? (rows[0] && rows[0].cnt) : rows.cnt;
+            console.log(`✅ MySQL conectado — ${Number(cnt) || 0} produto(s) na tabela fg_produtos.`);
+        } catch (e) {
+            console.error('❌ Erro ao conectar ao MySQL:', e.message);
+            console.error('   Verifique DB_HOST, DB_USER, DB_PASS e DB_NAME no .env');
+        }
     }
 });

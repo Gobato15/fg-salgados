@@ -1,4 +1,4 @@
-﻿const CACHE = 'fg-salgados-v42';
+﻿const CACHE = 'fg-salgados-v43';
 const CORE = [
     './',
     './index.html',
@@ -18,8 +18,7 @@ const CORE = [
     './images/lanche_natural_frango.webp',
     './images/bauru_queijo_presunto.webp',
     './images/x_ags_premium.webp',
-    './images/fg_xbacon.webp',
-    './images/pix_qr_code.webp'
+    './images/fg_xbacon.webp'
 ];
 
 self.addEventListener('install', (event) => {
