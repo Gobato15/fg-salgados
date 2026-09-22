@@ -1,0 +1,17 @@
+# FG Salgados — Configuração Apache (Hostinger hPanel)
+# Redireciona /api/* e /uploads/* para o Node.js na porta 3000.
+Options -Indexes
+
+RewriteEngine On
+
+# Proxy para a API Node.js
+RewriteCond %{REQUEST_URI} ^/api/ [NC]
+RewriteRule ^api/(.*) http://127.0.0.1:3000/api/$1 [P,L]
+
+# Proxy para as imagens enviadas via admin
+RewriteCond %{REQUEST_URI} ^/uploads/ [NC]
+RewriteRule ^uploads/(.*) http://127.0.0.1:3000/uploads/$1 [P,L]
+
+# Força HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
