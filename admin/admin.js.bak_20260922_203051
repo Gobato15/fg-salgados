@@ -716,7 +716,7 @@ async function saveProductForm(id) {
             else itemsCache.push(payload);
 
             document.getElementById('productFormWrap').classList.add('d-none');
-            showToast('Cardápio salvo!');
+            showToast('Cardápio salvo (modo local)! Publique pelo GitHub quando quiser.');
             renderProducts();
             return;
         }
