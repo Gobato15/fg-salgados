@@ -392,6 +392,7 @@ export async function checkout() {
                             if (data.qr_code_base64) sessionStorage.setItem('pix_qr_code', data.qr_code_base64);
                             if (data.qr_code) sessionStorage.setItem('pix_copy_paste', data.qr_code);
                             if (data.payment_id) sessionStorage.setItem('fg_payment_id', String(data.payment_id));
+                            sessionStorage.setItem('mp_order_total', String(total));
 
                             const myOrder = {
                                 id: 'c' + (data.payment_id || Date.now()),

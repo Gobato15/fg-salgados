@@ -1,241 +1,180 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Finalize seu pedido na FG Salgados pagando com o PIX do Mercado Pago.">
     <title>Pagamento - FG Salgados</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <style>
-        body {
-            background-color: #FAF6F0;
-            font-family: 'Outfit', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 24px 0;
-            background-image:
-                radial-gradient(circle at 10% 10%, rgba(217, 119, 6, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 70%, rgba(225, 29, 72, 0.04) 0%, transparent 45%);
-        }
-        .success-card {
-            background: white;
-            border-radius: 28px;
-            padding: 50px 40px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(39, 30, 23, 0.14);
-            max-width: 480px;
-            width: 90%;
-            border: 1px solid #E5D8CA;
-        }
-        .success-icon {
-            font-size: 80px;
-            color: #009EE3;
-            margin-bottom: 25px;
-            animation: bounceIn 0.8s ease;
-        }
-        @keyframes bounceIn {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-        .brand-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #E11D48, #9F1239);
-            color: #fff;
-            font-weight: 900;
-            font-size: 14px;
-            padding: 6px 16px;
-            border-radius: 99px;
-            margin-bottom: 18px;
-            box-shadow: 0 6px 16px rgba(225, 29, 72, 0.3);
-        }
-        .btn-amber {
-            background: linear-gradient(135deg, #D97706, #B45309);
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 18px rgba(217, 119, 6, 0.3);
-        }
-        .btn-amber:hover {
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(217, 119, 6, 0.4);
-        }
-        .mp-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #009EE3;
-            color: #fff;
-            font-weight: 700;
-            font-size: 12px;
-            padding: 5px 14px;
-            border-radius: 99px;
-        }
-        .qr-box {
-            background: #fff;
-            border: 1px solid #E5D8CA;
-            border-radius: 16px;
-            padding: 12px;
-            display: inline-block;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .status-box {
-            border: 1px solid #E5D8CA;
-            background: #FAF6F0;
-            border-radius: 14px;
-            padding: 14px;
-            font-size: 0.9rem;
-        }
+        body { background-color: #f0f2f5; font-family: 'Outfit', sans-serif; color: #333; }
+        .mp-header { background: #009ee3; color: white; padding: 15px; text-align: center; font-weight: 700; font-size: 1.2rem; }
+        .container-main { max-width: 480px; margin: 0 auto; padding: 20px; }
+        .card-payment { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 25px; margin-bottom: 20px; }
+
+        .pix-amount { font-size: 1.8rem; font-weight: 700; margin-bottom: 5px; color: #000; }
+        .timer-box { color: #666; font-size: 1rem; margin-bottom: 20px; }
+        .timer-box b { color: #e8321f; }
+
+        .qr-container { text-align: center; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .qr-code-img { width: 220px; height: 220px; }
+
+        .copy-paste-box { background: #f8f9fa; border: 1px dashed #009ee3; border-radius: 6px; padding: 12px; font-size: 0.9rem; word-break: break-all; margin-bottom: 15px; color: #555; text-align: center; }
+        .btn-copy { background: #009ee3; color: white; border: none; border-radius: 6px; padding: 15px; width: 100%; font-weight: 700; font-size: 1rem; transition: 0.2s; }
+        .btn-copy:hover { background: #007cbb; }
+
+        .status-header { background: #00a650; color: white; padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0; }
+
+        .step-item { display: flex; align-items: flex-start; margin-bottom: 18px; font-size: 1.05rem; }
+        .step-num { width: 22px; height: 22px; border: 1px solid #009ee3; color: #009ee3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; margin-right: 12px; flex-shrink: 0; }
+
+        .btn-voltar { background: #d97706; color: white; border: none; border-radius: 6px; padding: 15px; width: 100%; font-weight: 700; font-size: 1rem; transition: 0.2s; }
+        .btn-voltar:hover { background: #b45309; }
     </style>
 </head>
 <body>
-    <div class="success-card">
-        <div class="brand-chip">FG Salgados</div>
-        <i class="fa-solid fa-circle-check success-icon"></i>
-        <h2 class="fw-bold mb-3 text-dark" id="successTitle">Pedido Confirmado!</h2>
 
-        <div id="statusArea"></div>
+<div class="mp-header">MERCADO PAGO</div>
 
-        <div id="pixArea" style="display: none;">
-            <div class="mp-badge mb-3"><i class="fa-brands fa-mercadopago"></i> PIX Mercado Pago</div>
-            <p class="text-muted mb-3">Escaneie o QR Code abaixo ou copie a chave PIX para pagar e finalizar seu pedido.</p>
-            <div class="qr-box mb-3" id="qrWrapper"></div>
-            <div id="copyArea"></div>
-            <div class="status-box mt-3">
-                <span id="pixStatus" class="fw-bold text-muted">Aguardando pagamento...</span>
+<div class="container-main">
+
+    <!-- PAGAMENTO PENDENTE -->
+    <div id="pending-payment" style="display: block;">
+        <div class="text-center">
+            <p class="mb-1 fw-bold text-secondary">Falta pouco!</p>
+            <div class="pix-amount" id="pixAmount">R$ 0,00</div>
+            <div id="pix-timer" class="timer-box">Este código expira em: <b id="pixTimerValue">3:00</b></div>
+        </div>
+
+        <div class="card-payment">
+            <div class="qr-container">
+                <img src="data:image/png;base64," class="qr-code-img" id="qrCodeImg" alt="QR Pix" style="display:none;">
+                <p class="small text-muted mt-2 mb-0">Aponte a câmera do seu banco para o QR Code</p>
+            </div>
+
+            <p class="small fw-bold mb-2">Código de pagamento</p>
+            <div class="copy-paste-box" id="pixCode"></div>
+            <button class="btn-copy" id="btnCopy" onclick="copyPix()">Copiar Código Pix</button>
+
+            <div class="mt-4 pt-3 border-top">
+                <p class="fw-bold small mb-3">Como pagar?</p>
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div>Abra o app do seu banco e escolha Pix.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div>Cole o código ou escaneie o QR Code.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div>Confirme o pagamento e pronto!</div>
+                </div>
             </div>
         </div>
 
-        <div id="approvedArea" style="display: none;">
-            <p class="text-muted mb-4" id="approvedText">Seu pagamento foi aprovado e seu pedido já está com nossa equipe. Obrigado pela preferência!</p>
-        </div>
-
-        <a href="index.html" class="btn btn-amber rounded-pill px-4 py-3 fw-bold w-100 fs-6 mb-3">
-            <i class="fa-solid fa-store"></i> Voltar ao Cardápio
-        </a>
-        <a href="index.html" class="btn btn-light rounded-pill px-4 py-3 fw-bold w-100 fs-6 border text-secondary">
-            <i class="fa-solid fa-clock-rotate-left me-1"></i> Meus Pedidos
-        </a>
+        <button class="btn-voltar mb-3" onclick="window.location.href='index.html'">
+            <i class="bi bi-house-door me-2"></i> Voltar ao Cardápio
+        </button>
     </div>
 
-    <script>
+    <!-- SUCESSO / APROVADO -->
+    <div id="success-screen" style="display: none;">
+        <div class="status-header">
+            <i class="bi bi-check-circle-fill display-4"></i>
+            <h4 class="mt-3 fw-bold">Pagamento Aprovado!</h4>
+        </div>
+        <div class="card-payment" style="border-radius: 0 0 12px 12px;">
+            <div class="text-center">
+                <p class="text-muted" id="approvedText">Seu pedido já está com nossa equipe.</p>
+                <div class="bg-light p-3 rounded-3 mb-3 border">
+                    <p class="small text-muted mb-1">ID DO SEU PEDIDO</p>
+                    <div class="h5 fw-bold mb-2" id="orderIdText">#NA</div>
+                </div>
+            </div>
+            <button class="btn-voltar mt-2" onclick="window.location.href='index.html'">
+                <i class="bi bi-house-door me-2"></i> Voltar ao Cardápio
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function copyPix() {
+        const code = document.getElementById('pixCode').innerText.trim();
+        navigator.clipboard.writeText(code).catch(function() {
+            const el = document.createElement('textarea');
+            el.value = code;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        });
+
+        const btn = document.getElementById('btnCopy');
+        btn.innerText = '\u2713 C\u00d3DIGO COPIADO!';
+        btn.style.backgroundColor = '#00a650';
+        setTimeout(() => {
+            btn.innerText = 'Copiar Código Pix';
+            btn.style.backgroundColor = '#009ee3';
+        }, 3000);
+    }
+
+    (function() {
         const urlParams = new URLSearchParams(window.location.search);
         const paymentId = urlParams.get('payment_id');
 
-        const approvedArea = document.getElementById('approvedArea');
-        const pixArea = document.getElementById('pixArea');
-        const statusArea = document.getElementById('statusArea');
-
-        function showToastClick(text) {
-            const copyBtn = document.getElementById('copyPixBtn');
-            copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
-            setTimeout(() => { copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Copiar'; }, 2000);
-        }
-
-        function showPix() {
-            document.getElementById('successTitle').innerText = 'Pague com PIX';
-            statusArea.innerHTML = paymentId
-                ? `<span class="text-muted small">Pagamento Mercado Pago · ID <b>${paymentId}</b></span>`
-                : '';
-            pixArea.style.display = 'block';
-
-            const qrBase64 = sessionStorage.getItem('pix_qr_code');
-            const copyPaste = sessionStorage.getItem('pix_copy_paste');
-
-            const qrWrapper = document.getElementById('qrWrapper');
-            if (qrBase64) {
-                qrWrapper.innerHTML = `<img src="data:image/png;base64,${qrBase64}" width="220" height="220" alt="QR Code PIX" style="display:block;">`;
-            } else {
-                qrWrapper.innerHTML = '<p class="text-muted m-0">QR Code indisponível.</p>';
-            }
-
-            if (copyPaste) {
-                document.getElementById('copyArea').innerHTML = `
-                    <div class="input-group mt-2 mb-1">
-                        <input type="text" class="form-control text-center bg-light fw-bold text-muted" id="pixCode" value="${copyPaste}" readonly style="font-size: 0.8rem; border-right: 0;">
-                        <button class="btn btn-amber fw-bold" type="button" id="copyPixBtn" onclick="navigator.clipboard.writeText('${copyPaste}').then(showToastClick, function(){ var el=document.getElementById('pixCode'); el.select(); document.execCommand('copy'); showToastClick(); })"><i class="fa-solid fa-copy"></i> Copiar</button>
-                    </div>
-                    <p class="text-muted small mb-0">A confirmação do pagamento é feita automaticamente pelo Mercado Pago.</p>
-                `;
-            }
-
-            sessionStorage.removeItem('pix_qr_code');
-            sessionStorage.removeItem('pix_copy_paste');
-            sessionStorage.removeItem('fg_payment_id');
-
-            pollPixStatus(paymentId);
-        }
-
-        function pollPixStatus(id) {
-            if (!id) return;
-            const base = pixApiUrl();
-            if (!base) return;
-            const triesMax = 60;
-            let tries = 0;
-
-            function check() {
-                tries++;
-                fetch(base + '/pix/' + id)
-                    .then(res => res.json().catch(() => ({})))
-                    .then(data => {
-                        const statusEl = document.getElementById('pixStatus');
-                        if (data.approved) {
-                            clearInterval(timer);
-                            if (statusEl) {
-                                statusEl.className = 'fw-bold text-success';
-                                statusEl.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Pagamento aprovado!';
-                            }
-                        } else if (tries > triesMax) {
-                            clearInterval(timer);
-                            if (statusEl) {
-                                statusEl.className = 'fw-bold text-muted';
-                                statusEl.textContent = 'Seu pagamento foi enviado. Aguardando confirmação do Mercado Pago.';
-                            }
-                        }
-                    })
-                    .catch(() => {
-                        if (tries > triesMax) clearInterval(timer);
-                    });
-            }
-
-            const timer = setInterval(check, 5000);
-            check();
-        }
-
-        function pixApiUrl() {
-            try {
-                const cfg = window.FG_CONFIG || {};
-                return String(cfg.pixApiUrl || '').trim().replace(/\/+$/, '');
-            } catch (e) {
-                return '';
-            }
-        }
-
         const qrBase64 = sessionStorage.getItem('pix_qr_code');
         const copyPaste = sessionStorage.getItem('pix_copy_paste');
-
-        if (qrBase64 || copyPaste) {
-            showPix();
-        } else if (paymentId) {
-            document.getElementById('successTitle').innerText = 'Pagamento Aprovado! 🎉';
-            approvedArea.style.display = 'block';
-            document.getElementById('approvedText').innerHTML = `Seu pedido foi processado via Mercado Pago (ID: <b>${paymentId}</b>). Já estamos preparando tudo!`;
-        } else {
-            approvedArea.style.display = 'block';
-        }
+        const total = sessionStorage.getItem('mp_order_total');
+        sessionStorage.removeItem('pix_qr_code');
+        sessionStorage.removeItem('pix_copy_paste');
+        sessionStorage.removeItem('mp_order_total');
+        sessionStorage.removeItem('fg_payment_id');
 
         try {
             localStorage.removeItem('fg_cart');
         } catch (e) {}
-    </script>
+
+        if (qrBase64 || copyPaste) {
+            document.getElementById('pixAmount').innerText = total
+                ? 'R$ ' + Number(total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+                : 'R$ 0,00';
+
+            if (qrBase64) {
+                document.getElementById('qrCodeImg').src = 'data:image/png;base64,' + qrBase64;
+                document.getElementById('qrCodeImg').style.display = 'block';
+            }
+            document.getElementById('pixCode').innerText = copyPaste || '(indisponível)';
+
+            (function() {
+                let time = 180;
+                const display = document.getElementById('pixTimerValue');
+                const timer = setInterval(() => {
+                    time--;
+                    let min = Math.floor(time / 60);
+                    let sec = time % 60;
+                    if (display) display.innerText = min + ':' + (sec < 10 ? '0' : '') + sec;
+                    if (time <= 0) {
+                        clearInterval(timer);
+                        if (display) display.parentElement.innerHTML = 'Código expirado. Faça um novo pedido.';
+                    }
+                }, 1000);
+            })();
+        } else {
+            document.getElementById('pending-payment').style.display = 'none';
+            document.getElementById('success-screen').style.display = 'block';
+            if (paymentId) {
+                document.getElementById('orderIdText').innerText = '#' + paymentId;
+                document.getElementById('approvedText').innerText = 'Seu pagamento foi processado via Mercado Pago (ID: ' + paymentId + '). Já estamos preparando tudo!';
+            }
+        }
+    })();
+</script>
+
 </body>
 </html>
