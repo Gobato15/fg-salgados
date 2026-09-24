@@ -1,0 +1,127 @@
+{
+  "ok": true,
+  "updatedAt": "2026-09-24T19:24:50.297Z",
+  "items": [
+    {
+      "id": "1",
+      "name": "X Carne",
+      "category": "burgers",
+      "price": 10,
+      "units": 1,
+      "desc": "Carne suculenta de 56g, mussarela derretida, presunto, tomate, orégano no pão macio.",
+      "image": "images/x_carne.webp",
+      "active": true,
+      "ordem": 0
+    },
+    {
+      "id": "2",
+      "name": "X Picanha",
+      "category": "burgers",
+      "price": 11,
+      "units": 1,
+      "desc": "Carne de picanha de 56g, presunto, mussarela e catupiry cremoso.",
+      "image": "images/x_picanha.webp",
+      "active": true,
+      "ordem": 1
+    },
+    {
+      "id": "3",
+      "name": "Duplo Cheddar",
+      "category": "burgers",
+      "price": 10,
+      "units": 1,
+      "desc": "Pão macio, duas carnes suculentas de 56g e cheddar delicioso.",
+      "image": "images/duplo_cheddar.webp",
+      "active": true,
+      "ordem": 2
+    },
+    {
+      "id": "4",
+      "name": "Coxinha de Frango",
+      "category": "coxinha",
+      "price": 9,
+      "units": 1,
+      "desc": "Coxinha de frango cremosa de 100g, feita com massa artesanal de batata. Receita da casa.",
+      "image": "images/coxinha_premium.webp",
+      "active": true,
+      "ordem": 3
+    },
+    {
+      "id": "5",
+      "name": "Croissant Presunto e Queijo",
+      "category": "croissant",
+      "price": 10,
+      "units": 1,
+      "desc": "O clássico folhado recheado com presunto fatiado e queijo derretido.",
+      "image": "images/croissant_presunto_queijo_premium.webp",
+      "active": true,
+      "ordem": 4
+    },
+    {
+      "id": "6",
+      "name": "Lanche Natural de Frango",
+      "category": "lanches",
+      "price": 9,
+      "units": 1,
+      "desc": "Lanche natural com frango desfiado, maionese, alface e cenoura ralada no pão de forma macio.",
+      "image": "images/lanche_natural_frango.webp",
+      "active": true,
+      "ordem": 5
+    },
+    {
+      "id": "7",
+      "name": "Bauru de Presunto e Queijo",
+      "category": "salgados",
+      "price": 9,
+      "units": 1,
+      "desc": "Clássico bauru com massa fofinha e recheio generoso de presunto e queijo derretido, temperado com um toque de orégano.",
+      "image": "images/bauru_queijo_presunto.webp",
+      "active": true,
+      "ordem": 6
+    },
+    {
+      "id": "8",
+      "name": "X Bacon",
+      "category": "burgers",
+      "price": 10,
+      "units": 1,
+      "desc": "Carne de 56g, bacon crocante, mussarela derretida e maionese da casa no pão macio.",
+      "image": "images/fg_xbacon.webp",
+      "active": true,
+      "ordem": 7
+    },
+    {
+      "id": "9",
+      "name": "X AGS",
+      "category": "burgers",
+      "price": 14,
+      "units": 1,
+      "desc": "Pão macio, duas carnes suculentas de 56g, tomate, presunto, queijo, requeijão, calabresa e bacon.",
+      "image": "images/x_ags_premium.webp",
+      "active": true,
+      "ordem": 8
+    },
+    {
+      "id": "p16",
+      "name": "Bolo Salgado de Frango c/ Requeijão",
+      "category": "assados",
+      "price": 10,
+      "units": 1,
+      "desc": "Bolo salgado de frango com requeijão cremoso e azeitonas gratinados.",
+      "image": "images/ags_bolo_salgado.webp",
+      "active": true,
+      "ordem": 9
+    },
+    {
+      "id": "p17",
+      "name": "Torta de Frango Caseira",
+      "category": "assados",
+      "price": 10,
+      "units": 1,
+      "desc": "Torta de frango com massa caseira derretendo na boca.",
+      "image": "images/ags_torta_frango.webp",
+      "active": true,
+      "ordem": 10
+    }
+  ]
+}
