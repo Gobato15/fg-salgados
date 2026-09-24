@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "updatedAt": "2026-09-24T19:24:50.297Z",
+  "updatedAt": "2026-09-24T19:29:35.170Z",
   "items": [
     {
       "id": "1",
@@ -108,7 +108,7 @@
       "price": 10,
       "units": 1,
       "desc": "Bolo salgado de frango com requeijão cremoso e azeitonas gratinados.",
-      "image": "images/ags_bolo_salgado.webp",
+      "image": "images/bolo_salgado_de_frango_c_requeijao-1790278166302.webp",
       "active": true,
       "ordem": 9
     },
