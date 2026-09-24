@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="description" content="Seu pedido na FG Salgados foi enviado pelo WhatsApp. Aguarde a confirmação da nossa equipe!">
-    <title>Pedido Enviado - FG Salgados</title>
+    <meta name="description" content="Finalize seu pedido na FG Salgados pagando com o PIX do Mercado Pago.">
+    <title>Pagamento - FG Salgados</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,8 +16,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 24px 0;
             background-image:
                 radial-gradient(circle at 10% 10%, rgba(217, 119, 6, 0.05) 0%, transparent 40%),
                 radial-gradient(circle at 90% 70%, rgba(225, 29, 72, 0.04) 0%, transparent 45%);
@@ -34,7 +35,7 @@
         }
         .success-icon {
             font-size: 80px;
-            color: #25D366;
+            color: #009EE3;
             margin-bottom: 25px;
             animation: bounceIn 0.8s ease;
         }
@@ -56,19 +57,6 @@
             margin-bottom: 18px;
             box-shadow: 0 6px 16px rgba(225, 29, 72, 0.3);
         }
-        .btn-whats {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 18px rgba(37, 211, 102, 0.35);
-        }
-        .btn-whats:hover {
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(37, 211, 102, 0.45);
-            background: linear-gradient(135deg, #22BF5B, #0E7569);
-        }
         .btn-amber {
             background: linear-gradient(135deg, #D97706, #B45309);
             color: white;
@@ -81,64 +69,171 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 24px rgba(217, 119, 6, 0.4);
         }
+        .mp-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #009EE3;
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 5px 14px;
+            border-radius: 99px;
+        }
+        .qr-box {
+            background: #fff;
+            border: 1px solid #E5D8CA;
+            border-radius: 16px;
+            padding: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .status-box {
+            border: 1px solid #E5D8CA;
+            background: #FAF6F0;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
     <div class="success-card">
         <div class="brand-chip">FG Salgados</div>
-        <i class="fa-solid fa-circle-check success-icon" style="color: #009EE3;"></i>
+        <i class="fa-solid fa-circle-check success-icon"></i>
         <h2 class="fw-bold mb-3 text-dark" id="successTitle">Pedido Confirmado!</h2>
-        <p class="text-muted mb-4" id="successDesc">
-            Seu pagamento foi processado e seu pedido já está com nossa equipe. Agradecemos a preferência!
-        </p>
+
+        <div id="statusArea"></div>
+
+        <div id="pixArea" style="display: none;">
+            <div class="mp-badge mb-3"><i class="fa-brands fa-mercadopago"></i> PIX Mercado Pago</div>
+            <p class="text-muted mb-3">Escaneie o QR Code abaixo ou copie a chave PIX para pagar e finalizar seu pedido.</p>
+            <div class="qr-box mb-3" id="qrWrapper"></div>
+            <div id="copyArea"></div>
+            <div class="status-box mt-3">
+                <span id="pixStatus" class="fw-bold text-muted">Aguardando pagamento...</span>
+            </div>
+        </div>
+
+        <div id="approvedArea" style="display: none;">
+            <p class="text-muted mb-4" id="approvedText">Seu pagamento foi aprovado e seu pedido já está com nossa equipe. Obrigado pela preferência!</p>
+        </div>
+
         <a href="index.html" class="btn btn-amber rounded-pill px-4 py-3 fw-bold w-100 fs-6 mb-3">
             <i class="fa-solid fa-store"></i> Voltar ao Cardápio
         </a>
-        <a href="#" id="whatsAgain" target="_blank" rel="noopener" class="btn btn-whats rounded-pill px-4 py-3 fw-bold w-100 fs-6">
-            <i class="fa-brands fa-whatsapp"></i> Falar no WhatsApp
+        <a href="index.html" class="btn btn-light rounded-pill px-4 py-3 fw-bold w-100 fs-6 border text-secondary">
+            <i class="fa-solid fa-clock-rotate-left me-1"></i> Meus Pedidos
         </a>
     </div>
 
     <script>
-        var SITE_KEY = 'fg_salgados_v9';
-        var DEFAULT_WHATS = '(19) 99609-0540';
-        function getWhatsNumber() {
-            try {
-                var saved = JSON.parse(localStorage.getItem(SITE_KEY) || '{}');
-                var whats = (saved.contact && saved.contact.whats) || DEFAULT_WHATS;
-                return String(whats).replace(/\D/g, '');
-            } catch (e) {
-                return DEFAULT_WHATS.replace(/\D/g, '');
-            }
-        }
-        document.getElementById('whatsAgain').href = 'https://wa.me/' + getWhatsNumber() + '?text=' + encodeURIComponent('Olá! Vim pelo site da FG Salgados 🙂');
         const urlParams = new URLSearchParams(window.location.search);
         const paymentId = urlParams.get('payment_id');
-        if (paymentId) {
-            document.getElementById('successTitle').innerText = 'Pagamento Aprovado! 🎉';
-            document.getElementById('successDesc').innerHTML = `Seu pedido foi processado via Mercado Pago (ID: <b>${paymentId}</b>). Já estamos preparando tudo!`;
+
+        const approvedArea = document.getElementById('approvedArea');
+        const pixArea = document.getElementById('pixArea');
+        const statusArea = document.getElementById('statusArea');
+
+        function showToastClick(text) {
+            const copyBtn = document.getElementById('copyPixBtn');
+            copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+            setTimeout(() => { copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Copiar'; }, 2000);
+        }
+
+        function showPix() {
+            document.getElementById('successTitle').innerText = 'Pague com PIX';
+            statusArea.innerHTML = paymentId
+                ? `<span class="text-muted small">Pagamento Mercado Pago · ID <b>${paymentId}</b></span>`
+                : '';
+            pixArea.style.display = 'block';
+
+            const qrBase64 = sessionStorage.getItem('pix_qr_code');
+            const copyPaste = sessionStorage.getItem('pix_copy_paste');
+
+            const qrWrapper = document.getElementById('qrWrapper');
+            if (qrBase64) {
+                qrWrapper.innerHTML = `<img src="data:image/png;base64,${qrBase64}" width="220" height="220" alt="QR Code PIX" style="display:block;">`;
+            } else {
+                qrWrapper.innerHTML = '<p class="text-muted m-0">QR Code indisponível.</p>';
+            }
+
+            if (copyPaste) {
+                document.getElementById('copyArea').innerHTML = `
+                    <div class="input-group mt-2 mb-1">
+                        <input type="text" class="form-control text-center bg-light fw-bold text-muted" id="pixCode" value="${copyPaste}" readonly style="font-size: 0.8rem; border-right: 0;">
+                        <button class="btn btn-amber fw-bold" type="button" id="copyPixBtn" onclick="navigator.clipboard.writeText('${copyPaste}').then(showToastClick, function(){ var el=document.getElementById('pixCode'); el.select(); document.execCommand('copy'); showToastClick(); })"><i class="fa-solid fa-copy"></i> Copiar</button>
+                    </div>
+                    <p class="text-muted small mb-0">A confirmação do pagamento é feita automaticamente pelo Mercado Pago.</p>
+                `;
+            }
+
+            sessionStorage.removeItem('pix_qr_code');
+            sessionStorage.removeItem('pix_copy_paste');
+            sessionStorage.removeItem('fg_payment_id');
+
+            pollPixStatus(paymentId);
+        }
+
+        function pollPixStatus(id) {
+            if (!id) return;
+            const base = pixApiUrl();
+            if (!base) return;
+            const triesMax = 60;
+            let tries = 0;
+
+            function check() {
+                tries++;
+                fetch(base + '/pix/' + id)
+                    .then(res => res.json().catch(() => ({})))
+                    .then(data => {
+                        const statusEl = document.getElementById('pixStatus');
+                        if (data.approved) {
+                            clearInterval(timer);
+                            if (statusEl) {
+                                statusEl.className = 'fw-bold text-success';
+                                statusEl.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Pagamento aprovado!';
+                            }
+                        } else if (tries > triesMax) {
+                            clearInterval(timer);
+                            if (statusEl) {
+                                statusEl.className = 'fw-bold text-muted';
+                                statusEl.textContent = 'Seu pagamento foi enviado. Aguardando confirmação do Mercado Pago.';
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        if (tries > triesMax) clearInterval(timer);
+                    });
+            }
+
+            const timer = setInterval(check, 5000);
+            check();
+        }
+
+        function pixApiUrl() {
+            try {
+                const cfg = window.FG_CONFIG || {};
+                return String(cfg.pixApiUrl || '').trim().replace(/\/+$/, '');
+            } catch (e) {
+                return '';
+            }
         }
 
         const qrBase64 = sessionStorage.getItem('pix_qr_code');
         const copyPaste = sessionStorage.getItem('pix_copy_paste');
+
         if (qrBase64 || copyPaste) {
-            document.getElementById('successTitle').innerText = 'PIX Gerado!';
-            document.getElementById('successDesc').innerHTML = `
-                Escaneie o QR Code abaixo ou copie a chave para pagar e finalizar seu pedido.<br><br>
-                ${qrBase64 ? \`<img src="data:image/png;base64,${qrBase64}" width="180" height="180" style="border-radius:12px; border:1px solid #E5D8CA; padding:5px; background:white; margin-bottom:15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);"><br>\` : ''}
-                ${copyPaste ? \`
-                <div class="input-group mt-2">
-                    <input type="text" class="form-control text-center bg-light fw-bold text-muted border-end-0" id="pixCode" value="${copyPaste}" readonly style="font-size: 0.85rem;">
-                    <button class="btn btn-amber fw-bold border-start-0" type="button" onclick="navigator.clipboard.writeText('${copyPaste}'); alert('Chave PIX copiada!')"><i class="fa-solid fa-copy"></i> Copiar</button>
-                </div>
-                \` : ''}
-            `;
-            sessionStorage.removeItem('pix_qr_code');
-            sessionStorage.removeItem('pix_copy_paste');
+            showPix();
+        } else if (paymentId) {
+            document.getElementById('successTitle').innerText = 'Pagamento Aprovado! 🎉';
+            approvedArea.style.display = 'block';
+            document.getElementById('approvedText').innerHTML = `Seu pedido foi processado via Mercado Pago (ID: <b>${paymentId}</b>). Já estamos preparando tudo!`;
+        } else {
+            approvedArea.style.display = 'block';
         }
-        
+
         try {
-            localStorage.removeItem('ags_cart'); // ou fg_cart se renomeado
             localStorage.removeItem('fg_cart');
         } catch (e) {}
     </script>
