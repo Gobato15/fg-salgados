@@ -78,7 +78,7 @@ export function createProductCard(item, index = 0) {
                     <span class="product-card-top-icon"><i class="fa-solid fa-snowflake"></i></span>
                 </div>
                 <div class="product-image-wrapper position-relative">
-                    <img src="${imgSrc}" class="w-100 h-100" alt="${esc(item.name)}" style="object-fit: cover;" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
+                    <img src="${imgSrc}" class="w-100 h-100" alt="${esc(item.name)}" style="object-fit: cover;" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
                     ${packBadge}
                 </div>
                 <div class="card-body d-flex flex-column text-start p-4">

@@ -85,12 +85,17 @@ function applyMenu(remoteItems) {
         .filter(it => it.image && it.active !== false);
 }
 
-// Busca o cardápio no backend (FG_CONFIG.pixApiUrl) e aplica por cima do base,
-// com cache em localStorage. Apresenta o cache imediatamente e atualiza em
-// segundo plano; se não houver API configurada ou conexão, mantém menuData.js.
+// Busca o cardápio publicado no GitHub (data/products.json) e aplica por cima
+// do base, com cache em localStorage. Apresenta o cache imediatamente e
+// atualiza em segundo plano; se não houver conexão/arquivo, mantém menuData.js.
 export async function refreshRemoteMenu() {
-    const apiBase = (window.FG_CONFIG && window.FG_CONFIG.pixApiUrl || '').trim().replace(/\/+$/, '');
-    if (!apiBase) return;
+    const cfg = window.FG_CONFIG || {};
+    let menuUrl = String(cfg.gitHubRawMenu || '').trim();
+    if (!menuUrl) {
+        const apiBase = String(cfg.pixApiUrl || '').trim().replace(/\/+$/, '');
+        if (apiBase) menuUrl = apiBase + '/menu';
+    }
+    if (!menuUrl) return;
 
     try {
         const cached = JSON.parse(localStorage.getItem(REMOTE_MENU_KEY) || 'null');
@@ -98,7 +103,8 @@ export async function refreshRemoteMenu() {
     } catch (e) { /* cache corrompido: ignora */ }
 
     try {
-        const res = await fetch(apiBase + '/menu');
+        const bust = 't=' + Date.now();
+        const res = await fetch(menuUrl + (menuUrl.indexOf('?') >= 0 ? '&' : '?') + bust);
         if (!res.ok) throw new Error('menu falhou');
         const data = await res.json();
         localStorage.setItem(REMOTE_MENU_KEY, JSON.stringify({ items: data.items || [], cachedAt: Date.now() }));

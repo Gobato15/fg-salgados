@@ -66,6 +66,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <h5 class="fw-bold mb-0">Cardápio</h5>
                     <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-amber rounded-pill fw-bold" id="btnPublicarGitHub" onclick="publicarGitHub()" title="Publica o cardápio atual no repositório do site (data/products.json + imagens pendentes)">
+                            <i class="fa-brands fa-github me-1"></i> Publicar no GitHub
+                        </button>
                         <button type="button" class="btn btn-amber rounded-pill fw-bold" onclick="openProductForm()">
                             <i class="fa-solid fa-plus me-1"></i> Novo Produto
                         </button>
@@ -145,19 +148,51 @@
             </section>
 
             <section id="tab-senha" class="tab-section d-none">
-                <div class="bg-white rounded-4 shadow-sm p-4" style="max-width: 600px;">
-                    <h5 class="fw-bold mb-3">Senha de Acesso</h5>
-                    <div class="alert alert-info small mb-3">
-                        <i class="fa-solid fa-shield-halved me-1"></i>
-                        O login é validado pelo <strong>backend Node.js</strong> usando as credenciais
-                        definidas no arquivo <code>.env</code> do servidor
-                        (<code>ADMIN_EMAIL</code> e <code>ADMIN_PASSWORD</code>).
-                        A sessão expira automaticamente em <strong>12 horas</strong> de inatividade.
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="bg-white rounded-4 shadow-sm p-4">
+                            <h5 class="fw-bold mb-3">Código de Acesso</h5>
+                            <div class="alert alert-info small mb-3">
+                                <i class="fa-solid fa-shield-halved me-1"></i>
+                                O admin usa <strong>código fixo</strong> (e-mail
+                                <code>gobato59@gmail.com</code>) definido direto na página —
+                                funciona sem servidor. A sessão sai após
+                                <strong>30 min</strong> de inatividade.
+                            </div>
+                            <div class="alert alert-warning small mb-0">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i>
+                                Para trocar o código, altere <code>DEFAULT_PASSWORD</code> em
+                                <code>admin/admin.js</code> e publique no repositório.
+                            </div>
+                        </div>
                     </div>
-                    <div class="alert alert-warning small mb-0">
-                        <i class="fa-solid fa-circle-exclamation me-1"></i>
-                        Para alterar a senha, edite o arquivo <code>backend/.env</code> no servidor
-                        e reinicie o Node.js. Nunca compartilhe o <code>.env</code> publicamente.
+                    <div class="col-lg-6">
+                        <div class="bg-white rounded-4 shadow-sm p-4">
+                            <h5 class="fw-bold mb-3"><i class="fa-brands fa-github me-1"></i> GitHub (banco de produtos)</h5>
+                            <p class="small text-muted mb-3">
+                                O cardápio é publicado em <code>data/products.json</code> no repositório
+                                do site. Cole um token de acesso (fine-grained, permissão
+                                <strong>Contents: Read and write</strong>, somente este repositório).
+                                O token fica só no seu navegador.
+                            </p>
+                            <label class="form-label small fw-bold text-muted text-uppercase">Token do GitHub</label>
+                            <input type="password" id="ghTokenInput" class="form-control rounded-3 mb-2" placeholder="github_pat_..." autocomplete="off">
+                            <div class="d-flex gap-2 mb-3">
+                                <button type="button" class="btn btn-outline-amber rounded-pill fw-bold" onclick="salvarGitHubToken()"><i class="fa-solid fa-floppy-disk me-1"></i> Salvar Token</button>
+                                <button type="button" class="btn btn-light rounded-pill fw-bold border" onclick="limparGitHubToken()"><i class="fa-solid fa-trash me-1"></i> Remover</button>
+                            </div>
+                            <div class="alert alert-success small mb-2 d-none" id="ghTokenOk">
+                                <i class="fa-solid fa-check me-1"></i> Token salvo no navegador. Pronto para publicar.
+                            </div>
+                            <div class="alert alert-warning small mb-2 d-none" id="ghNoToken">
+                                <i class="fa-solid fa-circle-info me-1"></i> Sem token configurado. As edições ficam salvas
+                                localmente; para refletir no site público, configure o token e clique em
+                                <strong>Publicar no GitHub</strong>.
+                            </div>
+                            <div class="small text-muted">
+                                Última publicação: <span id="ghLastPublished">—</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -169,9 +204,9 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="../menuData.js?v=41"></script>
-    <script src="../config.js?v=41"></script>
-    <script src="./admin.js?v=12"></script>
+    <script src="../menuData.js?v=42"></script>
+    <script src="../config.js?v=42"></script>
+    <script src="./admin.js?v=13"></script>
 </body>
 
 </html>

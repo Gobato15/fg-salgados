@@ -1,33 +1,27 @@
 /* ============================================================================
- * FG SALGADOS — Configuração da API (PIX dinâmico + cardápio + uploads)
+ * FG SALGADOS — Configuração (GitHub como banco de produtos + PIX estático)
  *
- * FG_CONFIG.pixApiUrl:
- *   - POST /api/pix          -> QR Code dinâmico por pedido.
- *   - GET  /api/menu         -> produtos do MySQL.
- *   - Área restrita          -> login, CRUD de produtos e upload de imagens.
+ * NÃO usa mais backend externo. O "banco" de produtos vive no próprio
+ * repositório (data/products.json) e é lido/publicado pela GitHub API.
  *
- * Em produção (www.fgsalgados.com.br) o backend Node.js roda no hPanel
- * da Hostinger na mesma URL do site, então /api está no mesmo domínio.
+ * FG_CONFIG:
+ *   - pixApiUrl: ''            -> PIX estático (sem QR dinâmico/backend).
+ *   - gitHubRepo: owner/repo/branch -> onde vive o products.json.
+ *   - gitHubRawMenu            -> URL pública de leitura do cardápio.
+ *   - gitHubFile               -> caminho do arquivo de produtos no repo.
  * ========================================================================== */
 (function () {
     var hostname = window.location && window.location.hostname;
     var isLocal = (hostname === 'localhost' || hostname === '127.0.0.1');
-    var isGithubPages = hostname && hostname.indexOf('github.io') !== -1;
-
-    var apiUrl;
-    if (isLocal) {
-        // Teste local: backend rodando em http://localhost:3000
-        apiUrl = 'http://localhost:3000/api';
-    } else if (isGithubPages) {
-        // Se ainda estiver no GitHub Pages, aponta para o domínio de produção
-        apiUrl = 'https://www.fgsalgados.com.br/api';
-    } else {
-        // No próprio domínio (www.fgsalgados.com.br via Hostinger hPanel)
-        // a API está no mesmo host — usa URL relativa para evitar problemas de CORS
-        apiUrl = window.location.origin + '/api';
-    }
 
     window.FG_CONFIG = {
-        pixApiUrl: apiUrl
+        pixApiUrl: isLocal ? 'http://localhost:3000/api' : '',
+        gitHubRepo: {
+            owner: 'Gobato15',
+            repo: 'fg-salgados',
+            branch: 'main'
+        },
+        gitHubFile: 'data/products.json',
+        gitHubRawMenu: 'https://raw.githubusercontent.com/Gobato15/fg-salgados/main/data/products.json'
     };
 })();

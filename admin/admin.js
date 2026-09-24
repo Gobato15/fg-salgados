@@ -8,6 +8,10 @@ const MAX_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
 const INACTIVITY_MINUTES = 30;
 
+const GITHUB_TOKEN_KEY = 'fg_github_token';
+const GITHUB_PENDING_IMAGES_KEY = 'fg_github_pending_images';
+const GITHUB_CONFIG_KEY = 'fg_github_config';
+
 
 const STATUSES = {
     pendente: { label: 'Pendente', next: 'preparo' },
@@ -59,8 +63,13 @@ function localCheckLogin(email, pass) {
     return false;
 }
 
-function loadLocalItems() {
-    const base = (window.fgMenuItems || []).map(item => Object.assign({}, item, { desc: item.description, active: item.active !== false }));
+function normalizeMenuItem(it) {
+    return Object.assign({}, it, { desc: it.desc || it.description, active: it.active !== false });
+}
+
+function loadLocalItems(baseItems) {
+    const base = (baseItems && baseItems.length ? baseItems : (window.fgMenuItems || []))
+        .map(normalizeMenuItem);
     const saved = readJSON(SITE_KEY, {});
     if (saved.products) {
         Object.keys(saved.products).forEach(id => {
@@ -115,6 +124,231 @@ async function apiReq(path, opts = {}) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `Erro ${res.status} na requisição.`);
     return data;
+}
+
+/* ------------------------- GitHub (banco de produtos) ------------------------- */
+
+let REPO_MODE = false;
+
+function gitHubRepoConfig() {
+    const repo = (window.FG_CONFIG && window.FG_CONFIG.gitHubRepo) || {};
+    if (!repo.owner || !repo.repo) return null;
+    return Object.assign({
+        owner: repo.owner,
+        repo: repo.repo,
+        branch: repo.branch || 'main'
+    }, repo);
+}
+
+function gitHubFile() {
+    const cfg = window.FG_CONFIG || {};
+    return String(cfg.gitHubFile || 'data/products.json').replace(/^\//, '');
+}
+
+function ghToken() {
+    try { return (localStorage.getItem(GITHUB_TOKEN_KEY) || '').trim(); } catch (e) { return ''; }
+}
+
+function ghApiBase() {
+    const repo = gitHubRepoConfig();
+    return repo ? `https://api.github.com/repos/${repo.owner}/${repo.repo}` : '';
+}
+
+async function ghApi(path, opts = {}) {
+    const base = ghApiBase();
+    if (!base) throw new Error('Repositório do GitHub não configurado em config.js.');
+    const token = ghToken();
+    if (!token) throw new Error('Token do GitHub não configurado. Cole o token na aba "Senha".');
+    const headers = Object.assign({
+        'Accept': 'application/vnd.github+json',
+        'Authorization': 'Bearer ' + token
+    }, opts.headers || {});
+    const res = await fetch(base + path, Object.assign({}, opts, { headers }));
+    if (res.status === 401 || res.status === 403) {
+        throw new Error('Token do GitHub inválido ou sem permissão. Gere um fine-grained token com "Contents: Read and write".');
+    }
+    if (res.status === 404) return null;
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data && data.message ? `GitHub: ${data.message}` : `Erro ${res.status} no GitHub.`);
+    }
+    return res.json();
+}
+
+function decodeBase64Utf8(b64) {
+    try {
+        const bin = atob(b64 || '');
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new TextDecoder('utf-8').decode(bytes);
+    } catch (e) {
+        try { return decodeURIComponent(Array.prototype.map.call(atob(b64), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')); }
+        catch (e2) { return ''; }
+    }
+}
+
+async function ghFetchProductsFile() {
+    const rawUrl = (window.FG_CONFIG && window.FG_CONFIG.gitHubRawMenu) || '';
+    // Com token, usa a Contents API (dados sempre atualizados). Sem token, usa raw.
+    if (ghToken()) {
+        const data = await ghApi('/contents/' + encodeURIComponent(gitHubFile()) + '?ref=' + encodeURIComponent(gitHubRepoConfig().branch));
+        if (!data || !data.content) return null;
+        try {
+            return JSON.parse(decodeBase64Utf8(data.content));
+        } catch (e) {
+            return null;
+        }
+    }
+    if (rawUrl) {
+        const res = await fetch(rawUrl);
+        if (!res.ok) return null;
+        return res.json().catch(() => null);
+    }
+    return null;
+}
+
+async function ghUploadImage(name, base64) {
+    const data = await ghApi('/contents/' + encodeURIComponent('images/' + name), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: `Imagem: ${name}`,
+            content: base64,
+            branch: gitHubRepoConfig().branch
+        })
+    });
+    return 'images/' + name;
+}
+
+async function ghWriteProductsFile(content) {
+    const path = gitHubFile();
+    const existing = await ghApi('/contents/' + encodeURIComponent(path) + '?ref=' + encodeURIComponent(gitHubRepoConfig().branch));
+    const body = {
+        message: `Cardápio publicado em ${new Date().toLocaleString('pt-BR')}`,
+        content: btoa(unescape(encodeURIComponent(content))),
+        branch: gitHubRepoConfig().branch
+    };
+    if (existing && existing.sha) body.sha = existing.sha;
+    await ghApi('/contents/' + encodeURIComponent(path), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+}
+
+function slugify(str) {
+    return String(str || '')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 60) || 'produto';
+}
+
+function getPendingImages() {
+    return readJSON(GITHUB_PENDING_IMAGES_KEY, {});
+}
+
+function setPendingImages(map) {
+    writeJSON(GITHUB_PENDING_IMAGES_KEY, map || {});
+}
+
+// Coloca uma imagem (blob/arquivo) na fila de publicação do GitHub,
+// otimizando para webp. Retorna o caminho images/<nome>.
+async function queueImageBlob(blob, ct, nameHint) {
+    let name;
+    let finalBase64;
+    if (ct === 'image/gif') {
+        const reader = new FileReader();
+        finalBase64 = await new Promise((resolve, reject) => {
+            reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+        name = `${slugify(nameHint)}_${Date.now()}.gif`;
+    } else {
+        const file = new File([blob], 'img', { type: ct });
+        const opt = await optimizeImage(file);
+        if (!opt || !opt.webp || !opt.base64) throw new Error('Não foi possível converter a imagem.');
+        finalBase64 = opt.base64;
+        name = `${slugify(nameHint)}-${Date.now()}.webp`;
+    }
+    const pending = getPendingImages();
+    pending[name] = finalBase64;
+    setPendingImages(pending);
+    return 'images/' + name;
+}
+
+// Baixa uma imagem externa (https://...) e otimiza para webp, deixando-a
+// na fila de publicação para ser enviada ao repositório em "Publicar no GitHub".
+async function downloadExternalImage(url) {
+    const nameHint = document.getElementById('pfName') ? document.getElementById('pfName').value.trim() : '';
+    try {
+        const res = await fetch(url, { mode: 'cors' });
+        if (!res.ok) throw new Error('Falha ao baixar (' + res.status + ').');
+        const ct = res.headers.get('content-type') || '';
+        if (!ct.startsWith('image/')) throw new Error('O link não aponta para uma imagem.');
+        const blob = await res.blob();
+        return await queueImageBlob(blob, ct, nameHint);
+    } catch (e) {
+        const msg = (e && e.message) || 'Erro';
+        throw new Error('Não consegui baixar a imagem. ' + msg + ' Alguns servidores bloqueiam o download (CORS); nesse caso, use a imagem como link externo.');
+    }
+}
+
+// Publica o cardápio atual no repositório: primeiro as imagens pendentes,
+// depois o data/products.json.
+async function publicarGitHub() {
+    const repo = gitHubRepoConfig();
+    if (!repo) return showToast('⚠️ Repositório não configurado em config.js.');
+    if (!ghToken()) return showToast('⚠️ Configure o token do GitHub na aba "Senha".');
+    const btn = document.getElementById('btnPublicarGitHub');
+    if (btn) { btn.disabled = true; const orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Publicando…'; }
+
+    try {
+        const items = await getMenuItems();
+        const pending = getPendingImages();
+        const pendingNames = Object.keys(pending);
+
+        // 1) Envia as imagens pendentes
+        for (let i = 0; i < pendingNames.length; i++) {
+            const name = pendingNames[i];
+            const url = await ghUploadImage(name, pending[name]);
+            // Se algum produto já referenciar images/<name>, está resolvido.
+            items.forEach(p => { if (p.image && p.image.indexOf('images/' + name) !== -1) p.image = url; });
+        }
+
+        // 2) Gera o products.json e publica
+        const payload = {
+            ok: true,
+            updatedAt: new Date().toISOString(),
+            items: items.map(p => ({
+                id: p.id,
+                name: p.name,
+                category: p.category || 'fritos',
+                price: parseFloat(p.price) || 0,
+                units: parseInt(p.units, 10) || 1,
+                desc: p.desc || p.description || '',
+                image: (p.image || '').replace(/^\.\.\//, ''),
+                active: p.active !== false,
+                ordem: items.indexOf(p)
+            }))
+        };
+        const content = JSON.stringify(payload, null, 2);
+        await ghWriteProductsFile(content);
+
+        // 3) Limpa imagens pendentes e edições locais já publicadas,
+        // fazendo do products.json (repo) a fonte oficial.
+        setPendingImages({});
+        const saved = readJSON(SITE_KEY, {});
+        if (saved.products) { saved.products = {}; writeJSON(SITE_KEY, saved); }
+        itemsLoaded = false;
+        await refreshProducts();
+
+        const updated = document.getElementById('ghLastPublished');
+        if (updated) updated.textContent = new Date().toLocaleString('pt-BR');
+        showToast('✅ Cardápio publicado no GitHub!');
+    } catch (e) {
+        showToast('⚠️ ' + (e && e.message ? e.message : 'Falha ao publicar.'));
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-github me-1"></i> Publicar no GitHub'; }
+    }
 }
 
 function showToast(message) {
@@ -180,6 +414,7 @@ function logout() {
 function showPanel() {
     document.getElementById('loginScreen').classList.add('d-none');
     document.getElementById('panelScreen').classList.remove('d-none');
+    refreshGithubTokenUI();
     refreshProducts();
     renderOrders();
     renderMovements();
@@ -187,11 +422,25 @@ function showPanel() {
     checkDbHealth();
 }
 
-// Verifica a saúde do banco e mostra badge no header
+// Verifica a fonte do banco (GitHub products.json) e mostra badge no header
 async function checkDbHealth() {
     const badge = document.getElementById('dbStatusBadge');
     if (!badge) return;
     try {
+        if (gitHubRepoConfig()) {
+            if (ghToken()) {
+                const remote = await ghFetchProductsFile();
+                const qtd = remote && Array.isArray(remote.items) ? remote.items.length : 0;
+                badge.className = 'badge bg-success rounded-pill ms-2';
+                badge.innerHTML = `<i class="fa-brands fa-github me-1"></i>GitHub • ${qtd} produtos`;
+                badge.title = 'Cardápio publicado no repositório ' + gitHubRepoConfig().owner + '/' + gitHubRepoConfig().repo;
+            } else {
+                badge.className = 'badge bg-warning text-dark rounded-pill ms-2';
+                badge.innerHTML = '<i class="fa-brands fa-github me-1"></i>GitHub • sem token';
+                badge.title = 'Configure o token na aba "Senha" para publicar o cardápio.';
+            }
+            return;
+        }
         const data = await apiReq('/admin/db-health');
         badge.className = 'badge bg-success rounded-pill ms-2';
         badge.innerHTML = `<i class="fa-solid fa-database me-1"></i>MySQL • ${data.produtos} produtos`;
@@ -204,7 +453,7 @@ async function checkDbHealth() {
             badge.title = 'API offline — usando dados do navegador';
         } else {
             badge.className = 'badge bg-danger rounded-pill ms-2';
-            badge.innerHTML = '<i class="fa-solid fa-xmark me-1"></i>Erro de Banco';
+            badge.innerHTML = '<i class="fa-solid fa-xmark me-1"></i>Erro de Conexão';
             badge.title = e.message;
         }
     }
@@ -313,11 +562,25 @@ let itemsLoaded = false;
 
 async function getMenuItems() {
     if (!itemsLoaded) {
+        // 1) Fonte principal: products.json publicado no GitHub
+        if (gitHubRepoConfig()) {
+            try {
+                const remote = await ghFetchProductsFile();
+                if (remote && Array.isArray(remote.items) && remote.items.length) {
+                    itemsCache = loadLocalItems(remote.items.map(normalizeMenuItem));
+                    itemsLoaded = true;
+                    REPO_MODE = true;
+                    return itemsCache;
+                }
+            } catch (e) { /* sem token/rede: segue para local */ }
+        }
+
+        // 2) Fallback: backend antigo (só em dev local), senão modo local
         if (LOCAL_MODE) {
             try {
                 itemsCache = loadLocalItems();
             } catch (e) {
-                itemsCache = (window.fgMenuItems || []).map(i => Object.assign({}, i, { desc: i.desc || i.description, active: i.active !== false }));
+                itemsCache = loadLocalItems();
             }
             itemsLoaded = true;
             return itemsCache;
@@ -330,7 +593,6 @@ async function getMenuItems() {
             if (isConnectionError(e)) {
                 LOCAL_MODE = true;
                 itemsCache = loadLocalItems();
-                showToast('⚠️ API indisponível — usando dados locais (salvos no navegador).');
             } else {
                 throw e;
             }
@@ -500,9 +762,12 @@ async function openProductForm(id) {
                 <input type="text" id="pfDesc" class="form-control rounded-3" value="${p ? esc(p.desc || '') : ''}">
             </div>
             <div class="col-md-6">
-                <label class="form-label small fw-bold text-muted text-uppercase">Foto (URL webp)</label>
-                <input type="text" id="pfImage" class="form-control rounded-3" value="${p ? esc(p.image || '') : ''}" placeholder="./images/produto.webp" oninput="updatePfPreview(this.value)">
-                <small class="text-muted">Ou escolha uma das fotos do cardápio abaixo.</small>
+                <label class="form-label small fw-bold text-muted text-uppercase">Imagem (URL externa ou local)</label>
+                <div class="input-group">
+                    <input type="text" id="pfImage" class="form-control rounded-start-3" value="${p ? esc(p.image || '') : ''}" placeholder="https://site.com/foto.webp ou ./images/produto.webp" oninput="updatePfPreview(this.value)">
+                    <button class="btn btn-outline-warning" type="button" title="Baixar a imagem para o repositório do site" onclick="baixarImagemClick()"><i class="fa-solid fa-download me-1"></i>Baixar p/ o site</button>
+                </div>
+                <small class="text-muted">Cole o link de uma imagem da internet <b>ou</b> clique em "Baixar p/ o site" para copiá-la para o cardápio (foto publicada no repositório). Também pode usar as fotos do cardápio abaixo.</small>
             </div>
             <div class="col-md-6">
                 <label class="form-label small fw-bold text-muted text-uppercase">Fotos do cardápio (webp)</label>
@@ -528,7 +793,7 @@ async function openProductForm(id) {
             <div class="col-12 ${previewSrc ? '' : 'd-none'}" id="pfPreviewWrap">
                 <label class="form-label small fw-bold text-muted text-uppercase">Pré-visualização</label>
                 <div>
-                    <img id="pfPreview" src="${previewSrc}" alt="Pré-visualização" class="img-thumbnail" style="max-height: 160px; max-width: 220px; object-fit: cover;">
+                    <img id="pfPreview" src="${previewSrc}" alt="Pré-visualização" class="img-thumbnail" style="max-height: 160px; max-width: 220px; object-fit: cover;" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x200?text=Imagem+Indisponivel'">
                 </div>
             </div>
             <div class="col-12 d-flex gap-2">
@@ -545,10 +810,30 @@ function updatePfPreview(url) {
     if (!img || !wrap) return;
     const v = String(url || '').trim();
     if (v) {
+        img.onerror = null;
         img.src = v;
         wrap.classList.remove('d-none');
     } else {
         wrap.classList.add('d-none');
+    }
+}
+
+async function baixarImagemClick() {
+    const input = document.getElementById('pfImage');
+    if (!input) return;
+    const url = String(input.value || '').trim();
+    if (!url) return showToast('⚠️ Cole a URL da imagem no campo acima primeiro.');
+    if (!/^https?:\/\//i.test(url)) return showToast('⚠️ Use uma URL externa (https://...) de imagem.');
+    input.disabled = true;
+    try {
+        const path = await downloadExternalImage(url);
+        input.value = path;
+        updatePfPreview(path);
+        showToast('✅ Imagem baixada e otimizada! Ela será publicada no repositório ao clicar em "Publicar no GitHub".');
+    } catch (e) {
+        showToast('⚠️ ' + (e && e.message ? e.message : 'Falha ao baixar a imagem.'));
+    } finally {
+        input.disabled = false;
     }
 }
 
@@ -656,10 +941,10 @@ async function saveProductForm(id) {
 
     if (file) {
         try {
-            showToast('Enviando imagem…');
-            image = await uploadImage(file);
+            showToast('Otimizando imagem…');
+            image = await queueImageBlob(file, file.type || mimeFromName(file.name), name);
         } catch (e) {
-            showToast('⚠️ ' + e.message);
+            showToast('⚠️ ' + (e && e.message ? e.message : 'Falha ao processar a imagem.'));
             return;
         }
     }
@@ -722,6 +1007,31 @@ async function saveProductForm(id) {
         }
         showToast('⚠️ ' + e.message);
     }
+}
+
+function salvarGitHubToken() {
+    const input = document.getElementById('ghTokenInput');
+    const token = input ? String(input.value || '').trim() : '';
+    if (!token) return showToast('⚠️ Cole o token do GitHub.');
+    localStorage.setItem(GITHUB_TOKEN_KEY, token);
+    refreshGithubTokenUI();
+    showToast('✅ Token salvo no navegador!');
+}
+
+function limparGitHubToken() {
+    localStorage.removeItem(GITHUB_TOKEN_KEY);
+    refreshGithubTokenUI();
+    showToast('Token do GitHub removido.');
+}
+
+function refreshGithubTokenUI() {
+    const input = document.getElementById('ghTokenInput');
+    const ok = document.getElementById('ghTokenOk');
+    const no = document.getElementById('ghNoToken');
+    const has = !!ghToken();
+    if (input) input.value = has ? '************' : '';
+    if (ok) ok.classList.toggle('d-none', !has);
+    if (no) no.classList.toggle('d-none', has);
 }
 
 /* ---------------- COZINHA ---------------- */
