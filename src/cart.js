@@ -1,6 +1,5 @@
 import { showToast, setFieldState, formatBRL, esc, isValidName, isValidPhone, isValidCepFormat } from './utils.js';
-import { updateCartUI, getPixKey } from './ui.js';
-import { resetPixDinamico } from './api.js';
+import { updateCartUI } from './ui.js';
 
 export let menuItems = [];
 export let cart = [];
@@ -184,82 +183,87 @@ export function validateCheckout() {
 }
 
 let brickController = null;
+let mpClient = null;
+let mpBricks = null;
 
-export async function renderPaymentBrick(totalAmount, orderPayload) {
-    if (!window.MercadoPago) {
-        showToast("Erro: SDK do Mercado Pago não carregado.");
-        return;
-    }
-    const mp = new window.MercadoPago(window.MP_PUBLIC_KEY || window.FG_CONFIG?.mpPublicKey);
-    const bricksBuilder = mp.bricks();
-    
-    if (brickController) {
-        brickController.unmount();
-    }
-    
-    const settings = {
-        initialization: {
-            amount: totalAmount,
-        },
-        customization: {
-            visual: { style: { theme: 'default' } },
-            paymentMethods: {
-                creditCard: 'all',
-                pix: 'all'
-            },
-        },
-        callbacks: {
-            onReady: () => {
-                // Modal está pronto
-            },
-            onSubmit: ({ selectedPaymentMethod, formData }) => {
-                return new Promise((resolve, reject) => {
-                    const payload = {
-                        formData: formData,
-                        order: orderPayload,
-                        cart: cart
-                    };
-                    const apiBase = (window.FG_CONFIG && window.FG_CONFIG.pixApiUrl) || '/api';
-                    fetch(apiBase + '/checkout', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                    })
-                    .then((res) => res.json())
-                    .then((data) => {
-                        if (data.ok || data.success) {
-                            resolve();
-                            saveClientOrder(orderPayload);
-                            // Redireciona para o sucesso ou mostra status
-                            window.location.href = 'sucesso.html?payment_id=' + (data.paymentId || data.id || '');
-                        } else {
-                            reject();
-                            showToast(data.error || "Erro ao processar pagamento");
-                        }
-                    })
-                    .catch((error) => {
-                        reject();
-                        showToast("Falha na comunicação com o servidor.");
-                    });
-                });
-            },
-            onError: (error) => {
-                console.error(error);
-                showToast("Erro no formulário de pagamento.");
-            },
-        },
-    };
-    brickController = await bricksBuilder.create('payment', 'cardPaymentBrick_container', settings);
+function getMpPublicKey() {
+    if (window.MP_PUBLIC_KEY) return String(window.MP_PUBLIC_KEY).trim();
+    const cfg = window.FG_CONFIG || {};
+    return String(cfg.mpPublicKey || '').trim();
 }
 
-export function checkout() {
+function getCheckoutUrl() {
+    const cfg = window.FG_CONFIG || {};
+    const hosted = String(cfg.mpCheckoutUrl || '').trim();
+    if (hosted) return hosted;
+    const base = String(cfg.pixApiUrl || '').trim().replace(/\/+$/, '');
+    return base ? base + '/checkout' : '';
+}
+
+function loadMPScript() {
+    if (document.querySelector('script[src*="sdk.mercadopago.com"]') && typeof window.MercadoPago !== 'undefined') {
+        return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://sdk.mercadopago.com/js/v2';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Erro ao carregar o Mercado Pago.'));
+        document.head.appendChild(s);
+    });
+}
+
+function ensureMercadoPago() {
+    if (mpClient && mpBricks) return true;
+    const pubKey = getMpPublicKey();
+    if (!window.MercadoPago || !pubKey) return false;
+    try {
+        mpClient = new window.MercadoPago(pubKey);
+        mpBricks = mpClient.bricks();
+        return true;
+    } catch (e) {
+        console.error('[mp] erro ao iniciar MercadoPago:', e);
+        return false;
+    }
+}
+
+function unmountBrick() {
+    if (brickController) {
+        try { brickController.unmount(); } catch (e) { /* ignora */ }
+        brickController = null;
+    }
+}
+
+export async function checkout() {
     if (cart.length === 0) {
         showToast("Adicione pelo menos 1 salgado ao pedido!");
         return;
     }
+
+    const pubKey = getMpPublicKey();
+    const checkoutUrl = getCheckoutUrl();
+    if (!pubKey || !checkoutUrl) {
+        showToast("Pagamento temporariamente indisponível. Tente novamente mais tarde.");
+        return;
+    }
+
+    const btn = document.getElementById('btnFinalizar');
+    const origBtnHtml = btn.innerHTML;
+
+    // Carrega o SDK do Mercado Pago e inicia o brick
+    try {
+        await loadMPScript();
+    } catch (e) {
+        showToast(e.message || "Erro ao carregar sistema de pagamento. Tente novamente.");
+        return;
+    }
+    if (!ensureMercadoPago()) {
+        showToast("O sistema de pagamento ainda está carregando. Aguarde um momento e tente novamente.");
+        return;
+    }
+
     const name = document.getElementById('customerName').value.trim();
     const phone = document.getElementById('customerPhone').value.trim();
-
     if (!isValidName(name)) {
         showToast("Informe seu nome completo (nome e sobrenome).");
         setFieldState(document.getElementById('customerName'), 'invalid');
@@ -295,34 +299,156 @@ export function checkout() {
     }
 
     const currentFreight = isEntrega ? deliveryFee : 0;
-    let totalPrice = 0;
-    cart.forEach(item => {
-        totalPrice += item.price * item.quantity;
-    });
+    const total = Math.round((cart.reduce((s, it) => s + it.price * it.quantity, 0) + currentFreight) * 100) / 100;
 
-    const myOrder = {
-        id: 'c' + Date.now(),
-        numero: getClientOrders().reduce((m, o) => Math.max(m, o.numero || 0), 0) + 1,
-        cliente: name,
-        telefone: phone,
-        itens: cart.map(it => `${it.quantity}x ${it.name}`).join(', '),
-        total: totalPrice + currentFreight,
-        modo: isEntrega ? 'entrega' : 'retirada',
-        endereco: isEntrega ? `${document.getElementById('deliveryStreet').value}, ${document.getElementById('deliveryNumber').value}` : 'Retirada no Local',
-        status: 'pendente',
-        data: new Date().toISOString()
+    unmountBrick();
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Carregando Pagamento...';
+    btn.disabled = true;
+
+    const customer = {
+        customerName: name,
+        customerPhone: phone,
+        isEntrega: isEntrega,
+        deliveryFee: currentFreight,
+        deliveryAddress: isEntrega ? {
+            zipCode: document.getElementById('deliveryCep').value,
+            street: document.getElementById('deliveryStreet').value,
+            number: document.getElementById('deliveryNumber').value,
+            neighborhood: document.getElementById('deliveryNeighborhood').value,
+            city: document.getElementById('deliveryCity').value,
+            state: document.getElementById('deliveryState').value,
+            note: document.getElementById('deliveryNote').value
+        } : null
     };
 
-    // Abre o Modal e Renderiza o Brick
-    const modalEl = document.getElementById('paymentModal');
-    if (modalEl) {
-        // Usa a API do Bootstrap para abrir
-        const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
-        // Inicializa o Brick com o valor final
-        renderPaymentBrick(myOrder.total, myOrder);
-    } else {
-        showToast("Modal de pagamento não encontrado!");
+    const settings = {
+        initialization: {
+            amount: total,
+        },
+        customization: {
+            visual: {
+                font: 'Outfit',
+                style: {
+                    theme: 'default',
+                    customVariables: {
+                        baseColor: '#E11D48',
+                        baseColorFirstVariant: '#BE123C',
+                        baseColorSecondVariant: '#D97706',
+                        errorColor: '#E11D48',
+                        successColor: '#198754',
+                        outlinePrimaryColor: '#E11D48',
+                        textPrimaryColor: '#1a1a1a',
+                        textSecondaryColor: '#6b7280',
+                        buttonTextColor: '#ffffff',
+                        borderRadiusMedium: '20px',
+                        borderRadiusLarge: '30px',
+                        inputBorderWidth: '0px',
+                        inputBackgroundColor: '#f7f7f7',
+                        inputVerticalPadding: '12px',
+                        inputHorizontalPadding: '16px'
+                    }
+                },
+                texts: {
+                    formTitle: "Resumo do Pagamento",
+                    emailSectionTitle: "Dados para Recebimento",
+                    installmentsSectionTitle: "Parcelamento",
+                    cardholderName: { label: "Nome impresso no cartão", placeholder: "Ex: JOÃO DA SILVA" },
+                    selectInstallments: "Escolha o número de parcelas",
+                    formSubmit: "Confirmar Pagamento",
+                    paymentMethods: {
+                        creditCardTitle: "Cartão de Crédito",
+                        bankTransferTitle: "Pix"
+                    },
+                    ctaGeneralErrorLabel: "Tentar Novamente",
+                    ctaCardErrorLabel: "Revisar dados do cartão",
+                    ctaReturnLabel: "Voltar ao Carrinho"
+                }
+            },
+            paymentMethods: {
+                bankTransfer: "all",
+                creditCard: "all",
+                debitCard: "all",
+                mercadoPago: "all"
+            },
+        },
+        callbacks: {
+            onReady: () => {
+                btn.style.display = 'none';
+            },
+            onSubmit: ({ selectedPaymentMethod, formData }) => {
+                return new Promise((resolve, reject) => {
+                    fetch(checkoutUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            formData: formData,
+                            cart: cart,
+                            customer: customer
+                        }),
+                    })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        if (data && data.success) {
+                            if (data.qr_code_base64) sessionStorage.setItem('pix_qr_code', data.qr_code_base64);
+                            if (data.qr_code) sessionStorage.setItem('pix_copy_paste', data.qr_code);
+                            if (data.payment_id) sessionStorage.setItem('fg_payment_id', String(data.payment_id));
+
+                            const myOrder = {
+                                id: 'c' + (data.payment_id || Date.now()),
+                                numero: getClientOrders().reduce((m, o) => Math.max(m, o.numero || 0), 0) + 1,
+                                cliente: name,
+                                telefone: phone,
+                                itens: cart.map(it => `${it.quantity}x ${it.name}`).join(', '),
+                                total: total,
+                                modo: isEntrega ? 'entrega' : 'retirada',
+                                endereco: isEntrega ? `${document.getElementById('deliveryStreet').value}, ${document.getElementById('deliveryNumber').value}` : 'Retirada no Local',
+                                pagamento: "Mercado Pago",
+                                status: 'pago',
+                                data: new Date().toISOString()
+                            };
+                            saveClientOrder(myOrder);
+
+                            resolve(data.full_response || data);
+
+                            const detail = data.full_response && data.full_response.status_detail;
+                            if (detail === 'pending_challenge') {
+                                return;
+                            }
+                            cart = [];
+                            updateCartUI();
+                            setTimeout(() => {
+                                window.location.href = 'sucesso.html?payment_id=' + encodeURIComponent(data.payment_id || '');
+                            }, 1000);
+                        } else {
+                            reject();
+                            showToast((data && data.error) || "Erro ao processar pagamento. Tente novamente.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('[checkout] erro:', error);
+                        reject();
+                        showToast("Erro ao processar pagamento. Verifique sua conexão e tente novamente.");
+                    });
+                });
+            },
+            onError: (error) => {
+                console.error(error);
+                showToast("Erro no formulário de pagamento.");
+                btn.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = origBtnHtml;
+            },
+        },
+    };
+
+    try {
+        brickController = await mpBricks.create('payment', 'paymentBrick_container', settings);
+    } catch (e) {
+        console.error('[checkout] erro ao criar brick:', e);
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = origBtnHtml;
+        showToast("Erro ao carregar pagamento. Tente novamente.");
     }
 }
 

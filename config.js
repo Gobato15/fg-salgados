@@ -16,6 +16,7 @@
 
     window.FG_CONFIG = {
         pixApiUrl: isLocal ? 'http://localhost:3000/api' : '',
+        mpCheckoutUrl: 'https://agsdelivery.com.br/checkout_transparente.php',
         gitHubRepo: {
             owner: 'Gobato15',
             repo: 'fg-salgados',

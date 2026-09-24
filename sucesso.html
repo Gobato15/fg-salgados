@@ -116,7 +116,25 @@
         const paymentId = urlParams.get('payment_id');
         if (paymentId) {
             document.getElementById('successTitle').innerText = 'Pagamento Aprovado! 🎉';
-            document.getElementById('successDesc').innerHTML = `Seu pedido foi pago via Mercado Pago (ID: <b>${paymentId}</b>). Já estamos preparando tudo!`;
+            document.getElementById('successDesc').innerHTML = `Seu pedido foi processado via Mercado Pago (ID: <b>${paymentId}</b>). Já estamos preparando tudo!`;
+        }
+
+        const qrBase64 = sessionStorage.getItem('pix_qr_code');
+        const copyPaste = sessionStorage.getItem('pix_copy_paste');
+        if (qrBase64 || copyPaste) {
+            document.getElementById('successTitle').innerText = 'PIX Gerado!';
+            document.getElementById('successDesc').innerHTML = `
+                Escaneie o QR Code abaixo ou copie a chave para pagar e finalizar seu pedido.<br><br>
+                ${qrBase64 ? \`<img src="data:image/png;base64,${qrBase64}" width="180" height="180" style="border-radius:12px; border:1px solid #E5D8CA; padding:5px; background:white; margin-bottom:15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);"><br>\` : ''}
+                ${copyPaste ? \`
+                <div class="input-group mt-2">
+                    <input type="text" class="form-control text-center bg-light fw-bold text-muted border-end-0" id="pixCode" value="${copyPaste}" readonly style="font-size: 0.85rem;">
+                    <button class="btn btn-amber fw-bold border-start-0" type="button" onclick="navigator.clipboard.writeText('${copyPaste}'); alert('Chave PIX copiada!')"><i class="fa-solid fa-copy"></i> Copiar</button>
+                </div>
+                \` : ''}
+            `;
+            sessionStorage.removeItem('pix_qr_code');
+            sessionStorage.removeItem('pix_copy_paste');
         }
         
         try {
