@@ -1,4 +1,4 @@
-﻿const CACHE = 'fg-salgados-v48';
+﻿const CACHE = 'fg-salgados-v49';
 const REMOTE_CACHE = 'fg-salgados-remote-v1';
 const CORE = [
     './',
