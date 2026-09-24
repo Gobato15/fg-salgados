@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "updatedAt": "2026-09-24T19:29:35.170Z",
+  "updatedAt": "2026-09-24T19:32:03.784Z",
   "items": [
     {
       "id": "1",
@@ -119,7 +119,7 @@
       "price": 10,
       "units": 1,
       "desc": "Torta de frango com massa caseira derretendo na boca.",
-      "image": "images/ags_torta_frango.webp",
+      "image": "images/torta_de_frango_caseira-1790278317175.webp",
       "active": true,
       "ordem": 10
     }
