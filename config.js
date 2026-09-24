@@ -24,4 +24,7 @@
         gitHubFile: 'data/products.json',
         gitHubRawMenu: 'https://raw.githubusercontent.com/Gobato15/fg-salgados/main/data/products.json'
     };
+
+    // Chave pública do Mercado Pago para o Checkout Transparente
+    window.MP_PUBLIC_KEY = 'APP_USR-ccddbea8-7479-47a1-892b-3b74ca21fc89';
 })();

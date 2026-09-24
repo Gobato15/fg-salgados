@@ -183,6 +183,75 @@ export function validateCheckout() {
     return allOk;
 }
 
+let brickController = null;
+
+export async function renderPaymentBrick(totalAmount, orderPayload) {
+    if (!window.MercadoPago) {
+        showToast("Erro: SDK do Mercado Pago não carregado.");
+        return;
+    }
+    const mp = new window.MercadoPago(window.MP_PUBLIC_KEY || window.FG_CONFIG?.mpPublicKey);
+    const bricksBuilder = mp.bricks();
+    
+    if (brickController) {
+        brickController.unmount();
+    }
+    
+    const settings = {
+        initialization: {
+            amount: totalAmount,
+        },
+        customization: {
+            visual: { style: { theme: 'default' } },
+            paymentMethods: {
+                creditCard: 'all',
+                pix: 'all'
+            },
+        },
+        callbacks: {
+            onReady: () => {
+                // Modal está pronto
+            },
+            onSubmit: ({ selectedPaymentMethod, formData }) => {
+                return new Promise((resolve, reject) => {
+                    const payload = {
+                        formData: formData,
+                        order: orderPayload,
+                        cart: cart
+                    };
+                    const apiBase = (window.FG_CONFIG && window.FG_CONFIG.pixApiUrl) || '/api';
+                    fetch(apiBase + '/checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        if (data.ok || data.success) {
+                            resolve();
+                            saveClientOrder(orderPayload);
+                            // Redireciona para o sucesso ou mostra status
+                            window.location.href = 'sucesso.html?payment_id=' + (data.paymentId || data.id || '');
+                        } else {
+                            reject();
+                            showToast(data.error || "Erro ao processar pagamento");
+                        }
+                    })
+                    .catch((error) => {
+                        reject();
+                        showToast("Falha na comunicação com o servidor.");
+                    });
+                });
+            },
+            onError: (error) => {
+                console.error(error);
+                showToast("Erro no formulário de pagamento.");
+            },
+        },
+    };
+    brickController = await bricksBuilder.create('payment', 'cardPaymentBrick_container', settings);
+}
+
 export function checkout() {
     if (cart.length === 0) {
         showToast("Adicione pelo menos 1 salgado ao pedido!");
@@ -203,7 +272,6 @@ export function checkout() {
     }
 
     const isEntrega = document.getElementById('modeEntrega').checked;
-
     if (isEntrega) {
         const cepEl = document.getElementById('deliveryCep');
         const cityEl = document.getElementById('deliveryCity');
@@ -226,85 +294,36 @@ export function checkout() {
         }
     }
 
-    const confirmEl = document.getElementById('confirmDados');
-    if (confirmEl && !confirmEl.checked) {
-        showToast("Marque a confirmação de que seus dados estão corretos.");
-        confirmEl.classList.add('is-invalid');
-        return;
-    }
-
     const currentFreight = isEntrega ? deliveryFee : 0;
-
-    let text = "👋 *Olá! Gostaria de fazer um pedido de Salgados Congelados FG Salgados:*\n\n";
-
-    let totalUnits = 0;
     let totalPrice = 0;
-
     cart.forEach(item => {
-        const prod = menuItems.find(p => p.id === item.id) || {};
-        const units = prod.units || 1;
-        const itemTotal = item.price * item.quantity;
-        totalUnits += item.quantity * units;
-        totalPrice += itemTotal;
-        const qtdText = units === 1 ? `${item.quantity}x` : `${item.quantity}x (${item.quantity * units}un)`;
-        text += `▪️ *${qtdText} ${item.name}* -> ${formatBRL(itemTotal)}\n`;
+        totalPrice += item.price * item.quantity;
     });
-
-    text += `\n📦 *Total de Salgados:* ${totalUnits}`;
-    if (isEntrega) {
-        text += `\n🚚 *Taxa de Entrega:* ${formatBRL(currentFreight)} (${deliveryDistance.toFixed(1)}km)`;
-    } else {
-        text += `\n🏪 *Retirada no Local* (sem taxa de entrega)`;
-    }
-    text += `\n💰 *Valor Total:* ${formatBRL(totalPrice + currentFreight)}`;
-
-    const payPix = document.getElementById('payPix') ? document.getElementById('payPix').checked : true;
-    if (payPix) {
-        text += `\n💳 *Pagamento:* PIX (chave: ${getPixKey()})`;
-    } else {
-        text += `\n💵 *Pagamento:* No local (dinheiro ou PIX)`;
-    }
-
-    text += `\n\n👤 *Nome:* ${name}`;
-    text += `\n📱 *Telefone:* ${phone}`;
-
-    if (isEntrega) {
-        const rua = document.getElementById('deliveryStreet').value;
-        const num = document.getElementById('deliveryNumber').value;
-        const note = document.getElementById('deliveryNote').value;
-        const cidade = document.getElementById('deliveryCity').value;
-        text += `\n📍 *Endereço de Entrega:* ${rua}, ${num}${note ? ' — ' + note : ''}${cidade ? ' (' + cidade + ')' : ''}`;
-    }
-
-    text += `\n\nPodemos combinar a entrega/retirada?`;
 
     const myOrder = {
         id: 'c' + Date.now(),
         numero: getClientOrders().reduce((m, o) => Math.max(m, o.numero || 0), 0) + 1,
         cliente: name,
         telefone: phone,
-        itens: cart.map(it => {
-            const prod = menuItems.find(p => p.id === it.id) || {};
-            const units = prod.units || 1;
-            return units === 1 ? `${it.quantity}x ${it.name}` : `${it.quantity}x ${it.name} (${it.quantity * units}un)`;
-        }).join(', '),
+        itens: cart.map(it => `${it.quantity}x ${it.name}`).join(', '),
         total: totalPrice + currentFreight,
         modo: isEntrega ? 'entrega' : 'retirada',
-        pagamento: payPix ? 'PIX' : 'No local',
-        endereco: isEntrega ? `${document.getElementById('deliveryStreet').value}, ${document.getElementById('deliveryNumber').value}${document.getElementById('deliveryCity').value ? ' (' + document.getElementById('deliveryCity').value + ')' : ''}` : '',
+        endereco: isEntrega ? `${document.getElementById('deliveryStreet').value}, ${document.getElementById('deliveryNumber').value}` : 'Retirada no Local',
         status: 'pendente',
         data: new Date().toISOString()
     };
-    saveClientOrder(myOrder);
 
-    // Dynamic import to avoid circular dependency for getWhatsNumber/generateWhatsLink
-    import('./ui.js').then(module => {
-        window.open(module.generateWhatsLink(text), "_blank", "noopener,noreferrer");
-        showToast("Abrindo WhatsApp com seu pedido!");
-        setTimeout(() => {
-            window.location.href = 'sucesso.html';
-        }, 1500);
-    });
+    // Abre o Modal e Renderiza o Brick
+    const modalEl = document.getElementById('paymentModal');
+    if (modalEl) {
+        // Usa a API do Bootstrap para abrir
+        const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+        // Inicializa o Brick com o valor final
+        renderPaymentBrick(myOrder.total, myOrder);
+    } else {
+        showToast("Modal de pagamento não encontrado!");
+    }
 }
 
 export function getClientOrders() {

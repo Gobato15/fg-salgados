@@ -522,6 +522,65 @@ app.post('/api/pix', async (req, res) => {
     }
 });
 
+// Checkout Transparente (Pix e Cartão via Brick)
+app.post('/api/checkout', async (req, res) => {
+    if (!configured) {
+        return res.status(503).json({ error: 'Backend de pagamento ainda não configurado. Defina MP_ACCESS_TOKEN.' });
+    }
+    if (rateLimit(`checkout:${clientIp(req)}`, 15, 60 * 1000)) {
+        return res.status(429).json({ error: 'Muitas tentativas. Aguarde um instante e tente de novo.' });
+    }
+
+    const { formData, order } = req.body;
+    if (!formData || !order) return res.status(400).json({ error: 'Dados inválidos' });
+
+    const externalReference = `FG-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+    const paymentData = {
+        transaction_amount: Number(formData.transaction_amount),
+        token: formData.token,
+        description: 'Pedido FG Salgados',
+        installments: Number(formData.installments),
+        payment_method_id: formData.payment_method_id,
+        issuer_id: formData.issuer_id,
+        payer: {
+            email: formData.payer.email,
+            identification: formData.payer.identification
+        },
+        external_reference: externalReference,
+        notification_url: PUBLIC_URL ? `${PUBLIC_URL}/api/webhook?secret_source=mp` : 'https://fgsalgados.com.br/api/webhook'
+    };
+
+    try {
+        const response = await fetch(`${MP_API}/v1/payments`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json',
+                'X-Idempotency-Key': crypto.randomUUID(),
+            },
+            body: JSON.stringify(paymentData),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            return res.status(502).json({ error: data.message || 'Erro ao processar pagamento no Mercado Pago' });
+        }
+
+        return res.json({
+            ok: true,
+            id: data.id,
+            status: data.status,
+            status_detail: data.status_detail,
+            qr_code: data.point_of_interaction?.transaction_data?.qr_code || null,
+            qr_code_base64: data.point_of_interaction?.transaction_data?.qr_code_base64 || null
+        });
+    } catch (e) {
+        console.error('[checkout] erro:', e.message);
+        return res.status(502).json({ error: 'Falha ao conectar com Mercado Pago' });
+    }
+});
+
 // Consulta o status de um pagamento (usado pelo site no polling).
 app.get('/api/pix/:paymentId', async (req, res) => {
     if (!configured) {
