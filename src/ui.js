@@ -352,7 +352,7 @@ export function renderMyOrders() {
     list.innerHTML = orders.map(o => `
         <div class="bg-white border rounded-4 p-3 shadow-sm">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <span class="fw-bold">Pedido #${o.numero}</span>
+                <span class="fw-bold">Pedido #${o.numero} <small class="text-muted ms-1">(ID: ${o.id.replace('c', '')})</small></span>
                 <span class="badge rounded-pill ${o.status === 'pendente' ? 'text-bg-warning' : o.status === 'entregue' ? 'text-bg-success' : 'text-bg-info'}">${formatOrderStatus(o.status)}</span>
             </div>
             <div class="small text-muted mb-2">${formatOrderDate(o.data)}</div>
