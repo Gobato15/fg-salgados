@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "updatedAt": "2026-09-25T09:34:20.557Z",
+  "updatedAt": "2026-09-25T10:39:24.147Z",
   "items": [
     {
       "id": "1",
@@ -131,7 +131,7 @@
       "units": 1,
       "desc": "Coxinha teste",
       "image": "images/teste-1790290132671.webp",
-      "active": true,
+      "active": false,
       "ordem": 11
     }
   ]
