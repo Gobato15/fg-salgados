@@ -134,6 +134,7 @@
 
 </div>
 
+<script src="config.js"></script>
 <script>
     function copyPix() {
         const code = document.getElementById('pixCode').innerText.trim();
@@ -180,15 +181,16 @@
 
     function pollPaymentStatus(paymentId) {
         let attempt = 0;
+        const apiBase = (window.FG_CONFIG && window.FG_CONFIG.pixApiUrl) || '/api';
 
         function check() {
             attempt++;
             const delay = attempt <= 3 ? 2000 : (attempt <= 8 ? 3000 : 5000);
             setTimeout(async () => {
                 try {
-                    const r = await fetch('https://agsdelivery.com.br/check.php?id=' + encodeURIComponent(paymentId));
+                    const r = await fetch(apiBase + '/pix/' + encodeURIComponent(paymentId));
                     const d = await r.json();
-                    if (d && (d.status === 'approved' || d.status === 'pago')) {
+                    if (d && (d.approved || d.status === 'approved' || d.status === 'pago')) {
                         showApproved();
                         return;
                     }
