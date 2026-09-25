@@ -246,14 +246,16 @@ async function createPixPayment({ amount, label, items, externalReference }) {
         transaction_amount: amount,
         description: label,
         payment_method_id: 'pix',
-        notification_url: PUBLIC_URL
-            ? `${PUBLIC_URL}/api/webhook?secret_source=mp`
-            : '',
+        notification_url: 'https://agsdelivery.com.br/webhook.php',
         payer: {
             email: 'pix@fgsalgados.com.br', // e-mail de referência do pagamento
             identification: { type: 'none', number: '00000000000' },
         },
         external_reference: externalReference,
+        metadata: {
+            customer_name: label.replace('Pedido FG Salgados - ', ''),
+            loja: 'fg_salgados'
+        },
         additional_info: {
             items: items.map((i) => ({
                 id: sanitizeText(i.id || i.name, 40),
@@ -548,10 +550,33 @@ app.post('/api/checkout', async (req, res) => {
         return res.status(429).json({ error: 'Muitas tentativas. Aguarde um instante e tente de novo.' });
     }
 
-    const { formData, order } = req.body;
-    if (!formData || !order) return res.status(400).json({ error: 'Dados inválidos' });
+    const { formData, cart, customer, order } = req.body;
+    if (!formData) return res.status(400).json({ error: 'Dados inválidos' });
 
     const externalReference = `FG-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+    const metadata = { loja: 'fg_salgados' };
+    const additional_info = { items: [] };
+
+    if (customer) {
+        metadata.customer_name = customer.customerName || 'Cliente';
+        metadata.customer_phone = customer.customerPhone || 'Nao informado';
+        metadata.delivery_address = customer.deliveryAddress ? `${customer.deliveryAddress.street}, ${customer.deliveryAddress.number}` : 'Retirada';
+    } else if (order) {
+        metadata.customer_name = order.cliente || 'Cliente';
+        metadata.customer_phone = order.telefone || 'Nao informado';
+        metadata.delivery_address = order.endereco || 'Retirada';
+    }
+
+    const itemsSource = cart || (order && order.cart) || [];
+    if (Array.isArray(itemsSource)) {
+        additional_info.items = itemsSource.map(i => ({
+            id: String(i.id),
+            title: String(i.name).substring(0, 80),
+            quantity: Number(i.quantity) || 1,
+            unit_price: Number(i.price) || 0
+        }));
+    }
 
     const paymentData = {
         transaction_amount: Number(formData.transaction_amount),
@@ -565,7 +590,9 @@ app.post('/api/checkout', async (req, res) => {
             identification: formData.payer.identification
         },
         external_reference: externalReference,
-        notification_url: PUBLIC_URL ? `${PUBLIC_URL}/api/webhook?secret_source=mp` : 'https://fgsalgados.com.br/api/webhook'
+        notification_url: 'https://agsdelivery.com.br/webhook.php',
+        metadata: metadata,
+        additional_info: additional_info
     };
 
     try {
