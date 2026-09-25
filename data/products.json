@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "updatedAt": "2026-09-24T22:52:59.232Z",
+  "updatedAt": "2026-09-25T09:27:40.237Z",
   "items": [
     {
       "id": "1",
@@ -113,17 +113,6 @@
       "ordem": 9
     },
     {
-      "id": "p17",
-      "name": "Torta de Frango Caseira",
-      "category": "assados",
-      "price": 10,
-      "units": 1,
-      "desc": "Torta de frango com massa caseira derretendo na boca.",
-      "image": "images/torta_de_frango_caseira-1790278317175.webp",
-      "active": true,
-      "ordem": 10
-    },
-    {
       "id": "p1790278934096",
       "name": "Torta de Frango Caseira Sardinha",
       "category": "assados",
@@ -131,6 +120,17 @@
       "units": 1,
       "desc": "Torta de sardinha com massa caseira derretendo na boca.",
       "image": "images/torta_de_frango_caseira_sardinha-1790278934095.webp",
+      "active": true,
+      "ordem": 10
+    },
+    {
+      "id": "p1790290132672",
+      "name": "Teste",
+      "category": "fritos",
+      "price": 0.5,
+      "units": 1,
+      "desc": "Coxinha teste",
+      "image": "images/teste-1790290132671.webp",
       "active": true,
       "ordem": 11
     }
