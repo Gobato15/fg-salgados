@@ -522,6 +522,23 @@ app.post('/api/pix', async (req, res) => {
     }
 });
 
+// Consulta o status de um pagamento (usado pela tela de sucesso)
+app.get('/api/pix/:paymentId', async (req, res) => {
+    if (!configured) return res.status(503).json({ error: 'Backend não configurado.' });
+    try {
+        const r = await fetch(`${MP_API}/v1/payments/${req.params.paymentId}`, {
+            headers: { 'Authorization': `Bearer ${MP_ACCESS_TOKEN}` }
+        });
+        const p = await r.json();
+        res.json({
+            status: p.status,
+            approved: p.status === 'approved'
+        });
+    } catch (e) {
+        res.status(502).json({ error: e.message });
+    }
+});
+
 // Checkout Transparente (Pix e Cartão via Brick)
 app.post('/api/checkout', async (req, res) => {
     if (!configured) {
